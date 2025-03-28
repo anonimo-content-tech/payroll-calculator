@@ -13,7 +13,7 @@ class Parameters:
     FIXED_FEE = 0.204
     
     # Excedente patrón
-    SURPLUS = 1.1
+    SURPLUS = 0.011
     
     def __init__(self):
         self.integration_factor = self.INTEGRATION_FACTOR

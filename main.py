@@ -1,4 +1,4 @@
-from src.IMSS import IMSS
+from src.imss import IMSS
 
 def main():
     print("=== IMSS Simulator ===")
@@ -38,6 +38,7 @@ def calculate_imss_quotas():
         print(f"Salario diario: ${imss.employee.calculate_salary_dialy():.2f}")
         print(f"Salario diario integrado: ${imss.get_integrated_daily_wage():.2f}")
         print(f"Cuota del patrón (Enfermedades y maternidad): ${imss.get_diseases_and_maternity_employer_quota():.2f}")
+        print(f"Excedente del patrón (Enfermedades y maternidad): ${imss.get_diseases_and_maternity_employer_surplus():.2f}")
     except ValueError:
         print("Please enter a valid number for salary")
 

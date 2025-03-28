@@ -11,6 +11,7 @@ class IMSS:
         self.vsdf = Parameters.VSDF
         self.contribution_ceiling = Parameters.CONTRIBUTION_CEILING
         self.surplus = Parameters.SURPLUS
+        self.tcf = Parameters.TCF
     
     def get_integration_factor(self):
         return self.integration_factor
@@ -39,7 +40,7 @@ class IMSS:
     # ENFERMEDADES Y MATERNIDAD EXCEDENTE DEL PATRÓN ------- Columna Inumero    
     def get_diseases_and_maternity_employer_surplus(self):
         salary_cap_25_smg = self.get_salary_cap_25_smg()
-        if salary_cap_25_smg > self.contribution_ceiling:
-            return ((salary_cap_25_smg - self.contribution_ceiling) * self.surplus) * self.days
+        if salary_cap_25_smg > self.tcf:
+            return ((salary_cap_25_smg - self.tcf) * self.surplus) * self.days
         else:
             return 0
