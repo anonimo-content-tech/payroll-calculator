@@ -7,23 +7,14 @@ def main():
 def display_menu():
     while True:
         print("\nMain Menu:")
-        print("1. View Patient Information")
-        print("2. View Medical Records")
-        print("3. View Appointments")
-        print("4. Calculate IMSS Quotas")
-        print("5. Exit")
+        print("1. Calculate IMSS Quotas")
+        print("2. Exit")
         
-        choice = input("\nSelect an option (1-5): ")
+        choice = input("\nSelect an option (1-2): ")
         
         if choice == "1":
-            display_patient_info()
-        elif choice == "2":
-            display_medical_records()
-        elif choice == "3":
-            display_appointments()
-        elif choice == "4":
             calculate_imss_quotas()
-        elif choice == "5":
+        elif choice == "2":
             print("Thank you for using IMSS Simulator!")
             break
         else:
@@ -32,35 +23,28 @@ def display_menu():
 def calculate_imss_quotas():
     try:
         salary = float(input("\nEnter total salary: "))
-        imss = IMSS(salary)
+        risk_class = input("Enter risk class (I, II, III, IV, V) [default: I]: ") or 'I'
+        imss = IMSS(salary, risk_class)
         
         print("\n=== IMSS Calculations ===")
         print(f"Salario diario: ${imss.employee.calculate_salary_dialy():.2f}")
-        print(f"Salario diario integrado: ${imss.get_integrated_daily_wage():.2f}")
-        print(f"Cuota del patrón (Enfermedades y maternidad): ${imss.get_diseases_and_maternity_employer_quota():.2f}")
-        print(f"Excedente del patrón (Enfermedades y maternidad): ${imss.get_diseases_and_maternity_employer_surplus():.2f}")
+        print(f"Salario diario integrado (Col. D): ${imss.get_integrated_daily_wage():.2f}")
+        print(f"Salario tope 25 SMG (Col. G): ${imss.get_salary_cap_25_smg():.2f}")
+        print(f"Salario tope 25 SMG TC2 (Col. Q): ${imss.get_salary_cap_25_smg_2():.2f}")
+        print("\n=== Cuotas Patronales ===")
+        print(f"Cuota del patrón (Enfermedades y maternidad) (Col. H): ${imss.get_diseases_and_maternity_employer_quota():.2f}")
+        print(f"Excedente del patrón (Enfermedades y maternidad) (Col. I): ${imss.get_diseases_and_maternity_employer_surplus():.2f}")
+        print(f"Prestaciones en dinero (Patrón) (Col. K): ${imss.get_employer_cash_benefits():.2f}")
+        print(f"Prestaciones en especie (Gastos médicos patrón) (Col. M): ${imss.get_benefits_in_kind_medical_expenses_employer():.2f}")
+        print(f"Riesgos de trabajo (Patrón) (Col. O): ${imss.get_occupational_risks_employer():.2f}")
+        print(f"Invalidez y vida (Patrón) (Col. R): ${imss.get_invalidity_and_retirement_employer():.2f}")
+        print(f"Guarderías y prestaciones sociales (Col. T): ${imss.get_childcare_employer():.2f}")
+        print("\n=== Cuotas del Trabajador ===")
+        print(f"Prestaciones en dinero (Trabajador) (Col. L): ${imss.get_employee_cash_benefits():.2f}")
+        print("\n=== Total ===")
+        print(f"Total cuotas IMSS (Patrón) (Col. V): ${imss.get_quota_employer():.2f}")
     except ValueError:
         print("Please enter a valid number for salary")
-
-def display_patient_info():
-    print("\n=== Patient Information ===")
-    print("Name: John Doe")
-    print("Age: 35")
-    print("NSS: 12345678901")
-    print("Clinic: UMF 123")
-
-def display_medical_records():
-    print("\n=== Medical Records ===")
-    print("Last Visit: 2023-10-15")
-    print("Diagnosis: General checkup")
-    print("Medications: None")
-
-def display_appointments():
-    print("\n=== Appointments ===")
-    print("Next appointment: 2023-11-01")
-    print("Time: 10:00 AM")
-    print("Doctor: Dr. García")
-    print("Department: General Medicine")
 
 if __name__ == "__main__":
     main()
