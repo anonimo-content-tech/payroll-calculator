@@ -43,7 +43,7 @@ class Parameters:
     # Invalidez y vida Trabajador
     INVALIDITY_AND_RETIREMENT_EMPLOYEE = 0.00625
 
-    # Guarderías
+    # Guarderías y prestaciones sociales
     CHILDCARE = 0.01
 
     def __init__(self):
