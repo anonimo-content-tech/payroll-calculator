@@ -20,7 +20,10 @@ class Parameters:
     FIXED_FEE = 0.204
 
     # Excedente patrón
-    SURPLUS = 0.011
+    SURPLUS_EMPLOYER = 0.011
+    
+    # Excedente trabajador
+    SURPLUS_EMPLOYEE = 0.004
 
     # Salario mínimo del área geográfica
     SMG = 278.80

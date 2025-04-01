@@ -20,29 +20,62 @@ def display_menu():
         else:
             print("Invalid option. Please try again.")
 
+def print_section_header(title, width=100):
+    print("\n" + "=" * width)
+    print(f"{title:^{width}}")
+    print("=" * width)
+
+def print_row(concept, value, column="", width=75):
+    print(f"{concept + ' ' + column:<{width}} ${value:>10.2f}")
+
 def calculate_imss_quotas():
     try:
         salary = float(input("\nEnter total salary: "))
         risk_class = input("Enter risk class (I, II, III, IV, V) [default: I]: ") or 'I'
         imss = IMSS(salary, risk_class)
         
-        print("\n=== IMSS Calculations ===")
-        print(f"Salario diario: ${imss.employee.calculate_salary_dialy():.2f}")
-        print(f"Salario diario integrado (Col. D): ${imss.get_integrated_daily_wage():.2f}")
-        print(f"Salario tope 25 SMG (Col. G): ${imss.get_salary_cap_25_smg():.2f}")
-        print(f"Salario tope 25 SMG TC2 (Col. Q): ${imss.get_salary_cap_25_smg_2():.2f}")
-        print("\n=== Cuotas Patronales ===")
-        print(f"Cuota del patrón (Enfermedades y maternidad) (Col. H): ${imss.get_diseases_and_maternity_employer_quota():.2f}")
-        print(f"Excedente del patrón (Enfermedades y maternidad) (Col. I): ${imss.get_diseases_and_maternity_employer_surplus():.2f}")
-        print(f"Prestaciones en dinero (Patrón) (Col. K): ${imss.get_employer_cash_benefits():.2f}")
-        print(f"Prestaciones en especie (Gastos médicos patrón) (Col. M): ${imss.get_benefits_in_kind_medical_expenses_employer():.2f}")
-        print(f"Riesgos de trabajo (Patrón) (Col. O): ${imss.get_occupational_risks_employer():.2f}")
-        print(f"Invalidez y vida (Patrón) (Col. R): ${imss.get_invalidity_and_retirement_employer():.2f}")
-        print(f"Guarderías y prestaciones sociales (Col. T): ${imss.get_childcare_employer():.2f}")
-        print("\n=== Cuotas del Trabajador ===")
-        print(f"Prestaciones en dinero (Trabajador) (Col. L): ${imss.get_employee_cash_benefits():.2f}")
-        print("\n=== Total ===")
-        print(f"Total cuotas IMSS (Patrón) (Col. V): ${imss.get_quota_employer():.2f}")
+        print_section_header("IMSS Calculations")
+        print_row("Salario diario", imss.employee.calculate_salary_dialy())
+        print_row("Salario diario integrado", imss.get_integrated_daily_wage(), "(Col. D)")
+        print_row("Salario tope 25 SMG", imss.get_salary_cap_25_smg(), "(Col. G)")
+        print_row("Salario tope 25 SMG TC2", imss.get_salary_cap_25_smg_2(), "(Col. Q)")
+
+        print_section_header("Cuotas Patronales")
+        print_row("Cuota del patrón (Enfermedades y maternidad)", 
+                 imss.get_diseases_and_maternity_employer_quota(), "(Col. H)")
+        print_row("Excedente del patrón (Enfermedades y maternidad)", 
+                 imss.get_diseases_and_maternity_employer_surplus(), "(Col. I)")
+        print_row("Prestaciones en dinero (Patrón)", 
+                 imss.get_employer_cash_benefits(), "(Col. K)")
+        print_row("Prestaciones en especie (Gastos médicos patrón)", 
+                 imss.get_benefits_in_kind_medical_expenses_employer(), "(Col. M)")
+        print_row("Riesgos de trabajo (Patrón)", 
+                 imss.get_occupational_risks_employer(), "(Col. O)")
+        print_row("Invalidez y vida (Patrón)", 
+                 imss.get_invalidity_and_retirement_employer(), "(Col. R)")
+        print_row("Guarderías y prestaciones sociales", 
+                 imss.get_childcare_employer(), "(Col. T)")
+        print("-" * 90)
+        print_row("Total cuotas IMSS (Patrón)", 
+                 imss.get_quota_employer(), "(Col. V)")
+
+        print_section_header("Cuotas del Trabajador")
+        print_row("Excedente del trabajador (Enfermedades y maternidad)", 
+                 imss.get_diseases_and_maternity_employee_surplus(), "(Col. J)")
+        print_row("Prestaciones en dinero (Trabajador)", 
+                 imss.get_employee_cash_benefits(), "(Col. L)")
+        print_row("Prestaciones en especie (Gastos médicos trabajador)", 
+                 imss.get_benefits_in_kind_medical_expenses_employee(), "(Col. N)")
+        print_row("Invalidez y vida (Trabajador)", 
+                 imss.get_invalidity_and_retirement_employee(), "(Col. S)")
+        print("-" * 90)
+        print_row("Total cuotas IMSS (Trabajador)", 
+                 imss.get_quota_employee(), "(Col. W)")
+
+        print_section_header("Total General")
+        print_row("Total cuotas IMSS (Patrón + Trabajador)", 
+                 imss.get_total_imss(), "(Col. X)")
+        
     except ValueError:
         print("Please enter a valid number for salary")
 

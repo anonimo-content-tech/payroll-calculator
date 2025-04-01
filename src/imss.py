@@ -19,7 +19,8 @@ class IMSS:
         self.vsdf = Parameters.VSDF
         self.contribution_ceiling = Parameters.CONTRIBUTION_CEILING
         self.contribution_ceiling_2 = Parameters.CONTRIBUTION_CEILING_2
-        self.surplus = Parameters.SURPLUS
+        self.surplus_employer = Parameters.SURPLUS_EMPLOYER
+        self.surplus_employee = Parameters.SURPLUS_EMPLOYEE
         self.tcf = Parameters.TCF
         self.smg = Parameters.SMG
         self.risk_percentage = Parameters.get_risk_percentage(risk_class)
@@ -36,6 +37,8 @@ class IMSS:
 
     def get_integration_factor(self):
         return self.integration_factor
+
+    # ------------------------------------------------------ CALCULO DE CUOTAS DEL IMSS PATRÓN ------------------------------------------------------
 
     #  TOPE DE SALARIO 25 SMG DF ------- Columna Gnumero
     def get_salary_cap_25_smg(self):
@@ -54,7 +57,7 @@ class IMSS:
     # ENFERMEDADES Y MATERNIDAD EXCEDENTE DEL PATRÓN ------- Columna Inumero
     def get_diseases_and_maternity_employer_surplus(self):
         salary_cap_25_smg = self.get_salary_cap_25_smg()
-        return ((salary_cap_25_smg - self.tcf) * self.surplus * self.days) if salary_cap_25_smg > self.tcf else 0
+        return ((salary_cap_25_smg - self.tcf) * self.surplus_employer * self.days) if salary_cap_25_smg > self.tcf else 0
 
     # Método auxiliar para calcular beneficios con lógica común
     def _calculate_benefit(self, base_salary, employer_rate, employee_rate):
@@ -116,3 +119,35 @@ class IMSS:
             self.get_childcare_employer()
         ]
         return sum(quotas)
+
+    # ------------------------------------------------------ CALCULO DE CUOTAS DEL IMSS TRABAJADOR ------------------------------------------------------
+
+    # ENFERMEDADES Y MATERNIDAD EXCEDENTE DEL TRABAJADOR ------- Columna Jnumero
+    def get_diseases_and_maternity_employee_surplus(self):
+        salary_cap_25_smg = self.get_salary_cap_25_smg()
+        return ((salary_cap_25_smg - self.tcf) * self.surplus_employee * self.days) if salary_cap_25_smg > self.tcf else 0
+
+    # PRESTACIONES EN ESPECIE TRABAJADOR (GASTOS MÉDICOS) ------- Columna Nnumero
+    def get_benefits_in_kind_medical_expenses_employee(self):
+        salary_cap_25_smg = self.get_salary_cap_25_smg()
+        return ((salary_cap_25_smg * self.benefits_in_kind_employee) * self.days) if salary_cap_25_smg > self.smg else 0
+
+    # INVALIDEZ Y VIDA TRABAJADOR ------- Columna Snumero
+    def get_invalidity_and_retirement_employee(self):
+        salary_cap_25_smg_2 = self.get_salary_cap_25_smg_2()
+        return ((salary_cap_25_smg_2 * self.invalidity_and_retirement_employee) * self.days) if salary_cap_25_smg_2 > self.smg else 0
+
+    # CUOTAS IMSS TRABAJADOR ------- Columna Wnumero
+    def get_quota_employee(self):
+        quotas = [
+            self.get_diseases_and_maternity_employee_surplus(),
+            self.get_employee_cash_benefits(),
+            self.get_benefits_in_kind_medical_expenses_employee(),
+            self.get_invalidity_and_retirement_employee()
+        ]
+        return sum(quotas)
+
+    # ------------------------------------------------------ TOTAL IMSS ------------------------------------------------------
+    # CUOTAS IMSS TOTAL ------- Columna Xnumero
+    def get_total_imss(self):
+        return self.get_quota_employer() + self.get_quota_employee()

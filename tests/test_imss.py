@@ -32,7 +32,7 @@ class TestIMSSCalculations:
         # it should return the surplus calculation
         daily_wage = imss_calculator.get_integrated_daily_wage()
         if daily_wage > imss_calculator.tcf:
-            expected_surplus = ((daily_wage - imss_calculator.tcf) * imss_calculator.surplus) * imss_calculator.days
+            expected_surplus = ((daily_wage - imss_calculator.tcf) * imss_calculator.surplus_employer) * imss_calculator.days
             assert round(imss_calculator.get_diseases_and_maternity_employer_surplus(), 2) == round(expected_surplus, 2)
         else:
             assert imss_calculator.get_diseases_and_maternity_employer_surplus() == 0
@@ -158,3 +158,64 @@ class TestIMSSCalculations:
             imss_calculator.get_childcare_employer()
         ]
         assert round(total_quota, 2) == round(sum(components), 2)
+
+    def test_diseases_and_maternity_employee_surplus(self, imss_calculator):
+        salary_cap_25_smg = imss_calculator.get_salary_cap_25_smg()
+        expected = ((salary_cap_25_smg - imss_calculator.tcf) * imss_calculator.surplus_employee * imss_calculator.days) if salary_cap_25_smg > imss_calculator.tcf else 0
+        assert round(imss_calculator.get_diseases_and_maternity_employee_surplus(), 2) == round(expected, 2)
+
+    def test_benefits_in_kind_medical_expenses_employee(self, imss_calculator):
+        salary_cap_25_smg = imss_calculator.get_salary_cap_25_smg()
+        expected = ((salary_cap_25_smg * imss_calculator.benefits_in_kind_employee) * imss_calculator.days) if salary_cap_25_smg > imss_calculator.smg else 0
+        assert round(imss_calculator.get_benefits_in_kind_medical_expenses_employee(), 2) == round(expected, 2)
+
+    def test_invalidity_and_retirement_employee(self, imss_calculator):
+        salary_cap_25_smg_2 = imss_calculator.get_salary_cap_25_smg_2()
+        expected = ((salary_cap_25_smg_2 * imss_calculator.invalidity_and_retirement_employee) * imss_calculator.days) if salary_cap_25_smg_2 > imss_calculator.smg else 0
+        assert round(imss_calculator.get_invalidity_and_retirement_employee(), 2) == round(expected, 2)
+
+    def test_quota_employee(self, imss_calculator):
+        expected = sum([
+            imss_calculator.get_diseases_and_maternity_employee_surplus(),
+            imss_calculator.get_employee_cash_benefits(),
+            imss_calculator.get_benefits_in_kind_medical_expenses_employee(),
+            imss_calculator.get_invalidity_and_retirement_employee()
+        ])
+        assert round(imss_calculator.get_quota_employee(), 2) == round(expected, 2)
+
+    def test_total_imss(self, imss_calculator):
+        expected = imss_calculator.get_quota_employer() + imss_calculator.get_quota_employee()
+        assert round(imss_calculator.get_total_imss(), 2) == round(expected, 2)
+
+    def test_high_salary_employee_benefits(self, high_salary_calculator):
+        # Prueba para verificar cálculos con salario alto para beneficios del empleado
+        salary_cap = high_salary_calculator.get_salary_cap_25_smg()
+        assert salary_cap == Parameters.CONTRIBUTION_CEILING
+        expected = (salary_cap * Parameters.BENEFITS_IN_KIND_EMPLOYEE * Employee.PAYMENT_PERIOD)
+        assert round(high_salary_calculator.get_benefits_in_kind_medical_expenses_employee(), 2) == round(expected, 2)
+
+    def test_zero_salary_employee_benefits(self):
+        # Prueba para verificar cálculos con salario cero para beneficios del empleado
+        zero_salary_calculator = IMSS(0)
+        assert zero_salary_calculator.get_diseases_and_maternity_employee_surplus() == 0
+        assert zero_salary_calculator.get_benefits_in_kind_medical_expenses_employee() == 0
+        assert zero_salary_calculator.get_invalidity_and_retirement_employee() == 0
+        assert zero_salary_calculator.get_quota_employee() == 0
+
+    def test_smg_threshold_employee_benefits(self):
+        # Prueba para verificar cálculos cuando el salario es exactamente igual al SMG
+        smg_salary = Parameters.SMG * 15 / Parameters.INTEGRATION_FACTOR  # Ajuste para obtener el salario integrado exacto
+        smg_salary_calculator = IMSS(smg_salary)
+        
+        # Verificamos que el salario diario integrado sea igual al SMG
+        assert round(smg_salary_calculator.get_integrated_daily_wage(), 2) == round(Parameters.SMG, 2)
+        
+        # Las prestaciones deben ser cero cuando el salario es igual al SMG
+        assert smg_salary_calculator.get_benefits_in_kind_medical_expenses_employee() == 0
+        assert smg_salary_calculator.get_invalidity_and_retirement_employee() == 0
+
+    def test_tcf_threshold_employee_surplus(self):
+        # Prueba para verificar cálculos cuando el salario es igual al TCF
+        tcf_salary = Parameters.TCF * 15 / Parameters.INTEGRATION_FACTOR
+        tcf_calculator = IMSS(tcf_salary)
+        assert tcf_calculator.get_diseases_and_maternity_employee_surplus() == 0
