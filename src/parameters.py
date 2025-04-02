@@ -48,6 +48,21 @@ class Parameters:
 
     # Guarderías y prestaciones sociales
     CHILDCARE = 0.01
+    
+    # Retiro patrón
+    RETIREMENT_EMPLOYER = 0.02
+
+    # Tabla de Retiro, Cesantía y Vejez
+    RETIREMENT_TABLE = [
+        {'lower_limit': 0.01, 'upper_limit': 278.80, 'percentage': 3.150},
+        {'lower_limit': 278.81, 'upper_limit': 169.71, 'percentage': 3.281},
+        {'lower_limit': 170.84, 'upper_limit': 226.28, 'percentage': 3.575},
+        {'lower_limit': 227.41, 'upper_limit': 282.85, 'percentage': 3.751},
+        {'lower_limit': 283.98, 'upper_limit': 339.42, 'percentage': 3.869},
+        {'lower_limit': 340.55, 'upper_limit': 395.99, 'percentage': 3.953},
+        {'lower_limit': 397.12, 'upper_limit': 452.56, 'percentage': 4.016},
+        {'lower_limit': 453.69, 'upper_limit': float('inf'), 'percentage': 4.241}
+    ]
 
     def __init__(self):
         self.integration_factor = self.INTEGRATION_FACTOR
@@ -69,3 +84,17 @@ class Parameters:
             raise ValueError(
                 "Invalid risk class. Must be one of: I, II, III, IV, V")
         return Parameters.RISK_LEVELS[risk_class]
+
+    @staticmethod
+    def get_retirement_percentage(salary_daily_wage):
+        """
+        Determina el porcentaje de retiro basado en el salario diario
+        Args:
+            salary_daily_wage (float): Salario diario
+        Returns:
+            float: Porcentaje aplicable
+        """
+        for range_data in Parameters.RETIREMENT_TABLE:
+            if range_data['lower_limit'] <= salary_daily_wage <= range_data['upper_limit']:
+                return range_data['percentage'] / 100  # Convertir a decimal
+        return Parameters.RETIREMENT_TABLE[-1]['percentage'] / 100  # Último rango por defecto

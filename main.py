@@ -73,8 +73,24 @@ def calculate_imss_quotas():
                  imss.get_quota_employee(), "(Col. W)")
 
         print_section_header("Total General")
+        # Eliminamos la línea que causa el error y usamos print_section_header en su lugar
+        print_section_header("RCV Patrón", width=90)
+        print_row("Retiro", 
+                 imss.get_retirement_employer(), "(Col. Z)")
+        print_row("Cesantía y vejez", 
+                 imss.get_severance_and_old_age(), "(Col. AA)")
+        print("-" * 90)
+        print_row("Total RCV (Patrón)", 
+                 imss.get_total_rcv_employer(), "(Col. AB)")
+
+        print_section_header("Resumen de Totales")
         print_row("Total cuotas IMSS (Patrón + Trabajador)", 
                  imss.get_total_imss(), "(Col. X)")
+        print_row("Total RCV (Patrón)", 
+                 imss.get_total_rcv_employer(), "(Col. AC)")
+        print("-" * 90)
+        print_row("Gran Total (IMSS + RCV)", 
+                 imss.get_total_imss() + imss.get_total_rcv_employer(), "(Total)")
         
     except ValueError:
         print("Please enter a valid number for salary")

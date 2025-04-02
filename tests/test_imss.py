@@ -219,3 +219,43 @@ class TestIMSSCalculations:
         tcf_salary = Parameters.TCF * 15 / Parameters.INTEGRATION_FACTOR
         tcf_calculator = IMSS(tcf_salary)
         assert tcf_calculator.get_diseases_and_maternity_employee_surplus() == 0
+
+    def test_retirement_employer(self, imss_calculator):
+        salary_cap = imss_calculator.get_salary_cap_25_smg()
+        expected = salary_cap * Employee.PAYMENT_PERIOD * Parameters.RETIREMENT_EMPLOYER
+        assert round(imss_calculator.get_retirement_employer(), 2) == round(expected, 2)
+
+    def test_severance_and_old_age(self, imss_calculator):
+        # First call to initialize RCV
+        result = imss_calculator.get_severance_and_old_age()
+        # Verify RCV was initialized
+        assert imss_calculator.rcv is not None
+        # Verify the result matches RCV employer quota
+        assert round(result, 2) == round(imss_calculator.rcv.get_quota_employer(), 2)
+
+    def test_total_rcv_employer(self, imss_calculator):
+        expected = (
+            imss_calculator.get_retirement_employer() +
+            imss_calculator.get_severance_and_old_age()
+        )
+        assert round(imss_calculator.get_total_rcv_employer(), 2) == round(expected, 2)
+
+    def test_rcv_initialization(self, imss_calculator):
+        # RCV should be None initially
+        assert imss_calculator.rcv is None
+        # After calling any RCV-related method, it should be initialized
+        imss_calculator.get_severance_and_old_age()
+        assert imss_calculator.rcv is not None
+
+    def test_high_salary_rcv(self, high_salary_calculator):
+        # Test RCV calculations with a high salary
+        result = high_salary_calculator.get_total_rcv_employer()
+        assert result > 0
+        # Verify it's using the salary cap
+        assert round(high_salary_calculator.get_salary_cap_25_smg(), 2) == Parameters.CONTRIBUTION_CEILING
+
+    def test_zero_salary_rcv(self):
+        zero_salary_calculator = IMSS(0)
+        assert zero_salary_calculator.get_retirement_employer() == 0
+        assert zero_salary_calculator.get_severance_and_old_age() == 0
+        assert zero_salary_calculator.get_total_rcv_employer() == 0

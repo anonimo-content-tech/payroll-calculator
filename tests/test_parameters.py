@@ -66,3 +66,45 @@ class TestParameters:
         params = Parameters()
         expected_tcf = params.VSDF * 3
         assert params.TCF == expected_tcf
+
+    # def test_retirement_constants(self):
+    #     params = Parameters()
+    #     assert params.RETIREMENT_EMPLOYER == 0.02
+
+    # def test_retirement_table_structure(self):
+    #     for range_data in Parameters.RETIREMENT_TABLE:
+    #         assert 'lower_limit' in range_data
+    #         assert 'upper_limit' in range_data
+    #         assert 'percentage' in range_data
+    #         assert isinstance(range_data['lower_limit'], (int, float))
+    #         assert isinstance(range_data['upper_limit'], (int, float))
+    #         assert isinstance(range_data['percentage'], (int, float))
+
+    # @pytest.mark.parametrize("salary,expected_percentage", [
+    #     (0.01, 0.0315),      # Minimum salary
+    #     (278.80, 0.0315),    # First range upper limit
+    #     (278.81, 0.03281),   # Second range
+    #     (226.28, 0.03575),   # Third range
+    #     (282.85, 0.03751),   # Fourth range
+    #     (339.42, 0.03869),   # Fifth range
+    #     (395.99, 0.03953),   # Sixth range
+    #     (452.56, 0.04016),   # Seventh range
+    #     (1000.00, 0.04241),  # Above all ranges
+    # ])
+    # def test_get_retirement_percentage(self, salary, expected_percentage):
+    #     print(f"Testing with salary: {salary} and expected percentage: {expected_percentage} with percentage of: {Parameters.get_retirement_percentage(salary)}")
+    #     assert Parameters.get_retirement_percentage(salary) == expected_percentage
+
+    # def test_retirement_percentage_zero_salary(self):
+    #     assert Parameters.get_retirement_percentage(0.01) == 0.0315  # Should return first range percentage
+
+    # def test_retirement_percentage_high_salary(self):
+    #     assert Parameters.get_retirement_percentage(10000) == 0.04241  # Should return last range percentage
+
+    # def test_retirement_table_continuity(self):
+    #     # Verify there are no gaps in the ranges
+    #     sorted_ranges = sorted(Parameters.RETIREMENT_TABLE, key=lambda x: x['lower_limit'])
+    #     for i in range(len(sorted_ranges) - 1):
+    #         current_upper = sorted_ranges[i]['upper_limit']
+    #         next_lower = sorted_ranges[i + 1]['lower_limit']
+    #         assert abs(current_upper - next_lower) <= 1.13  # Small tolerance for floating point differences

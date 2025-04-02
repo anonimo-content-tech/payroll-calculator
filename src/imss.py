@@ -1,5 +1,6 @@
 from .employees import Employee
 from .parameters import Parameters
+from .rcv import RCV
 
 
 class IMSS:
@@ -24,6 +25,9 @@ class IMSS:
         self.tcf = Parameters.TCF
         self.smg = Parameters.SMG
         self.risk_percentage = Parameters.get_risk_percentage(risk_class)
+        self.retirement_employer = Parameters.RETIREMENT_EMPLOYER
+        # Inicializamos RCV después de tener el salario diario integrado
+        self.rcv = None  # Se inicializará cuando se necesite
 
     # Método auxiliar para inicializar parámetros de beneficios
     def _init_benefit_parameters(self):
@@ -44,7 +48,7 @@ class IMSS:
     def get_salary_cap_25_smg(self):
         return min(self.get_integrated_daily_wage(), self.contribution_ceiling)
 
-    # SALARIO DIARIO INTEGRADO, después de aplicar el factor de integración ------- Columna Dnumero
+    # SALARIO DIARIO INTEGRADO, después de aplicar el factor de integración ------- Columna Enumero
     def get_integrated_daily_wage(self):
         daily_salary_integrated = self.employee.calculate_salary_dialy()
         return daily_salary_integrated * self.integration_factor
@@ -148,6 +152,28 @@ class IMSS:
         return sum(quotas)
 
     # ------------------------------------------------------ TOTAL IMSS ------------------------------------------------------
+
     # CUOTAS IMSS TOTAL ------- Columna Xnumero
     def get_total_imss(self):
         return self.get_quota_employer() + self.get_quota_employee()
+
+    # ------------------------------------------------------ CALCULO DE TOTAL DEL RCV PATRÓN ------------------------------------------------------
+
+    # RETIRO PATRÓN ------- Columna Znumero
+    def get_retirement_employer(self):
+        return self.get_salary_cap_25_smg() * self.days * self.retirement_employer
+
+    # CESANTIA Y VEJEZ PATRÓN ------- Columna AAnumero
+    def _get_rcv(self):
+        if self.rcv is None:
+            self.rcv = RCV(self.get_integrated_daily_wage())
+        return self.rcv
+
+    # CESANTIA Y VEJEZ PATRÓN ------- Columna AAnumero
+    def get_severance_and_old_age(self):
+        return self._get_rcv().get_quota_employer()
+
+    # ------------------------------------------------------ TOTAL RCV PATRÓN ------------------------------------------------------
+    # TOTAL RCV PATRÓN ------- Columna ACnumero
+    def get_total_rcv_employer(self):
+        return self.get_retirement_employer() + self.get_severance_and_old_age()
