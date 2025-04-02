@@ -1,6 +1,7 @@
 from .employees import Employee
 from .parameters import Parameters
 from .rcv import RCV
+import math
 
 
 class IMSS:
@@ -26,12 +27,14 @@ class IMSS:
         self.smg = Parameters.SMG
         self.risk_percentage = Parameters.get_risk_percentage(risk_class)
         self.retirement_employer = Parameters.RETIREMENT_EMPLOYER
+        self.increase = Parameters.INCREASE
 
         # Inicializamos RCV después de tener el salario diario integrado
         self.rcv = None  # Se inicializará cuando se necesite
         self.infonavit_employer = Parameters.INFONAVIT_EMPLOYER
         self.total_salary = self.employee.calculate_total_salary()
         self.state_payroll_tax = Parameters.STATE_PAYROLL_TAX
+        self.severance_and_old_age_employee = Parameters.SEVERANCE_AND_OLD_AGE_EMPLOYEE
 
     # Método auxiliar para inicializar parámetros de beneficios
 
@@ -175,13 +178,13 @@ class IMSS:
         return self.rcv
 
     # CESANTIA Y VEJEZ PATRÓN ------- Columna AAnumero
-    def get_severance_and_old_age(self):
+    def get_severance_and_old_age_employer(self):
         return self._get_rcv().get_quota_employer()
 
     # ------------------------------------------------------ TOTAL RCV PATRÓN ------------------------------------------------------
     # TOTAL RCV PATRÓN ------- Columna ACnumero
     def get_total_rcv_employer(self):
-        return self.get_retirement_employer() + self.get_severance_and_old_age()
+        return self.get_retirement_employer() + self.get_severance_and_old_age_employer()
 
     # ------------------------------------------------------ CALCULO DE INFONAVIT DEL PATRÓN ------------------------------------------------------
 
@@ -196,6 +199,43 @@ class IMSS:
         return self.total_salary * self.state_payroll_tax
 
     # ------------------------------------------------------ CALCULO TOTAL DEL PATRÓN ------------------------------------------------------
+
     # TOTAL PATRÓN ------- Columna AHnumero
     def get_total_employer(self):
         return (self.get_quota_employer() + self.get_total_rcv_employer() + self.get_infonavit_employer() + self.get_tax_payroll())
+
+    # ------------------------------------------------------ CALCULO DE TOTAL DEL RCV TRABAJADOR ------------------------------------------------------
+
+    # CESANTÍA Y VEJEZ TRABAJADOR ------- Columna ABnumero
+    def get_severance_and_old_age_employee(self):
+        return (self.get_salary_cap_25_smg_2() * self.severance_and_old_age_employee) * self.days if self.get_salary_cap_25_smg_2() > self.smg else 0
+
+    # TOTAL RCV TRABAJADOR ------- Columna ADnumero
+    def get_total_rcv_employee(self):
+        return self.get_severance_and_old_age_employee()
+    
+    # ------------------------------------------------------ CALCULO TOTAL DEL PATRÓN ------------------------------------------------------
+    
+    # TOTAL TRABAJADOR ------- Columna AJnumero
+    def get_total_employee(self):
+        return self.get_quota_employee() + self.get_total_rcv_employee()
+    
+    # ------------------------------------------------------ CALCULO TOTAL SUMA COSTO SOCIAL ------------------------------------------------------
+    
+    # SUMA COSTO SOCIAL ------- Columna ALnumero
+    def get_total_social_cost(self):
+        return self.get_total_employer() + self.get_total_employee()
+    
+    # ------------------------------------------------------ CALCULO 2.5 INCREMENTO ------------------------------------------------------
+    
+    # 2.5 INCREMENTO ------- Columna ANnumero
+    def get_increment(self):
+        return self.get_total_social_cost() * self.increase
+    
+    # ------------------------------------------------------ CALCULO SUMA COSTO SOCIAL SUGERIDO ------------------------------------------------------
+
+    # SUMA COSTO SOCIAL SUGERIDO ------- Columna APnumero
+    def get_total_social_cost_suggested(self):
+        return math.ceil(self.get_total_social_cost() + self.get_increment())
+
+

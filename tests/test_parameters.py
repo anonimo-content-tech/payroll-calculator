@@ -75,7 +75,38 @@ class TestParameters:
         params = Parameters()
         assert params.STATE_PAYROLL_TAX == 0.03
 
-    # Commented retirement tests below...
+    def test_severance_and_old_age_constant(self):
+        params = Parameters()
+        assert params.SEVERANCE_AND_OLD_AGE_EMPLOYEE == 0.01125
+
+    def test_increase_constant(self):
+        params = Parameters()
+        assert params.INCREASE == 0.025
+
+    def test_surplus_calculations(self):
+        params = Parameters()
+        # Test both employer and employee surplus values
+        assert params.SURPLUS_EMPLOYER == 0.011
+        assert params.SURPLUS_EMPLOYEE == 0.004
+        # Verify employer surplus is greater than employee surplus
+        assert params.SURPLUS_EMPLOYER > params.SURPLUS_EMPLOYEE
+
+    def test_all_benefit_percentages_positive(self):
+        params = Parameters()
+        assert params.CASH_BENEFITS_EMPLOYER > 0
+        assert params.CASH_BENEFITS_EMPLOYEE > 0
+        assert params.BENEFITS_IN_KIND_EMPLOYER > 0
+        assert params.BENEFITS_IN_KIND_EMPLOYEE > 0
+        assert params.INVALIDITY_AND_RETIREMENT_EMPLOYER > 0
+        assert params.INVALIDITY_AND_RETIREMENT_EMPLOYEE > 0
+
+    def test_employer_contributions_higher_than_employee(self):
+        params = Parameters()
+        # Test that employer contributions are higher than employee contributions
+        assert params.CASH_BENEFITS_EMPLOYER > params.CASH_BENEFITS_EMPLOYEE
+        assert params.BENEFITS_IN_KIND_EMPLOYER > params.BENEFITS_IN_KIND_EMPLOYEE
+        assert params.INVALIDITY_AND_RETIREMENT_EMPLOYER > params.INVALIDITY_AND_RETIREMENT_EMPLOYEE
+
     # def test_retirement_constants(self):
     #     params = Parameters()
     #     assert params.RETIREMENT_EMPLOYER == 0.02

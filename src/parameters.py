@@ -69,6 +69,12 @@ class Parameters:
     
     # Impuesto estatal sobre nómina
     STATE_PAYROLL_TAX = 0.03
+    
+    # Cesantía y vejez Trabajador
+    SEVERANCE_AND_OLD_AGE_EMPLOYEE = 0.01125
+    
+    # 2.5 INCREMENTO
+    INCREASE = 0.025
 
     def __init__(self):
         self.integration_factor = self.INTEGRATION_FACTOR

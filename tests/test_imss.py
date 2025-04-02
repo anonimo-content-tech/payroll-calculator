@@ -2,6 +2,7 @@ import pytest
 from src.imss import IMSS
 from src.parameters import Parameters
 from src.employees import Employee
+import math
 
 class TestIMSSCalculations:
     @pytest.fixture
@@ -225,9 +226,9 @@ class TestIMSSCalculations:
         expected = salary_cap * Employee.PAYMENT_PERIOD * Parameters.RETIREMENT_EMPLOYER
         assert round(imss_calculator.get_retirement_employer(), 2) == round(expected, 2)
 
-    def test_severance_and_old_age(self, imss_calculator):
+    def test_severance_and_old_age_employer(self, imss_calculator):
         # First call to initialize RCV
-        result = imss_calculator.get_severance_and_old_age()
+        result = imss_calculator.get_severance_and_old_age_employer()
         # Verify RCV was initialized
         assert imss_calculator.rcv is not None
         # Verify the result matches RCV employer quota
@@ -236,7 +237,7 @@ class TestIMSSCalculations:
     def test_total_rcv_employer(self, imss_calculator):
         expected = (
             imss_calculator.get_retirement_employer() +
-            imss_calculator.get_severance_and_old_age()
+            imss_calculator.get_severance_and_old_age_employer()
         )
         assert round(imss_calculator.get_total_rcv_employer(), 2) == round(expected, 2)
 
@@ -244,7 +245,7 @@ class TestIMSSCalculations:
         # RCV should be None initially
         assert imss_calculator.rcv is None
         # After calling any RCV-related method, it should be initialized
-        imss_calculator.get_severance_and_old_age()
+        imss_calculator.get_severance_and_old_age_employer()
         assert imss_calculator.rcv is not None
 
     def test_high_salary_rcv(self, high_salary_calculator):
@@ -257,7 +258,7 @@ class TestIMSSCalculations:
     def test_zero_salary_rcv(self):
         zero_salary_calculator = IMSS(0)
         assert zero_salary_calculator.get_retirement_employer() == 0
-        assert zero_salary_calculator.get_severance_and_old_age() == 0
+        assert zero_salary_calculator.get_severance_and_old_age_employer() == 0
         assert zero_salary_calculator.get_total_rcv_employer() == 0
 
     def test_infonavit_employer(self, imss_calculator):
@@ -300,3 +301,46 @@ class TestIMSSCalculations:
             imss_calculator.get_tax_payroll()
         ]
         assert round(total, 2) == round(sum(components), 2)
+
+    def test_severance_and_old_age_employee(self, imss_calculator):
+        salary_cap = imss_calculator.get_salary_cap_25_smg_2()
+        expected = (salary_cap * Parameters.SEVERANCE_AND_OLD_AGE_EMPLOYEE * Employee.PAYMENT_PERIOD) if salary_cap > imss_calculator.smg else 0
+        assert round(imss_calculator.get_severance_and_old_age_employee(), 2) == round(expected, 2)
+
+    def test_total_rcv_employee(self, imss_calculator):
+        expected = imss_calculator.get_severance_and_old_age_employee()
+        assert round(imss_calculator.get_total_rcv_employee(), 2) == round(expected, 2)
+
+    def test_total_employee(self, imss_calculator):
+        expected = imss_calculator.get_quota_employee() + imss_calculator.get_total_rcv_employee()
+        assert round(imss_calculator.get_total_employee(), 2) == round(expected, 2)
+
+    def test_total_social_cost(self, imss_calculator):
+        expected = imss_calculator.get_total_employer() + imss_calculator.get_total_employee()
+        assert round(imss_calculator.get_total_social_cost(), 2) == round(expected, 2)
+
+    def test_increment(self, imss_calculator):
+        expected = imss_calculator.get_total_social_cost() * Parameters.INCREASE
+        assert round(imss_calculator.get_increment(), 2) == round(expected, 2)
+
+    def test_total_social_cost_suggested(self, imss_calculator):
+        expected = math.ceil(imss_calculator.get_total_social_cost() + imss_calculator.get_increment())
+        assert imss_calculator.get_total_social_cost_suggested() == expected
+
+    def test_high_salary_rcv_employee(self, high_salary_calculator):
+        salary_cap = high_salary_calculator.get_salary_cap_25_smg_2()
+        assert salary_cap == Parameters.CONTRIBUTION_CEILING_2
+        expected = salary_cap * Parameters.SEVERANCE_AND_OLD_AGE_EMPLOYEE * Employee.PAYMENT_PERIOD
+        assert round(high_salary_calculator.get_severance_and_old_age_employee(), 2) == round(expected, 2)
+
+    def test_zero_salary_rcv_employee(self):
+        zero_salary_calculator = IMSS(0)
+        assert zero_salary_calculator.get_severance_and_old_age_employee() == 0
+        assert zero_salary_calculator.get_total_rcv_employee() == 0
+        assert zero_salary_calculator.get_total_employee() == 0
+
+    def test_smg_threshold_rcv_employee(self):
+        smg_salary = Parameters.SMG * 15 / Parameters.INTEGRATION_FACTOR
+        smg_calculator = IMSS(smg_salary)
+        assert smg_calculator.get_severance_and_old_age_employee() == 0
+        assert smg_calculator.get_total_rcv_employee() == 0

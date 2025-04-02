@@ -78,12 +78,17 @@ def calculate_imss_quotas():
         print_row("Retiro", 
                  imss.get_retirement_employer(), "(Col. Z)")
         print_row("Cesantía y vejez", 
-                 imss.get_severance_and_old_age(), "(Col. AA)")
+                 imss.get_severance_and_old_age_employer(), "(Col. AA)")
         print("-" * 90)
         print_row("Total RCV (Patrón)", 
                  imss.get_total_rcv_employer(), "(Col. AB)")
 
         print_section_header("RCV Trabajador", width=90)
+        print_row("Cesantía y vejez", 
+                 imss.get_severance_and_old_age_employee(), "(Col. AB)")
+        print("-" * 90)
+        print_row("Total RCV (Trabajador)", 
+                 imss.get_total_rcv_employee(), "(Col. AD)")
 
         print_section_header("INFONAVIT y Otros", width=90)
         print_row("INFONAVIT (Patrón)", 
@@ -96,14 +101,26 @@ def calculate_imss_quotas():
                  imss.get_total_imss(), "(Col. X)")
         print_row("Total RCV (Patrón)", 
                  imss.get_total_rcv_employer(), "(Col. AC)")
+        print_row("Total RCV (Trabajador)", 
+                 imss.get_total_rcv_employee(), "(Col. AD)")
         print("-" * 90)
         print_row("Total IMSS + RCV", 
-                 imss.get_total_imss() + imss.get_total_rcv_employer(), "(IMSS + RCV)")
+                 imss.get_total_imss() + imss.get_total_rcv_employer() + imss.get_total_rcv_employee(), "(IMSS + RCV)")
         print_row("Total del Patrón", 
                  imss.get_total_employer(), "(Col. AH)")
+        print_row("Total del Trabajador", 
+                 imss.get_total_employee(), "(Col. AJ)")
+        print("-" * 90)
+        print_row("Suma Costo Social", 
+                 imss.get_total_social_cost(), "(Col. AL)")
+        print_row("Incremento 2.5%", 
+                 imss.get_increment(), "(Col. AN)")
+        print_row("Suma Costo Social Sugerido", 
+                 imss.get_total_social_cost_suggested(), "(Col. AP)")
 
-        print_row("Gran Total (IMSS + RCV)", 
-                 imss.get_total_imss() + imss.get_total_rcv_employer(), "(Total)")
+        # Remove or comment out the following line as it's redundant now
+        # print_row("Gran Total (IMSS + RCV)", 
+        #          imss.get_total_imss() + imss.get_total_rcv_employer(), "(Total)")
         
     except ValueError:
         print("Please enter a valid number for salary")
