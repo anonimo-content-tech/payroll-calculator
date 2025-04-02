@@ -63,6 +63,12 @@ class Parameters:
         {'lower_limit': 397.12, 'upper_limit': 452.56, 'percentage': 4.016},
         {'lower_limit': 453.69, 'upper_limit': float('inf'), 'percentage': 4.241}
     ]
+    
+    # INFONAVIT del Patrón %
+    INFONAVIT_EMPLOYER = 0.05
+    
+    # Impuesto estatal sobre nómina
+    STATE_PAYROLL_TAX = 0.03
 
     def __init__(self):
         self.integration_factor = self.INTEGRATION_FACTOR

@@ -259,3 +259,44 @@ class TestIMSSCalculations:
         assert zero_salary_calculator.get_retirement_employer() == 0
         assert zero_salary_calculator.get_severance_and_old_age() == 0
         assert zero_salary_calculator.get_total_rcv_employer() == 0
+
+    def test_infonavit_employer(self, imss_calculator):
+        salary_cap = imss_calculator.get_salary_cap_25_smg_2()
+        expected = salary_cap * Employee.PAYMENT_PERIOD * Parameters.INFONAVIT_EMPLOYER
+        assert round(imss_calculator.get_infonavit_employer(), 2) == round(expected, 2)
+
+    def test_tax_payroll(self, imss_calculator):
+        expected = imss_calculator.total_salary * Parameters.STATE_PAYROLL_TAX
+        assert round(imss_calculator.get_tax_payroll(), 2) == round(expected, 2)
+
+    def test_total_employer(self, imss_calculator):
+        expected = (
+            imss_calculator.get_quota_employer() +
+            imss_calculator.get_total_rcv_employer() +
+            imss_calculator.get_infonavit_employer() +
+            imss_calculator.get_tax_payroll()
+        )
+        assert round(imss_calculator.get_total_employer(), 2) == round(expected, 2)
+
+    def test_high_salary_infonavit(self, high_salary_calculator):
+        # Should use the contribution ceiling for high salaries
+        salary_cap = high_salary_calculator.get_salary_cap_25_smg_2()
+        assert salary_cap == Parameters.CONTRIBUTION_CEILING_2
+        expected = salary_cap * Employee.PAYMENT_PERIOD * Parameters.INFONAVIT_EMPLOYER
+        assert round(high_salary_calculator.get_infonavit_employer(), 2) == round(expected, 2)
+
+    def test_zero_salary_employer_totals(self):
+        zero_salary_calculator = IMSS(0)
+        assert zero_salary_calculator.get_infonavit_employer() == 0
+        assert zero_salary_calculator.get_tax_payroll() == 0
+        assert zero_salary_calculator.get_total_employer() == 0
+
+    def test_total_employer_components(self, imss_calculator):
+        total = imss_calculator.get_total_employer()
+        components = [
+            imss_calculator.get_quota_employer(),
+            imss_calculator.get_total_rcv_employer(),
+            imss_calculator.get_infonavit_employer(),
+            imss_calculator.get_tax_payroll()
+        ]
+        assert round(total, 2) == round(sum(components), 2)

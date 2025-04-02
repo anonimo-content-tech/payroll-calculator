@@ -83,12 +83,25 @@ def calculate_imss_quotas():
         print_row("Total RCV (Patrón)", 
                  imss.get_total_rcv_employer(), "(Col. AB)")
 
+        print_section_header("RCV Trabajador", width=90)
+
+        print_section_header("INFONAVIT y Otros", width=90)
+        print_row("INFONAVIT (Patrón)", 
+                 imss.get_infonavit_employer(), "(Col. AE)")
+        print_row("Impuesto sobre nómina", 
+                 imss.get_tax_payroll(), "(Col. AF)")
+
         print_section_header("Resumen de Totales")
         print_row("Total cuotas IMSS (Patrón + Trabajador)", 
                  imss.get_total_imss(), "(Col. X)")
         print_row("Total RCV (Patrón)", 
                  imss.get_total_rcv_employer(), "(Col. AC)")
         print("-" * 90)
+        print_row("Total IMSS + RCV", 
+                 imss.get_total_imss() + imss.get_total_rcv_employer(), "(IMSS + RCV)")
+        print_row("Total del Patrón", 
+                 imss.get_total_employer(), "(Col. AH)")
+
         print_row("Gran Total (IMSS + RCV)", 
                  imss.get_total_imss() + imss.get_total_rcv_employer(), "(Total)")
         

@@ -67,6 +67,15 @@ class TestParameters:
         expected_tcf = params.VSDF * 3
         assert params.TCF == expected_tcf
 
+    def test_infonavit_constant(self):
+        params = Parameters()
+        assert params.INFONAVIT_EMPLOYER == 0.05
+
+    def test_state_payroll_tax_constant(self):
+        params = Parameters()
+        assert params.STATE_PAYROLL_TAX == 0.03
+
+    # Commented retirement tests below...
     # def test_retirement_constants(self):
     #     params = Parameters()
     #     assert params.RETIREMENT_EMPLOYER == 0.02

@@ -4,16 +4,16 @@ from .rcv import RCV
 
 
 class IMSS:
-    def __init__(self, total_salary, risk_class='I'):
+    def __init__(self, imss_salary, risk_class='I'):
         # Inicialización de parámetros base
-        self._init_base_parameters(total_salary, risk_class)
+        self._init_base_parameters(imss_salary, risk_class)
         # Inicialización de parámetros de beneficios
         self._init_benefit_parameters()
 
     # Método auxiliar para inicializar parámetros base
-    def _init_base_parameters(self, total_salary, risk_class):
+    def _init_base_parameters(self, imss_salary, risk_class):
         self.parameters = Parameters()
-        self.employee = Employee(total_salary)
+        self.employee = Employee(imss_salary)
         self.days = Employee.PAYMENT_PERIOD
         self.integration_factor = Parameters.INTEGRATION_FACTOR
         self.fixed_fee = Parameters.FIXED_FEE
@@ -26,10 +26,15 @@ class IMSS:
         self.smg = Parameters.SMG
         self.risk_percentage = Parameters.get_risk_percentage(risk_class)
         self.retirement_employer = Parameters.RETIREMENT_EMPLOYER
+
         # Inicializamos RCV después de tener el salario diario integrado
         self.rcv = None  # Se inicializará cuando se necesite
+        self.infonavit_employer = Parameters.INFONAVIT_EMPLOYER
+        self.total_salary = self.employee.calculate_total_salary()
+        self.state_payroll_tax = Parameters.STATE_PAYROLL_TAX
 
     # Método auxiliar para inicializar parámetros de beneficios
+
     def _init_benefit_parameters(self):
         self.cash_benefits_employer = Parameters.CASH_BENEFITS_EMPLOYER
         self.cash_benefits_employee = Parameters.CASH_BENEFITS_EMPLOYEE
@@ -177,3 +182,20 @@ class IMSS:
     # TOTAL RCV PATRÓN ------- Columna ACnumero
     def get_total_rcv_employer(self):
         return self.get_retirement_employer() + self.get_severance_and_old_age()
+
+    # ------------------------------------------------------ CALCULO DE INFONAVIT DEL PATRÓN ------------------------------------------------------
+
+    # INFONAVIT PATRÓN ------- Columna AEnumero
+    def get_infonavit_employer(self):
+        return self.get_salary_cap_25_smg_2() * self.days * self.infonavit_employer
+
+    # ------------------------------------------------------ CALCULO DE IMPUESTO SOBRE NÓMINA ------------------------------------------------------
+
+    # IMPUESTO SOBRE NÓMINA ------- Columna AFnumero
+    def get_tax_payroll(self):
+        return self.total_salary * self.state_payroll_tax
+
+    # ------------------------------------------------------ CALCULO TOTAL DEL PATRÓN ------------------------------------------------------
+    # TOTAL PATRÓN ------- Columna AHnumero
+    def get_total_employer(self):
+        return (self.get_quota_employer() + self.get_total_rcv_employer() + self.get_infonavit_employer() + self.get_tax_payroll())
