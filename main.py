@@ -1,4 +1,5 @@
 from src.imss import IMSS
+from tabulate import tabulate
 
 def main():
     print("=== IMSS Simulator ===")
@@ -7,18 +8,75 @@ def main():
 def display_menu():
     while True:
         print("\nMain Menu:")
-        print("1. Calculate IMSS Quotas")
-        print("2. Exit")
+        print("1. Calculate Single IMSS Quote")
+        print("2. Calculate Multiple IMSS Quotes")
+        print("3. Exit")
         
-        choice = input("\nSelect an option (1-2): ")
+        choice = input("\nSelect an option (1-3): ")
         
         if choice == "1":
             calculate_imss_quotas()
         elif choice == "2":
+            calculate_multiple_imss_quotas()
+        elif choice == "3":
             print("Thank you for using IMSS Simulator!")
             break
         else:
             print("Invalid option. Please try again.")
+
+def calculate_multiple_imss_quotas():
+    try:
+        print("\nEnter salaries as a comma-separated list or array:")
+        print("Example: 5000.50, 6000.75, 7500.25")
+        salary_input = input("Enter salaries: ")
+        payment_period = int(input("Enter payment period (e.g., 15 for biweekly, 7 for weekly): "))
+        
+        # Clean and parse the input
+        salary_input = salary_input.replace('[', '').replace(']', '')
+        salaries = [float(s.strip()) for s in salary_input.split(',') if s.strip()]
+        
+        if not salaries:
+            print("No salaries entered.")
+            return
+        
+        risk_class = input("Enter risk class (I, II, III, IV, V) [default: I]: ") or 'I'
+        
+        # Calculate results for all salaries
+        results = []
+        for salary in salaries:
+            imss = IMSS(imss_salary=salary, payment_period=payment_period, risk_class=risk_class)
+            results.append([
+                salary,
+                imss.employee.calculate_salary_dialy(),
+                imss.get_integrated_daily_wage(),
+                imss.get_quota_employer(),
+                imss.get_quota_employee(),
+                imss.get_total_rcv_employer(),
+                imss.get_total_rcv_employee(),
+                imss.get_infonavit_employer(),
+                imss.get_tax_payroll(),
+                imss.get_total_social_cost_suggested()
+            ])
+        
+        # Display results in table format with key columns
+        headers = [
+            "Salario Base",
+            "Salario Diario",
+            "SDI (Col. D)",
+            "IMSS Patrón (Col. V)",
+            "IMSS Trab. (Col. W)",
+            "RCV Patrón (Col. AB)",
+            "RCV Trab. (Col. AD)",
+            "INFONAVIT (Col. AE)",
+            "ISN (Col. AF)",
+            "Costo Total (Col. AP)"
+        ]
+        
+        print("\nResultados Detallados:")
+        print(tabulate(results, headers=headers, tablefmt="grid", floatfmt=".2f"))
+        
+    except ValueError:
+        print("Error: Please enter valid numbers separated by commas")
 
 def print_section_header(title, width=100):
     print("\n" + "=" * width)
@@ -31,8 +89,9 @@ def print_row(concept, value, column="", width=75):
 def calculate_imss_quotas():
     try:
         salary = float(input("\nEnter total salary: "))
+        payment_period = int(input("Enter payment period (e.g., 15 for biweekly, 7 for weekly): "))
         risk_class = input("Enter risk class (I, II, III, IV, V) [default: I]: ") or 'I'
-        imss = IMSS(salary, risk_class)
+        imss = IMSS(imss_salary=salary, payment_period=payment_period, risk_class=risk_class)
         
         print_section_header("IMSS Calculations")
         print_row("Salario diario", imss.employee.calculate_salary_dialy())

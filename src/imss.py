@@ -5,16 +5,16 @@ import math
 
 
 class IMSS:
-    def __init__(self, imss_salary, risk_class='I'):
+    def __init__(self, imss_salary, payment_period, risk_class='I'):
         # Inicialización de parámetros base
-        self._init_base_parameters(imss_salary, risk_class)
+        self._init_base_parameters(imss_salary, risk_class, payment_period)
         # Inicialización de parámetros de beneficios
         self._init_benefit_parameters()
 
     # Método auxiliar para inicializar parámetros base
-    def _init_base_parameters(self, imss_salary, risk_class):
+    def _init_base_parameters(self, imss_salary, risk_class, payment_period):
         self.parameters = Parameters()
-        self.employee = Employee(imss_salary)
+        self.employee = Employee(imss_salary, payment_period=payment_period)
         self.days = Employee.PAYMENT_PERIOD
         self.integration_factor = Parameters.INTEGRATION_FACTOR
         self.fixed_fee = Parameters.FIXED_FEE
