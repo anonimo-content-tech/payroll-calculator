@@ -5,7 +5,14 @@ import math
 
 
 class IMSS:
-    def __init__(self, imss_salary, payment_period, risk_class='I'):
+    def __init__(self, imss_salary, payment_period_or_risk='I', risk_class='I'):
+        # Handle the case where payment_period_or_risk might be a risk class
+        if isinstance(payment_period_or_risk, str):
+            payment_period = 15
+            risk_class = payment_period_or_risk
+        else:
+            payment_period = payment_period_or_risk
+
         # Inicialización de parámetros base
         self._init_base_parameters(imss_salary, risk_class, payment_period)
         # Inicialización de parámetros de beneficios
@@ -14,8 +21,8 @@ class IMSS:
     # Método auxiliar para inicializar parámetros base
     def _init_base_parameters(self, imss_salary, risk_class, payment_period):
         self.parameters = Parameters()
-        self.employee = Employee(imss_salary, payment_period=payment_period)
-        self.days = Employee.PAYMENT_PERIOD
+        self.employee = Employee(imss_salary, payment_period=int(payment_period))  # Ensure payment_period is int
+        self.days = self.employee.payment_period
         self.integration_factor = Parameters.INTEGRATION_FACTOR
         self.fixed_fee = Parameters.FIXED_FEE
         self.vsdf = Parameters.VSDF
@@ -213,29 +220,27 @@ class IMSS:
     # TOTAL RCV TRABAJADOR ------- Columna ADnumero
     def get_total_rcv_employee(self):
         return self.get_severance_and_old_age_employee()
-    
+
     # ------------------------------------------------------ CALCULO TOTAL DEL PATRÓN ------------------------------------------------------
-    
+
     # TOTAL TRABAJADOR ------- Columna AJnumero
     def get_total_employee(self):
         return self.get_quota_employee() + self.get_total_rcv_employee()
-    
+
     # ------------------------------------------------------ CALCULO TOTAL SUMA COSTO SOCIAL ------------------------------------------------------
-    
+
     # SUMA COSTO SOCIAL ------- Columna ALnumero
     def get_total_social_cost(self):
         return self.get_total_employer() + self.get_total_employee()
-    
+
     # ------------------------------------------------------ CALCULO 2.5 INCREMENTO ------------------------------------------------------
-    
+
     # 2.5 INCREMENTO ------- Columna ANnumero
     def get_increment(self):
         return self.get_total_social_cost() * self.increase
-    
+
     # ------------------------------------------------------ CALCULO SUMA COSTO SOCIAL SUGERIDO ------------------------------------------------------
 
     # SUMA COSTO SOCIAL SUGERIDO ------- Columna APnumero
     def get_total_social_cost_suggested(self):
         return math.ceil(self.get_total_social_cost() + self.get_increment())
-
-
