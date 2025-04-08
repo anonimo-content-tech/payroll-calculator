@@ -1,15 +1,16 @@
 from src.imss import IMSS
+from src.isr import ISR
 from tabulate import tabulate
 
 def main():
-    print("=== IMSS Simulator ===")
+    print("=== IMSS & ISR Simulator ===")
     display_menu()
 
 def display_menu():
     while True:
         print("\nMain Menu:")
-        print("1. Calculate Single IMSS Quote")
-        print("2. Calculate Multiple IMSS Quotes")
+        print("1. Calculate Single IMSS & ISR Quote")
+        print("2. Calculate Multiple IMSS & ISR Quotes")
         print("3. Exit")
         
         choice = input("\nSelect an option (1-3): ")
@@ -19,7 +20,7 @@ def display_menu():
         elif choice == "2":
             calculate_multiple_imss_quotas()
         elif choice == "3":
-            print("Thank you for using IMSS Simulator!")
+            print("Thank you for using IMSS & ISR Simulator!")
             break
         else:
             print("Invalid option. Please try again.")
@@ -42,10 +43,13 @@ def calculate_multiple_imss_quotas():
         risk_class = input("Enter risk class (I, II, III, IV, V) [default: I]: ") or 'I'
         
         # Calculate results for all salaries
-        results = []
+        imss_results = []
+        isr_results = []
+        
         for salary in salaries:
+            # IMSS calculations
             imss = IMSS(imss_salary=salary, payment_period=payment_period, risk_class=risk_class)
-            results.append([
+            imss_results.append([
                 salary,
                 imss.employee.calculate_salary_dialy(),
                 imss.get_integrated_daily_wage(),
@@ -57,9 +61,29 @@ def calculate_multiple_imss_quotas():
                 imss.get_tax_payroll(),
                 imss.get_total_social_cost_suggested()
             ])
+            
+            # ISR calculations
+            isr = ISR(monthly_salary=salary, payment_period=payment_period, employee=imss.employee)
+            lower_limit = isr.get_lower_limit()
+            surplus = isr.get_surplus()
+            percentage_applied_to_excess = isr.get_percentage_applied_to_excess()
+            surplus_tax = isr.get_surplus_tax()
+            fixed_fee = isr.get_fixed_fee()
+            total_tax = isr.get_total_tax()
+            
+            isr_results.append([
+                salary,
+                lower_limit,
+                surplus,
+                percentage_applied_to_excess,
+                surplus_tax,
+                fixed_fee,
+                total_tax
+                # Add more ISR calculations as they become available in the ISR class
+            ])
         
-        # Display results in table format with key columns
-        headers = [
+        # Display IMSS results in table format
+        imss_headers = [
             "Salario Base",
             "Salario Diario",
             "SDI (Col. D)",
@@ -72,8 +96,23 @@ def calculate_multiple_imss_quotas():
             "Costo Total (Col. AP)"
         ]
         
-        print("\nResultados Detallados:")
-        print(tabulate(results, headers=headers, tablefmt="grid", floatfmt=".2f"))
+        print("\nIMSS Resultados Detallados:")
+        print(tabulate(imss_results, headers=imss_headers, tablefmt="grid", floatfmt=".2f"))
+        
+        # Display ISR results in table format
+        isr_headers = [
+            "Salario Base",
+            "Límite Inferior (Col. E)",
+            "Excedente (Col. F)",
+            "Porcentaje excedente a aplicar (Col. G)",
+            "Impuesto excedente (Col. H)",
+            "Cuota fija (Col. I)",
+            "IMPUESTO (Col. J)",
+            # Add more headers as ISR calculations are implemented
+        ]
+        
+        print("\nISR Resultados Detallados:")
+        print(tabulate(isr_results, headers=isr_headers, tablefmt="grid", floatfmt=".2f"))
         
     except ValueError:
         print("Error: Please enter valid numbers separated by commas")
@@ -91,8 +130,14 @@ def calculate_imss_quotas():
         salary = float(input("\nEnter total salary: "))
         payment_period = int(input("Enter payment period (e.g., 15 for biweekly, 7 for weekly): "))
         risk_class = input("Enter risk class (I, II, III, IV, V) [default: I]: ") or 'I'
+        
+        # IMSS calculations
         imss = IMSS(imss_salary=salary, payment_period=payment_period, risk_class=risk_class)
         
+        # ISR calculations
+        isr = ISR(monthly_salary=salary, payment_period=payment_period, employee=imss.employee)
+        
+        # Display IMSS calculations
         print_section_header("IMSS Calculations")
         print_row("Salario diario", imss.employee.calculate_salary_dialy())
         print_row("Salario diario integrado", imss.get_integrated_daily_wage(), "(Col. D)")
@@ -132,7 +177,6 @@ def calculate_imss_quotas():
                  imss.get_quota_employee(), "(Col. W)")
 
         print_section_header("Total General")
-        # Eliminamos la línea que causa el error y usamos print_section_header en su lugar
         print_section_header("RCV Patrón", width=90)
         print_row("Retiro", 
                  imss.get_retirement_employer(), "(Col. Z)")
@@ -176,10 +220,17 @@ def calculate_imss_quotas():
                  imss.get_increment(), "(Col. AN)")
         print_row("Suma Costo Social Sugerido", 
                  imss.get_total_social_cost_suggested(), "(Col. AP)")
-
-        # Remove or comment out the following line as it's redundant now
-        # print_row("Gran Total (IMSS + RCV)", 
-        #          imss.get_total_imss() + imss.get_total_rcv_employer(), "(Total)")
+        
+        # Display ISR calculations
+        print_section_header("ISR Calculations")
+        print_row("Salario Base", salary)
+        print_row("Límite Inferior (Col. E)", isr.get_lower_limit() if isr.get_lower_limit() else 0)
+        print_row("Excedente (Col. F)", isr.get_surplus() if isr.get_surplus() else 0)
+        print_row("Porcentaje excedente a aplicar (Col. G)", isr.get_percentage_applied_to_excess() if isr.get_percentage_applied_to_excess() else 0)
+        print_row("Impuesto excedente (Col. H)", isr.get_surplus_tax() if isr.get_surplus_tax() else 0)
+        print_row("Cuota fija (Col. I)", isr.get_fixed_fee() if isr.get_fixed_fee() else 0)
+        print_row("IMPUESTO (Col. J)", isr.get_total_tax() if isr.get_lower_limit() else 0)
+        # Add more ISR calculations as they become available in the ISR class
         
     except ValueError:
         print("Please enter a valid number for salary")

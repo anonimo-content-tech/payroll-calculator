@@ -5,13 +5,11 @@ import math
 
 
 class IMSS:
-    def __init__(self, imss_salary, payment_period_or_risk='I', risk_class='I'):
-        # Handle the case where payment_period_or_risk might be a risk class
-        if isinstance(payment_period_or_risk, str):
+    def __init__(self, imss_salary, payment_period, risk_class='I'):
+        # Handle the case where payment_period might be a risk class
+        if isinstance(payment_period, str):
+            risk_class = payment_period
             payment_period = 15
-            risk_class = payment_period_or_risk
-        else:
-            payment_period = payment_period_or_risk
 
         # Inicialización de parámetros base
         self._init_base_parameters(imss_salary, risk_class, payment_period)

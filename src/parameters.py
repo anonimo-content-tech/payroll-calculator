@@ -21,7 +21,7 @@ class Parameters:
 
     # Excedente patrón
     SURPLUS_EMPLOYER = 0.011
-    
+
     # Excedente trabajador
     SURPLUS_EMPLOYEE = 0.004
 
@@ -48,7 +48,7 @@ class Parameters:
 
     # Guarderías y prestaciones sociales
     CHILDCARE = 0.01
-    
+
     # Retiro patrón
     RETIREMENT_EMPLOYER = 0.02
 
@@ -61,18 +61,19 @@ class Parameters:
         {'lower_limit': 283.98, 'upper_limit': 339.42, 'percentage': 3.869},
         {'lower_limit': 340.55, 'upper_limit': 395.99, 'percentage': 3.953},
         {'lower_limit': 397.12, 'upper_limit': 452.56, 'percentage': 4.016},
-        {'lower_limit': 453.69, 'upper_limit': float('inf'), 'percentage': 4.241}
+        {'lower_limit': 453.69, 'upper_limit': float(
+            'inf'), 'percentage': 4.241}
     ]
-    
+
     # INFONAVIT del Patrón %
     INFONAVIT_EMPLOYER = 0.05
-    
+
     # Impuesto estatal sobre nómina
     STATE_PAYROLL_TAX = 0.03
-    
+
     # Cesantía y vejez Trabajador
     SEVERANCE_AND_OLD_AGE_EMPLOYEE = 0.01125
-    
+
     # 2.5 INCREMENTO
     INCREASE = 0.025
 
@@ -88,6 +89,18 @@ class Parameters:
         'IV': 0.0465325,   # RIESGO ALTO DE VIDA
         'V': 0.0758875    # RIESGO MAXIMO DE VIDA
     }
+
+    @staticmethod
+    def get_isr_table(payment_period):
+        """
+        Obtiene la tabla ISR para el periodo de pago especificado
+        Args:
+            payment_period (int): Periodo de pago (1, 7, 10, 15, 30)
+        Returns:
+            list: Tabla ISR correspondiente al periodo
+        """
+        from src.isr_tables import get_isr_table
+        return get_isr_table(payment_period)
 
     @staticmethod
     def get_risk_percentage(risk_class):
@@ -109,4 +122,5 @@ class Parameters:
         for range_data in Parameters.RETIREMENT_TABLE:
             if range_data['lower_limit'] <= salary_daily_wage <= range_data['upper_limit']:
                 return range_data['percentage'] / 100  # Convertir a decimal
-        return Parameters.RETIREMENT_TABLE[-1]['percentage'] / 100  # Último rango por defecto
+        # Último rango por defecto
+        return Parameters.RETIREMENT_TABLE[-1]['percentage'] / 100
