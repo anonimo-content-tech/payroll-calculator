@@ -71,6 +71,12 @@ def calculate_multiple_imss_quotas():
             fixed_fee = isr.get_fixed_fee()
             total_tax = isr.get_total_tax()
             
+            # Add the new ISR calculations
+            isr_amount = isr.get_isr()
+            salary_credit = isr.get_salary_credit()
+            tax_payable = isr.get_tax_payable()
+            tax_in_favor = isr.get_tax_in_favor()
+            
             isr_results.append([
                 salary,
                 lower_limit,
@@ -78,8 +84,11 @@ def calculate_multiple_imss_quotas():
                 percentage_applied_to_excess,
                 surplus_tax,
                 fixed_fee,
-                total_tax
-                # Add more ISR calculations as they become available in the ISR class
+                total_tax,
+                isr_amount,
+                salary_credit,
+                tax_payable,
+                tax_in_favor
             ])
         
         # Display IMSS results in table format
@@ -99,7 +108,7 @@ def calculate_multiple_imss_quotas():
         print("\nIMSS Resultados Detallados:")
         print(tabulate(imss_results, headers=imss_headers, tablefmt="grid", floatfmt=".2f"))
         
-        # Display ISR results in table format
+        # Display ISR results in table format with new headers
         isr_headers = [
             "Salario Base",
             "Límite Inferior (Col. E)",
@@ -108,7 +117,10 @@ def calculate_multiple_imss_quotas():
             "Impuesto excedente (Col. H)",
             "Cuota fija (Col. I)",
             "IMPUESTO (Col. J)",
-            # Add more headers as ISR calculations are implemented
+            "ISR (Col. L)",
+            "Crédito al Salario (Col. N)",
+            "Impuesto a Cargo (Col. O)",
+            "Impuesto a Favor (Col. P)"
         ]
         
         print("\nISR Resultados Detallados:")
@@ -221,7 +233,7 @@ def calculate_imss_quotas():
         print_row("Suma Costo Social Sugerido", 
                  imss.get_total_social_cost_suggested(), "(Col. AP)")
         
-        # Display ISR calculations
+        # Display ISR calculations with the new methods
         print_section_header("ISR Calculations")
         print_row("Salario Base", salary)
         print_row("Límite Inferior (Col. E)", isr.get_lower_limit() if isr.get_lower_limit() else 0)
@@ -230,7 +242,13 @@ def calculate_imss_quotas():
         print_row("Impuesto excedente (Col. H)", isr.get_surplus_tax() if isr.get_surplus_tax() else 0)
         print_row("Cuota fija (Col. I)", isr.get_fixed_fee() if isr.get_fixed_fee() else 0)
         print_row("IMPUESTO (Col. J)", isr.get_total_tax() if isr.get_lower_limit() else 0)
-        # Add more ISR calculations as they become available in the ISR class
+        
+        # Add the new ISR calculations to the display
+        print_row("ISR (Col. L)", isr.get_isr() if isr.get_isr() else 0)
+        print_row("Rango crédito al Salario", isr.get_range_credit_to_salary() if isr.get_range_credit_to_salary() else 0, "(Col. M)")
+        print_row("Crédito al Salario", isr.get_salary_credit() if isr.get_salary_credit() else 0, "(Col. N)")
+        print_row("Impuesto a Cargo", isr.get_tax_payable() if isr.get_tax_payable() else 0, "(Col. O)")
+        print_row("Impuesto a Favor", isr.get_tax_in_favor() if isr.get_tax_in_favor() else 0, "(Col. P)")
         
     except ValueError:
         print("Please enter a valid number for salary")

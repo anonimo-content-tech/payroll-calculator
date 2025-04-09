@@ -80,18 +80,18 @@ class TestISR:
 
     def test_zero_salary_calculations(self, zero_salary_calculator):
         # Verifica los cálculos con un salario cero
-        # Nota: Este test podría fallar si la implementación no maneja correctamente el caso de salario cero
-        try:
-            lower_limit = zero_salary_calculator.get_lower_limit()
-            assert lower_limit is not None or lower_limit == 0
+        lower_limit = zero_salary_calculator.get_lower_limit()
+        if lower_limit is None:
+            assert zero_salary_calculator.get_surplus() == 0
+        else:
+            assert lower_limit <= 0
             
-            surplus = zero_salary_calculator.get_surplus()
-            assert surplus == 0 or surplus is not None
-            
-            total_tax = zero_salary_calculator.get_total_tax()
-            assert total_tax == 0 or total_tax is not None
-        except Exception as e:
-            pytest.skip(f"La implementación actual no maneja salarios cero: {str(e)}")
+        assert zero_salary_calculator.get_surplus() == 0
+        
+        # Si el salario es cero, el impuesto debería ser cero o None
+        total_tax = zero_salary_calculator.get_total_tax()
+        if total_tax is not None:  # Si devuelve un valor numérico
+            assert total_tax == 0
 
     def test_different_payment_periods(self):
         # Verifica que se obtengan tablas ISR diferentes para distintos períodos de pago
@@ -111,6 +111,8 @@ class TestISR:
         assert isr_calculator.payment_period == 15
         assert isinstance(isr_calculator.employee, Employee)
         assert isinstance(isr_calculator.parameters, Parameters)
+        assert hasattr(isr_calculator, 'SALARY_CREDIT_TABLE')
+        assert isinstance(isr_calculator.SALARY_CREDIT_TABLE, list)
 
     def test_tax_calculation_consistency(self, isr_calculator):
         # Verifica que los cálculos sean consistentes
@@ -122,3 +124,86 @@ class TestISR:
         
         # El impuesto sobre el excedente debe ser proporcional al excedente
         assert isr_calculator.get_surplus_tax() == isr_calculator.get_surplus() * isr_calculator.get_percentage_applied_to_excess()
+    
+    # Nuevas pruebas para los métodos adicionales
+    
+    def test_get_isr(self, isr_calculator):
+        # Verifica que get_isr devuelva el mismo valor que get_total_tax
+        assert isr_calculator.get_isr() == isr_calculator.get_total_tax()
+    
+    def test_get_range_credit_to_salary(self, isr_calculator):
+        # Verifica que se obtenga un rango de crédito válido
+        range_credit = isr_calculator.get_range_credit_to_salary()
+        assert isinstance(range_credit, (int, float)) or range_credit is None
+        if range_credit is not None:
+            assert range_credit <= isr_calculator.monthly_salary
+    
+    def test_get_salary_credit(self, isr_calculator):
+        # Verifica que se obtenga un crédito salarial válido
+        credit = isr_calculator.get_salary_credit()
+        assert isinstance(credit, (int, float))
+        assert credit >= 0
+        
+        # Verificar que el crédito corresponda al rango correcto
+        range_credit = isr_calculator.get_range_credit_to_salary()
+        if range_credit is not None:
+            for row in isr_calculator.SALARY_CREDIT_TABLE:
+                if row['lower_limit'] == range_credit:
+                    assert credit == row['credit']
+                    break
+    
+    def test_get_tax_payable(self, isr_calculator):
+        # Verifica el cálculo del impuesto a cargo
+        isr = isr_calculator.get_isr()
+        credit = isr_calculator.get_salary_credit()
+        
+        if isr > credit:
+            expected = isr - credit
+        else:
+            expected = 0
+            
+        assert isr_calculator.get_tax_payable() == expected
+    
+    def test_get_tax_in_favor(self, isr_calculator):
+        # Verifica el cálculo del impuesto a favor
+        isr = isr_calculator.get_isr()
+        credit = isr_calculator.get_salary_credit()
+        
+        if isr < credit:
+            expected = credit - isr
+        else:
+            expected = 0
+            
+        assert isr_calculator.get_tax_in_favor() == expected
+    
+    def test_tax_payable_and_in_favor_are_mutually_exclusive(self, isr_calculator):
+        # Verifica que no se pueda tener impuesto a cargo e impuesto a favor al mismo tiempo
+        tax_payable = isr_calculator.get_tax_payable()
+        tax_in_favor = isr_calculator.get_tax_in_favor()
+        
+        # Al menos uno de ellos debe ser cero
+        assert tax_payable == 0 or tax_in_favor == 0
+        
+        # Si el ISR es mayor que el crédito, debe haber impuesto a cargo
+        if isr_calculator.get_isr() > isr_calculator.get_salary_credit():
+            assert tax_payable > 0
+            assert tax_in_favor == 0
+        
+        # Si el ISR es menor que el crédito, debe haber impuesto a favor
+        if isr_calculator.get_isr() < isr_calculator.get_salary_credit():
+            assert tax_in_favor > 0
+            assert tax_payable == 0
+    
+    def test_edge_cases_for_salary_credit(self):
+        # Prueba con salarios en los límites de los rangos de crédito
+        employee = Employee(0)
+        
+        # Probar con el límite inferior del primer rango
+        isr_min = ISR(0.01, 15, employee)
+        assert isr_min.get_range_credit_to_salary() is not None
+        assert isr_min.get_salary_credit() > 0
+        
+        # Probar con un salario muy alto (más allá del último rango)
+        isr_max = ISR(100000, 15, employee)
+        assert isr_max.get_range_credit_to_salary() is not None
+        assert isr_max.get_salary_credit() >= 0
