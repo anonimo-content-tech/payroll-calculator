@@ -1,5 +1,6 @@
 from src.imss import IMSS
 from src.isr import ISR
+from src.saving import Saving
 from tabulate import tabulate
 
 def main():
@@ -42,9 +43,15 @@ def calculate_multiple_imss_quotas():
         
         risk_class = input("Enter risk class (I, II, III, IV, V) [default: I]: ") or 'I'
         
+        # Savings parameters
+        wage_and_salary_dsi = float(input("Enter wage and salary DSI: "))
+        fixed_fee_dsi = float(input("Enter fixed fee DSI: "))
+        commission_percentage_dsi = float(input("Enter commission percentage DSI (e.g., 0.05 for 5%): "))
+        
         # Calculate results for all salaries
         imss_results = []
         isr_results = []
+        saving_results = []
         
         for salary in salaries:
             # IMSS calculations
@@ -90,6 +97,31 @@ def calculate_multiple_imss_quotas():
                 tax_payable,
                 tax_in_favor
             ])
+            
+            # Savings calculations
+            saving = Saving(
+                wage_and_salary=salary,
+                wage_and_salary_dsi=wage_and_salary_dsi,
+                fixed_fee_dsi=fixed_fee_dsi,
+                commission_percentage_dsi=commission_percentage_dsi,
+                imss_instance=imss,
+                isr_instance=isr
+            )
+            
+            saving_results.append([
+                salary,
+                wage_and_salary_dsi,
+                saving.get_productivity(),
+                saving.get_commission_dsi(),
+                saving.get_traditional_scheme_biweekly_total(),
+                saving.get_dsi_scheme_biweekly_total(),
+                saving.get_amount(),
+                saving.get_percentage() * 100,
+                saving.get_current_perception(),
+                saving.get_current_perception_dsi(),
+                saving.get_increment(),
+                saving.get_increment_percentage() * 100
+            ])
         
         # Display IMSS results in table format
         imss_headers = [
@@ -126,6 +158,25 @@ def calculate_multiple_imss_quotas():
         print("\nISR Resultados Detallados:")
         print(tabulate(isr_results, headers=isr_headers, tablefmt="grid", floatfmt=".2f"))
         
+        # Display Savings results in table format
+        saving_headers = [
+            "Salario Base",
+            "Salario DSI",
+            "Productividad (Col. N)",
+            "Comisión DSI (Col. Q)",
+            "Esquema Tradicional (Col. K)",
+            "Esquema DSI (Col. R)",
+            "Ahorro (Col. T)",
+            "Ahorro % (Col. U)",
+            "Percepción Actual (Col. AF)",
+            "Percepción DSI (Col. AO)",
+            "Incremento (Col. AQ)",
+            "Incremento % (Col. AR)"
+        ]
+        
+        print("\nAhorro Resultados Detallados:")
+        print(tabulate(saving_results, headers=saving_headers, tablefmt="grid", floatfmt=".2f"))
+        
     except ValueError:
         print("Error: Please enter valid numbers separated by commas")
 
@@ -143,11 +194,26 @@ def calculate_imss_quotas():
         payment_period = int(input("Enter payment period (e.g., 15 for biweekly, 7 for weekly): "))
         risk_class = input("Enter risk class (I, II, III, IV, V) [default: I]: ") or 'I'
         
+        # Savings parameters
+        wage_and_salary_dsi = float(input("Enter wage and salary DSI: "))
+        fixed_fee_dsi = float(input("Enter fixed fee DSI: "))
+        commission_percentage_dsi = float(input("Enter commission percentage DSI (e.g., 0.05 for 5%): "))
+        
         # IMSS calculations
         imss = IMSS(imss_salary=salary, payment_period=payment_period, risk_class=risk_class)
         
         # ISR calculations
         isr = ISR(monthly_salary=salary, payment_period=payment_period, employee=imss.employee)
+        
+        # Savings calculations
+        saving = Saving(
+            wage_and_salary=salary,
+            wage_and_salary_dsi=wage_and_salary_dsi,
+            fixed_fee_dsi=fixed_fee_dsi,
+            commission_percentage_dsi=commission_percentage_dsi,
+            imss_instance=imss,
+            isr_instance=isr
+        )
         
         # Display IMSS calculations
         print_section_header("IMSS Calculations")
@@ -250,8 +316,42 @@ def calculate_imss_quotas():
         print_row("Impuesto a Cargo", isr.get_tax_payable() if isr.get_tax_payable() else 0, "(Col. O)")
         print_row("Impuesto a Favor", isr.get_tax_in_favor() if isr.get_tax_in_favor() else 0, "(Col. P)")
         
-    except ValueError:
-        print("Please enter a valid number for salary")
+        # Display Savings calculations
+        print_section_header("Savings Calculations")
+        
+        print_section_header("Traditional Scheme (Biweekly)", width=90)
+        print_row("Total Wage and Salary", salary)
+        print_row("Total Costo Fiscal IMSS (Col. F)", imss.get_quota_employer())
+        print_row("Total Costo Fiscal (Col. J)", imss.get_total_employer())
+        print_row("Traditional Scheme Total", saving.get_traditional_scheme_biweekly_total(), "(Col. K)")
+        
+        print_section_header("DSI Scheme (Biweekly)", width=90)
+        print_row("Wage and Salary DSI", wage_and_salary_dsi)
+        print_row("Productivity", saving.get_productivity(), "(Col. N)")
+        print_row("Fixed Fee DSI", fixed_fee_dsi)
+        print_row("Commission DSI", saving.get_commission_dsi(), "(Col. Q)")
+        print_row("DSI Scheme Total", saving.get_dsi_scheme_biweekly_total(), "(Col. R)")
+        
+        print_section_header("Savings", width=90)
+        print_row("Savings Amount", saving.get_amount(), "(Col. T)")
+        print_row("Savings Percentage", saving.get_percentage() * 100, "% (Col. U)")
+        
+        print_section_header("Traditional Scheme (Monthly)", width=90)
+        print_row("ISR Retention", saving.get_isr_retention(), "(Col. AB)")
+        print_row("Total Retentions", saving.get_total_retentions(), "(Col. AE)")
+        print_row("Current Perception", saving.get_current_perception(), "(Col. AF)")
+        
+        print_section_header("DSI Scheme (Monthly)", width=90)
+        print_row("Assimilated", saving.get_assimilated(), "(Col. AI)")
+        print_row("Total Wage and Salary DSI", saving.get_total_wage_and_salary_dsi(), "(Col. AJ)")
+        print_row("Current Perception DSI", saving.get_current_perception_dsi(), "(Col. AO)")
+        
+        print_section_header("Increment", width=90)
+        print_row("Increment Amount", saving.get_increment(), "(Col. AQ)")
+        print_row("Increment Percentage", saving.get_increment_percentage() * 100, "% (Col. AR)")
+        
+    except ValueError as e:
+        print(f"Error: {e}")
 
 if __name__ == "__main__":
     main()
