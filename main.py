@@ -1,6 +1,7 @@
 from src.imss import IMSS
 from src.isr import ISR
 from src.saving import Saving
+from src.totals import TotalCalculator
 from tabulate import tabulate
 
 def main():
@@ -30,17 +31,44 @@ def calculate_multiple_imss_quotas():
     try:
         print("\nEnter salaries as a comma-separated list or array:")
         print("Example: 5000.50, 6000.75, 7500.25")
-        salary_input = input("Enter salaries: ")
+        print("You can also provide a file path with salaries (one per line):")
+        print("Example: /path/to/salaries.txt")
+        
+        salary_input = input("Enter salaries or file path: ")
+        
+        # Check if input is a file path
+        if salary_input.startswith('/') and ('.' in salary_input.split('/')[-1]):
+            try:
+                with open(salary_input, 'r') as file:
+                    salary_lines = file.readlines()
+                    # Process each line and combine into a single comma-separated string
+                    salary_input = ','.join([line.strip() for line in salary_lines if line.strip()])
+                print(f"Successfully loaded {len(salary_input.split(','))} salaries from file")
+            except FileNotFoundError:
+                print(f"File not found: {salary_input}. Processing as direct input.")
+        
         payment_period = int(input("Enter payment period (e.g., 15 for biweekly, 7 for weekly): "))
         
-        # Clean and parse the input
+        # Clean and parse the input - handle large inputs by processing in chunks
         salary_input = salary_input.replace('[', '').replace(']', '')
-        salaries = [float(s.strip()) for s in salary_input.split(',') if s.strip()]
+        salary_chunks = salary_input.split(',')
+        
+        # Process all salaries
+        salaries = []
+        for chunk in salary_chunks:
+            try:
+                if chunk.strip():
+                    salaries.append(float(chunk.strip()))
+            except ValueError:
+                print(f"Warning: Skipping invalid salary value: {chunk.strip()}")
         
         if not salaries:
-            print("No salaries entered.")
+            print("No valid salaries entered.")
             return
         
+        print(f"Processing {len(salaries)} salaries...")
+        
+        # Rest of the function remains the same
         risk_class = input("Enter risk class (I, II, III, IV, V) [default: I]: ") or 'I'
         
         # Savings parameters
@@ -53,7 +81,12 @@ def calculate_multiple_imss_quotas():
         isr_results = []
         saving_results = []
         
-        for salary in salaries:
+        # Process salaries with a progress indicator
+        total_salaries = len(salaries)
+        for i, salary in enumerate(salaries):
+            if i % 10 == 0 or i == total_salaries - 1:
+                print(f"Processing salary {i+1}/{total_salaries}...")
+                
             # IMSS calculations
             imss = IMSS(imss_salary=salary, payment_period=payment_period, risk_class=risk_class)
             imss_results.append([
@@ -140,6 +173,22 @@ def calculate_multiple_imss_quotas():
         print("\nIMSS Resultados Detallados:")
         print(tabulate(imss_results, headers=imss_headers, tablefmt="grid", floatfmt=".2f"))
         
+        
+        
+        # Calculate and display IMSS totals
+        imss_totals = TotalCalculator.calculate_traditional_scheme_totals(imss_results)
+        print("\nIMSS Totales:")
+        print(tabulate(TotalCalculator.format_totals_table(imss_totals, column_references={
+            "total_salary": "Salario Base",
+            "total_imss_employer": "Col. V",
+            "total_imss_employee": "Col. W",
+            "total_rcv_employer": "Col. AB",
+            "total_rcv_employee": "Col. AD",
+            "total_infonavit": "Col. AE",
+            "total_tax_payroll": "Col. AF",
+            "total_social_cost": "Col. AP"
+        }), headers=["Concepto", "Total", "Columna"], tablefmt="grid", floatfmt=".2f"))
+        
         # Display ISR results in table format with new headers
         isr_headers = [
             "Salario Base",
@@ -157,6 +206,17 @@ def calculate_multiple_imss_quotas():
         
         print("\nISR Resultados Detallados:")
         print(tabulate(isr_results, headers=isr_headers, tablefmt="grid", floatfmt=".2f"))
+        
+        # Calculate and display ISR totals
+        isr_totals = TotalCalculator.calculate_isr_totals(isr_results)
+        print("\nISR Totales:")
+        print(tabulate(TotalCalculator.format_totals_table(isr_totals, column_references={
+            "total_salary": "Salario Base",
+            "total_isr": "Col. L",
+            "total_salary_credit": "Col. N",
+            "total_tax_payable": "Col. O",
+            "total_tax_in_favor": "Col. P"
+        }), headers=["Concepto", "Total", "Columna"], tablefmt="grid", floatfmt=".2f"))
         
         # Display Savings results in table format
         saving_headers = [
@@ -176,6 +236,25 @@ def calculate_multiple_imss_quotas():
         
         print("\nAhorro Resultados Detallados:")
         print(tabulate(saving_results, headers=saving_headers, tablefmt="grid", floatfmt=".2f"))
+        
+        # Calculate and display Savings totals
+        saving_totals = TotalCalculator.calculate_saving_totals(saving_results)
+        percentage_fields = ["avg_saving_percentage", "avg_increment_percentage"]
+        print("\nAhorro Totales:")
+        print(tabulate(TotalCalculator.format_totals_table(saving_totals, percentage_fields, column_references={
+            "total_salary": "Salario Base",
+            "total_wage_and_salary_dsi": "Salario DSI",
+            "total_productivity": "Col. N",
+            "total_commission_dsi": "Col. Q",
+            "total_traditional_scheme": "Col. K",
+            "total_dsi_scheme": "Col. R",
+            "total_saving_amount": "Col. T",
+            "avg_saving_percentage": "Col. U",
+            "total_current_perception": "Col. AF",
+            "total_current_perception_dsi": "Col. AO",
+            "total_increment": "Col. AQ",
+            "avg_increment_percentage": "Col. AR"
+        }), headers=["Concepto", "Total", "Columna"], tablefmt="grid", floatfmt=".2f"))
         
     except ValueError:
         print("Error: Please enter valid numbers separated by commas")

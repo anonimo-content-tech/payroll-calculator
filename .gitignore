@@ -62,3 +62,5 @@ coverage.xml
 # Logs
 *.log
 logs/venv/
+
+*.txt
