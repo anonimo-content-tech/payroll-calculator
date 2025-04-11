@@ -18,6 +18,9 @@ class IMSS:
 
     # Método auxiliar para inicializar parámetros base
     def _init_base_parameters(self, imss_salary, risk_class, payment_period):
+        self.salary = imss_salary
+        self.payment_period = payment_period
+        self.risk_class = risk_class
         self.parameters = Parameters()
         self.employee = Employee(imss_salary, payment_period=int(payment_period))  # Ensure payment_period is int
         self.days = self.employee.payment_period
