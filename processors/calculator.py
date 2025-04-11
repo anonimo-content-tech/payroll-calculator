@@ -73,14 +73,16 @@ def process_multiple_calculations(salaries, payment_period, risk_class, wage_and
             isr.get_tax_in_favor()
         ])
         
-        # Savings results
+        # Savings results - Expanded to include biweekly and monthly values for both schemes
         saving_results.append([
             salary,
             wage_and_salary_dsi,
             saving.get_productivity(),
             saving.get_commission_dsi(),
-            saving.get_traditional_scheme_biweekly_total(),
-            saving.get_dsi_scheme_biweekly_total(),
+            saving.get_traditional_scheme_biweekly_total(),  # Esquema Tradicional Quincenal
+            saving.get_dsi_scheme_biweekly_total(),          # Esquema DSI Quincenal
+            saving.get_traditional_scheme_biweekly_total() * 2,  # Esquema Tradicional Mensual
+            saving.get_dsi_scheme_biweekly_total() * 2,          # Esquema DSI Mensual
             saving.get_amount(),
             saving.get_percentage() * 100,
             saving.get_current_perception(),
