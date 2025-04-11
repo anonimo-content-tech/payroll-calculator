@@ -64,3 +64,4 @@ coverage.xml
 logs/venv/
 
 *.txt
+resultado_calculos*
