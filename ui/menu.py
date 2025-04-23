@@ -1,3 +1,4 @@
+from payroll_calculator.parameters import Parameters
 from processors.calculator import process_single_calculation, process_multiple_calculations, parse_salaries_input
 from ui.display import (
     display_single_calculation_results, 
@@ -35,14 +36,14 @@ def calculate_single_quote():
         risk_class = input("Enter risk class (I, II, III, IV, V) [default: I]: ") or 'I'
         
         # Savings parameters
-        wage_and_salary_dsi = float(input("Enter wage and salary DSI: "))
+        smg_multiplier = float(input(f"Enter SMG multiplier (e.g., 1, 1.05, 2) [default: 1]: ") or 1.0)
         fixed_fee_dsi = float(input("Enter fixed fee DSI: "))
         commission_percentage_dsi = float(input("Enter commission percentage DSI (e.g., 0.05 for 5%): "))
         
         # Process calculations
         imss, isr, saving = process_single_calculation(
             salary, payment_period, risk_class, 
-            wage_and_salary_dsi, fixed_fee_dsi, commission_percentage_dsi
+            smg_multiplier, fixed_fee_dsi, commission_percentage_dsi
         )
         
         # Display results
@@ -75,14 +76,14 @@ def calculate_multiple_quotes():
         risk_class = input("Enter risk class (I, II, III, IV, V) [default: I]: ") or 'I'
         
         # Savings parameters
-        wage_and_salary_dsi = float(input("Enter wage and salary DSI: "))
+        smg_multiplier = float(input(f"Enter SMG multiplier (e.g., 1, 1.05, 2) [default: 1]: ") or 1.0)
         fixed_fee_dsi = float(input("Enter fixed fee DSI: "))
         commission_percentage_dsi = float(input("Enter commission percentage DSI (e.g., 0.05 for 5%): "))
         
         # Process calculations
         imss_results, isr_results, saving_results = process_multiple_calculations(
             salaries, payment_period, risk_class, 
-            wage_and_salary_dsi, fixed_fee_dsi, commission_percentage_dsi
+            smg_multiplier, fixed_fee_dsi, commission_percentage_dsi
         )
         
         # Define headers
