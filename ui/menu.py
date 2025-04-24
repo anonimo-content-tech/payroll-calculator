@@ -82,11 +82,11 @@ def calculate_multiple_quotes():
         
         # Process calculations
         imss_results, isr_results, saving_results = process_multiple_calculations(
-            salaries, payment_period, risk_class, 
-            smg_multiplier, fixed_fee_dsi, commission_percentage_dsi
+            salaries, payment_period, risk_class,
+            smg_multiplier, fixed_fee_dsi, commission_percentage_dsi # Note: smg_multiplier is not used here, consider removing or using it
         )
         
-        # Define headers
+        # Define headers (kept for display functions)
         imss_headers = [
             "Salario Base",
             "Salario Diario",
@@ -115,47 +115,57 @@ def calculate_multiple_quotes():
         ]
         
         saving_headers = [
+            # Updated based on process_multiple_calculations output structure
             "Salario Base",
             "Salario DSI",
-            "Productividad (Col. N)",
-            "Comisión DSI (Col. Q)",
-            "Esquema Tradicional (Col. K)",
-            "Esquema DSI (Col. R)",
-            "Ahorro (Col. T)",
-            "Ahorro % (Col. U)",
-            "Percepción Actual (Col. AF)",
-            "Percepción DSI (Col. AO)",
-            "Incremento (Col. AQ)",
-            "Incremento % (Col. AR)"
+            "Productividad", # Index 2
+            "Comisión DSI", # Index 3
+            "Esquema Tradicional Quincenal", # Index 4
+            "Esquema DSI Quincenal", # Index 5
+            "Esquema Tradicional Mensual", # Index 6
+            "Esquema DSI Mensual", # Index 7
+            "Ahorro Monto", # Index 8
+            "Ahorro %", # Index 9
+            "Percepción Actual Tradicional", # Index 10
+            "Percepción Actual DSI", # Index 11
+            "Incremento Monto", # Index 12
+            "Incremento %" # Index 13
         ]
         
-        # Calculate totals
-        imss_totals = TotalCalculator.calculate_traditional_scheme_totals(imss_results)
-        isr_totals = TotalCalculator.calculate_isr_totals(isr_results)
-        saving_totals = TotalCalculator.calculate_saving_totals(saving_results)
+        # Calculate totals dictionaries
+        imss_totals_dict = TotalCalculator.calculate_traditional_scheme_totals(imss_results)
+        isr_totals_dict = TotalCalculator.calculate_isr_totals(isr_results)
+        saving_totals_dict = TotalCalculator.calculate_saving_totals(saving_results)
         
-        # Display results
+        # Format totals tables for display and export (includes column refs)
+        imss_totals_table = TotalCalculator.format_totals_table(imss_totals_dict, 'imss')
+        isr_totals_table = TotalCalculator.format_totals_table(isr_totals_dict, 'isr')
+        saving_totals_table = TotalCalculator.format_totals_table(saving_totals_dict, 'saving')
+        
+        # Display results (using original totals dictionaries for display functions)
         display_imss_results(imss_results, imss_headers)
-        display_imss_totals(imss_totals)
+        display_imss_totals(imss_totals_dict) # Keep using dict for console display
         
         display_isr_results(isr_results, isr_headers)
-        display_isr_totals(isr_totals)
+        display_isr_totals(isr_totals_dict) # Keep using dict for console display
         
         display_saving_results(saving_results, saving_headers)
-        display_saving_totals(saving_totals)
+        display_saving_totals(saving_totals_dict) # Keep using dict for console display
         
-        # Export to Excel
+        # Export to Excel using the formatted tables for the new Totals sheet
         export_to_excel(
             imss_results=imss_results,
             imss_headers=imss_headers,
-            imss_totals=imss_totals,
+            imss_totals_table=imss_totals_table, # Pass formatted table
             isr_results=isr_results,
             isr_headers=isr_headers,
-            isr_totals=isr_totals,
+            isr_totals_table=isr_totals_table,   # Pass formatted table
             saving_results=saving_results,
-            saving_headers=saving_headers,
-            saving_totals=saving_totals
+            saving_headers=saving_headers,       # Pass updated headers
+            saving_totals_table=saving_totals_table # Pass formatted table
         )
-        
+
     except ValueError as e:
         print(f"Error: {e}")
+    except Exception as e: # Catch other potential errors
+        print(f"An unexpected error occurred: {e}")

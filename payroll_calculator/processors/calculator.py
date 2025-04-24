@@ -38,16 +38,17 @@ def process_single_calculation(salary, payment_period, risk_class, smg_multiplie
 
 def process_multiple_calculations(salaries, payment_period, risk_class, smg_multiplier, fixed_fee_dsi, commission_percentage_dsi):
     """
-    Process multiple calculations for IMSS, ISR, and Savings, adding column references to labels,
-    and calculate totals using TotalCalculator by building totals data within the loop.
+    Process multiple calculations for IMSS, ISR, and Savings, adding column references to labels.
+    This function now only returns the individual results for each salary.
+    Total calculations should be handled by the calling code after grouping if necessary.
     """
 
     # Initialize a list to store combined results for each salary
     individual_results = []
-    # Initialize lists to store data formatted for TotalCalculator, built inside the loop
-    imss_data_for_totals = []
-    isr_data_for_totals = []
-    saving_data_for_totals = []
+    # --- REMOVED: Initialization of lists for totals ---
+    # imss_data_for_totals = []
+    # isr_data_for_totals = []
+    # saving_data_for_totals = []
 
     # Process salaries with a progress indicator
     total_salaries = len(salaries)
@@ -106,70 +107,26 @@ def process_multiple_calculations(salaries, payment_period, risk_class, smg_mult
         # Append the combined result to the main list
         individual_results.append(combined_result)
 
-        # --- Prepare and append data for TotalCalculator within the loop ---
-        # IMSS data row
-        imss_row = [
-            combined_result["Salario Base (Col. B)"],  # Index 0
-            None,  # Index 1 (Placeholder)
-            None,  # Index 2 (Placeholder)
-            combined_result["Cuota Patrón IMSS (Col. V)"],  # Index 3
-            combined_result["Cuota Trabajador IMSS (Col. W)"],  # Index 4
-            combined_result["RCV Patrón (Col. AB)"],  # Index 5
-            combined_result["RCV Trabajador (Col. AD)"],  # Index 6
-            combined_result["INFONAVIT Patrón (Col. AE)"],  # Index 7
-            combined_result["Impuesto Sobre Nómina (Col. AF)"],  # Index 8
-            combined_result["Costo Social Total Sugerido (Col. AP)"]  # Index 9
-        ]
-        imss_data_for_totals.append(imss_row)
+        # --- REMOVED: Preparation and appending of data for TotalCalculator ---
+        # imss_row = [...]
+        # imss_data_for_totals.append(imss_row)
+        # isr_row = [...]
+        # isr_data_for_totals.append(isr_row)
+        # saving_row = [...]
+        # saving_data_for_totals.append(saving_row)
 
-        # ISR data row
-        isr_row = [
-            combined_result["Salario Base (Col. B)"],  # Index 0
-            None, None, None, None, None, None, # Indices 1-6 (Placeholders)
-            combined_result["ISR (Col. L)"],  # Index 7
-            combined_result["Crédito al Salario (Col. N)"],  # Index 8
-            combined_result["Impuesto a Cargo ISR (Col. O)"],  # Index 9
-            combined_result["Impuesto a Favor ISR (Col. P)"]  # Index 10
-        ]
-        isr_data_for_totals.append(isr_row)
+    # --- REMOVED: Calculation of Totals using TotalCalculator ---
+    # imss_totals = TotalCalculator.calculate_traditional_scheme_totals(imss_data_for_totals)
+    # isr_totals = TotalCalculator.calculate_isr_totals(isr_data_for_totals)
+    # saving_totals = TotalCalculator.calculate_saving_totals(saving_data_for_totals)
 
-        # Saving data row
-        saving_row = [
-            combined_result["Salario Base (Col. B)"],  # Index 0
-            combined_result["Salario DSI (Col. M)"],  # Index 1
-            combined_result["Productividad (Col. N)"],  # Index 2
-            combined_result["Comisión DSI (Col. Q)"],  # Index 3
-            combined_result["Esquema Tradicional Quincenal (Col. K)"],  # Index 4
-            combined_result["Esquema DSI Quincenal (Col. R)"],  # Index 5
-            combined_result["Ahorro (Col. U)"],  # Index 6
-            saving.get_percentage(),  # Index 7 (Use original decimal value)
-            combined_result["Percepción Actual (Col. AF)"],  # Index 8
-            combined_result["Percepción DSI (Col. AO)"],  # Index 9
-            combined_result["Incremento (Col. AQ)"],  # Index 10
-            saving.get_increment_percentage()  # Index 11 (Use original decimal value)
-        ]
-        saving_data_for_totals.append(saving_row)
-
-    # --- Calculate Totals using TotalCalculator ---
-    # The data is already prepared in the correct format
-
-    imss_totals = TotalCalculator.calculate_traditional_scheme_totals(imss_data_for_totals)
-    isr_totals = TotalCalculator.calculate_isr_totals(isr_data_for_totals)
-    saving_totals = TotalCalculator.calculate_saving_totals(saving_data_for_totals)
-
-    print("IMSS TOTALS: ", imss_totals)
-    print("ISR TOTALS: ", isr_totals)
-    print("SAVING TOTALS: ", saving_totals)
-
-    # Return a dictionary containing both the list of individual results and the calculated totals
-    return {
-        "individual_results": individual_results,
-        "totals": {
-            "imss": imss_totals,
-            "isr": isr_totals,
-            "saving": saving_totals
-        }
-    }
+    # --- MODIFIED: Return only the list of individual results ---
+    return individual_results
+    # --- REMOVED: Returning dictionary with totals ---
+    # return {
+    #     "individual_results": individual_results,
+    #     "totals": { ... }
+    # }
 
 
 def parse_salaries_input(salary_input):

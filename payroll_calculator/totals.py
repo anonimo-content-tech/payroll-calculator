@@ -64,6 +64,27 @@ class TotalCalculator:
         Returns:
             Dictionary with total values for savings
         """
+        # --- Inicio: Debugging ---
+        num_records = len(results)
+        print(f"--- Debugging calculate_saving_totals ---")
+        print(f"Total records received: {num_records}")
+        if num_records > 0:
+            last_record = results[-1]
+            print(f"Values from the last record (index {num_records - 1}):")
+            print(f"  Salary (row[0]): {last_record[0]}")
+            print(f"  Wage/Salary DSI (row[1]): {last_record[1]}")
+            print(f"  Productivity (row[2]): {last_record[2]}")
+            print(f"  Commission DSI (row[3]): {last_record[3]}")
+            print(f"  Traditional Scheme (row[4]): {last_record[4]}")
+            print(f"  DSI Scheme (row[5]): {last_record[5]}")
+            print(f"  Saving Amount (row[6]): {last_record[6]}")
+            print(f"  Saving Percentage (row[7]): {last_record[7]}")
+            print(f"  Current Perception (row[8]): {last_record[8]}")
+            print(f"  Current Perception DSI (row[9]): {last_record[9]}")
+            print(f"  Increment (row[10]): {last_record[10]}")
+            print(f"  Increment Percentage (row[11]): {last_record[11]}")
+        # --- Fin: Debugging ---
+
         totals = {
             "total_salary": sum(row[0] for row in results),
             "total_wage_and_salary_dsi": sum(row[1] for row in results),
@@ -78,12 +99,19 @@ class TotalCalculator:
         }
         
         # Calculate average percentages
-        if len(results) > 0:
-            totals["avg_saving_percentage"] = sum(row[7] for row in results) / len(results)
-            totals["avg_increment_percentage"] = sum(row[11] for row in results) / len(results)
+        if num_records > 0: # Usar la variable ya calculada
+            totals["avg_saving_percentage"] = sum(row[7] for row in results) / num_records
+            totals["avg_increment_percentage"] = sum(row[11] for row in results) / num_records
         else:
             totals["avg_saving_percentage"] = 0
             totals["avg_increment_percentage"] = 0
+
+        # --- Inicio: Debugging ---
+        print(f"Calculated Totals:")
+        for key, value in totals.items():
+              print(f"  {key}: {value}")
+        print(f"--- End Debugging calculate_saving_totals ---")
+        # --- Fin: Debugging ---
             
         return totals
 
