@@ -65,46 +65,46 @@ def process_multiple_calculations(salaries, payment_period, risk_class, smg_mult
         # Create a combined dictionary for the current salary with column references
         combined_result = {
             # IMSS results
-            "Salario Base (Col. B)": salary,
-            "Salario Diario (Col. C)": imss.employee.calculate_salary_dialy(),
-            "Salario Diario Integrado (Col. D)": imss.get_integrated_daily_wage(),
-            "Cuota Patrón IMSS (Col. V)": imss.get_quota_employer(),
-            "Cuota Trabajador IMSS (Col. W)": imss.get_quota_employee(),
-            "RCV Patrón (Col. AC)": imss.get_total_rcv_employer(),
-            "RCV Trabajador (Col. AD)": imss.get_total_rcv_employee(),
-            "INFONAVIT Patrón (Col. AE)": imss.get_infonavit_employer(),
-            "Impuesto Sobre Nómina (Col. AF)": imss.get_tax_payroll(),
-            "Costo Social Total Sugerido (Col. AP)": imss.get_total_social_cost_suggested(),
+            "base_salary": salary,  # Col. B - Salario Base
+            "daily_salary": imss.employee.calculate_salary_dialy(),  # Col. C - Salario Diario
+            "integrated_daily_wage": imss.get_integrated_daily_wage(),  # Col. D - Salario Diario Integrado
+            "imss_employer_fee": imss.get_quota_employer(),  # Col. V - Cuota Patrón IMSS
+            "imss_employee_fee": imss.get_quota_employee(),  # Col. W - Cuota Trabajador IMSS
+            "rcv_employer": imss.get_total_rcv_employer(),  # Col. AC - RCV Patrón
+            "rcv_employee": imss.get_total_rcv_employee(),  # Col. AD - RCV Trabajador
+            "infonavit_employer": imss.get_infonavit_employer(),  # Col. AE - INFONAVIT Patrón
+            "payroll_tax": imss.get_tax_payroll(),  # Col. AF - Impuesto Sobre Nómina
+            "suggested_total_social_cost": imss.get_total_social_cost_suggested(),  # Col. AP - Costo Social Total Sugerido
 
             # ISR results
-            "Límite Inferior ISR (Col. E)": isr.get_lower_limit(),
-            "Excedente ISR (Col. F)": isr.get_surplus(),
-            "Porcentaje Aplicado al Excedente ISR (Col. G)": isr.get_percentage_applied_to_excess(),
-            "Impuesto al Excedente ISR (Col. H)": isr.get_surplus_tax(),
-            "Cuota Fija ISR (Col. I)": isr.get_fixed_fee(),
-            "Impuesto Total ISR (Col. J)": isr.get_total_tax(),
-            "ISR (Col. L)": isr.get_isr(),
-            "Crédito al Salario (Col. N)": isr.get_salary_credit(),
-            "Impuesto a Cargo ISR (Col. O)": isr.get_tax_payable(),
-            "Impuesto a Favor ISR (Col. P)": isr.get_tax_in_favor(),
+            "isr_lower_limit": isr.get_lower_limit(),  # Col. E - Límite Inferior ISR
+            "isr_surplus": isr.get_surplus(),  # Col. F - Excedente ISR
+            "isr_percentage_applied_to_surplus": isr.get_percentage_applied_to_excess(),  # Col. G - Porcentaje Aplicado al Excedente ISR
+            "isr_surplus_tax": isr.get_surplus_tax(),  # Col. H - Impuesto al Excedente ISR
+            "isr_fixed_fee": isr.get_fixed_fee(),  # Col. I - Cuota Fija ISR
+            "isr_total_tax": isr.get_total_tax(),  # Col. J - Impuesto Total ISR
+            "isr": isr.get_isr(),  # Col. L - ISR
+            "salary_credit": isr.get_salary_credit(),  # Col. N - Crédito al Salario
+            "isr_tax_payable": isr.get_tax_payable(),  # Col. O - Impuesto a Cargo ISR
+            "isr_tax_in_favor": isr.get_tax_in_favor(),  # Col. P - Impuesto a Favor ISR
 
             # Savings results
-            "Salario DSI (Col. M)": wage_and_salary_dsi,
-            "Productividad (Col. N)": saving.get_productivity(),
-            "Comisión DSI (Col. Q)": saving.get_commission_dsi(),
-            "Esquema Tradicional Quincenal (Col. K)": saving.get_traditional_scheme_biweekly_total(),
-            "Esquema DSI Quincenal (Col. R)": saving.get_dsi_scheme_biweekly_total(),
-            "Esquema Tradicional Mensual (Col. S)": saving.get_traditional_scheme_biweekly_total() * 2,
-            "Esquema DSI Mensual (Col. T)": saving.get_dsi_scheme_biweekly_total() * 2,
-            "Ahorro (Col. U)": saving.get_amount(),
-            "Porcentaje de Ahorro (Col. W)": saving.get_percentage() * 100,
-            "Percepción Actual (Col. AF)": saving.get_current_perception(),
-            "Percepción DSI (Col. AO)": saving.get_current_perception_dsi(),
-            "Incremento (Col. AQ)": saving.get_increment(),
-            "Porcentaje de Incremento (Col. AR)": saving.get_increment_percentage() * 100,
+            "dsi_salary": wage_and_salary_dsi,  # Col. M - Salario DSI
+            "productivity": saving.get_productivity(),  # Col. N - Productividad
+            "dsi_commission": saving.get_commission_dsi(),  # Col. Q - Comisión DSI
+            "traditional_scheme_biweekly": saving.get_traditional_scheme_biweekly_total(),  # Col. K - Esquema Tradicional Quincenal
+            "dsi_scheme_biweekly": saving.get_dsi_scheme_biweekly_total(),  # Col. R - Esquema DSI Quincenal
+            "traditional_scheme_monthly": saving.get_traditional_scheme_biweekly_total() * 2,  # Col. S - Esquema Tradicional Mensual
+            "dsi_scheme_monthly": saving.get_dsi_scheme_biweekly_total() * 2,  # Col. T - Esquema DSI Mensual
+            "saving_amount": saving.get_amount(),  # Col. U - Ahorro
+            "saving_percentage": saving.get_percentage() * 100,  # Col. W - Porcentaje de Ahorro
+            "current_perception": saving.get_current_perception(),  # Col. AF - Percepción Actual
+            "dsi_perception": saving.get_current_perception_dsi(),  # Col. AO - Percepción DSI
+            "increment": saving.get_increment(),  # Col. AQ - Incremento
+            "increment_percentage": saving.get_increment_percentage() * 100,  # Col. AR - Porcentaje de Incremento
             
-            "Cuota Fija Esquema DSI (Col. P)": saving.fixed_fee_dsi,
-            "Salario (TOTAL INGRESOS) (Col. E)": salary,
+            "dsi_scheme_fixed_fee": saving.fixed_fee_dsi,  # Col. P - Cuota Fija Esquema DSI
+            "salary_total_income": salary,  # Col. E - Salario (TOTAL INGRESOS)
         }
 
         # Append the combined result to the main list
