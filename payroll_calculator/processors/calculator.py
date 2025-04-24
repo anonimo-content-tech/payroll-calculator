@@ -70,7 +70,7 @@ def process_multiple_calculations(salaries, payment_period, risk_class, smg_mult
             "Salario Diario Integrado (Col. D)": imss.get_integrated_daily_wage(),
             "Cuota Patrón IMSS (Col. V)": imss.get_quota_employer(),
             "Cuota Trabajador IMSS (Col. W)": imss.get_quota_employee(),
-            "RCV Patrón (Col. AB)": imss.get_total_rcv_employer(),
+            "RCV Patrón (Col. AC)": imss.get_total_rcv_employer(),
             "RCV Trabajador (Col. AD)": imss.get_total_rcv_employee(),
             "INFONAVIT Patrón (Col. AE)": imss.get_infonavit_employer(),
             "Impuesto Sobre Nómina (Col. AF)": imss.get_tax_payroll(),
@@ -101,7 +101,10 @@ def process_multiple_calculations(salaries, payment_period, risk_class, smg_mult
             "Percepción Actual (Col. AF)": saving.get_current_perception(),
             "Percepción DSI (Col. AO)": saving.get_current_perception_dsi(),
             "Incremento (Col. AQ)": saving.get_increment(),
-            "Porcentaje de Incremento (Col. AR)": saving.get_increment_percentage() * 100
+            "Porcentaje de Incremento (Col. AR)": saving.get_increment_percentage() * 100,
+            
+            "Cuota Fija Esquema DSI (Col. P)": saving.fixed_fee_dsi,
+            "Salario (TOTAL INGRESOS) (Col. E)": salary,
         }
 
         # Append the combined result to the main list
