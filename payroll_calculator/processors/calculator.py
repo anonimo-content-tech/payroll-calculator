@@ -75,6 +75,7 @@ def process_multiple_calculations(salaries, payment_period, risk_class, smg_mult
             "infonavit_employer": imss.get_infonavit_employer(),  # Col. AE - INFONAVIT Patrón
             "payroll_tax": imss.get_tax_payroll(),  # Col. AF - Impuesto Sobre Nómina
             "suggested_total_social_cost": imss.get_total_social_cost_suggested(),  # Col. AP - Costo Social Total Sugerido
+            "minimum_salary": imss.smg,  # Col. AP - Costo Social Total Sugerido
 
             # ISR results
             "isr_lower_limit": isr.get_lower_limit(),  # Col. E - Límite Inferior ISR
@@ -105,6 +106,8 @@ def process_multiple_calculations(salaries, payment_period, risk_class, smg_mult
             
             "dsi_scheme_fixed_fee": saving.fixed_fee_dsi,  # Col. P - Cuota Fija Esquema DSI
             "salary_total_income": salary,  # Col. E - Salario (TOTAL INGRESOS)
+            
+            "commission_percentage_dsi": commission_percentage_dsi * 100,  # Col. Q8 - Comisión DSI
         }
 
         # Append the combined result to the main list
