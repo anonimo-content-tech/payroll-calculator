@@ -9,6 +9,7 @@ class ISR:
         self.monthly_salary = monthly_salary
         self.payment_period = payment_period
         self.SALARY_CREDIT_TABLE = Parameters.SALARY_CREDIT_TABLE
+        self.smg = Parameters.SMG
 
     # ------------------------------------------------------ CALCULO DEL IMPUESTO ------------------------------------------------------
 
@@ -17,13 +18,15 @@ class ISR:
         return self.parameters.get_isr_table(self.payment_period)
 
     # Calcula el ISR mensual ------- Columna Enumero
-    def get_lower_limit(self):
+    def get_lower_limit(self, use_smg=False):
         # Encuentra el mayor valor en lower_limit que sea menor o igual al salario mensual
         applicable_limit = None
         isr_table = self.get_isr_table()
         
+        user_salary = self.smg if use_smg else self.monthly_salary
+        
         for row in isr_table:
-            if row['lower_limit'] <= self.monthly_salary:
+            if row['lower_limit'] <= user_salary:
                 if applicable_limit is None or row['lower_limit'] > applicable_limit:
                     applicable_limit = row['lower_limit']
         return applicable_limit
@@ -52,8 +55,8 @@ class ISR:
         return self.get_surplus() * self.get_percentage_applied_to_excess()
     
     # Calcula la Cuota Fija ------- Columna Inumero
-    def get_fixed_fee(self):
-        lower_limit = self.get_lower_limit()
+    def get_fixed_fee(self, use_smg=False):
+        lower_limit = self.get_lower_limit(use_smg)
         if lower_limit is None:
             return 0
             
@@ -65,14 +68,14 @@ class ISR:
         return 0  # Default to 0 if no matching row is found
 
     # Calcula el impuesto total ------- Columna Jnumero
-    def get_total_tax(self):
-        return self.get_surplus_tax() + self.get_fixed_fee()
+    def get_total_tax(self, use_smg=False):
+        return self.get_surplus_tax() + self.get_fixed_fee(use_smg)
 
     # ------------------------------------------------------ CALCULO DE TOTALES ISR ------------------------------------------------------
 
     # Es el ISR ------- Columna Lnumero
-    def get_isr(self):
-        return self.get_total_tax()
+    def get_isr(self, use_smg=False):
+        return self.get_total_tax(use_smg)
 
     # Calcula el Rango crédito al Salario ------- Columna Mnumero
     def get_range_credit_to_salary(self):
@@ -96,8 +99,8 @@ class ISR:
         return 0
 
     # Calculo del Impuesto a Cargo ------- Columna Onumero
-    def get_tax_payable(self):
-        return self.get_isr() - self.get_salary_credit() if self.get_isr() > self.get_salary_credit() else 0
+    def get_tax_payable(self, use_smg=False):
+        return self.get_isr(use_smg) - self.get_salary_credit() if self.get_isr(use_smg) > self.get_salary_credit() else 0
     
     # Calculo del Impuesto a Favor ------- Columna Pnumero
     def get_tax_in_favor(self):

@@ -6,13 +6,14 @@ from typing import Optional
 class Saving:
     # ------------------------------------------------------ INICIALIZACIÓN DE CLASE ------------------------------------------------------
 
-    def __init__(self, wage_and_salary, wage_and_salary_dsi, fixed_fee_dsi, commission_percentage_dsi, imss_instance: Optional[IMSS] = None, isr_instance: Optional[ISR] = None):
+    def __init__(self, wage_and_salary, wage_and_salary_dsi, fixed_fee_dsi, commission_percentage_dsi, count_minimum_salary, imss_instance: Optional[IMSS] = None, isr_instance: Optional[ISR] = None):
         self.wage_and_salary = wage_and_salary
         self.imss: Optional[IMSS] = imss_instance
         self.isr: Optional[ISR] = isr_instance
         self.wage_and_salary_dsi = wage_and_salary_dsi
         self.fixed_fee_dsi = fixed_fee_dsi
         self.commission_percentage_dsi = commission_percentage_dsi
+        self.count_minimum_salary = count_minimum_salary
 
     def set_imss(self, imss_instance: IMSS) -> None:
         """Establece una instancia de IMSS para usar sus métodos"""
@@ -59,11 +60,11 @@ class Saving:
     # ------------------------------------------------------ CALCULO DE ESQUEMA TRADICIONAL MENSUAL ------------------------------------------------------
 
     # Obtener el ISR de Retenciones ------- Columna ABnumero
-    def get_isr_retention(self):
+    def get_isr_retention(self, use_smg=False):
         if self.isr is None:
             raise ValueError(
                 "ISR instance is not set. Use set_isr() method first.")
-        return self.isr.get_tax_payable() if self.isr.get_tax_payable() > self.isr.get_tax_in_favor() else (self.isr.get_tax_in_favor() * -1)
+        return self.isr.get_tax_payable(use_smg) if self.isr.get_tax_payable(use_smg) > self.isr.get_tax_in_favor() else (self.isr.get_tax_in_favor() * -1)
 
     # Obtener el total de Retenciones ------- Columna AEnumero
     def get_total_retentions(self):
@@ -83,11 +84,15 @@ class Saving:
     # Calcular Total de Ingresos ------- Columna AJnumero
     def get_total_wage_and_salary_dsi(self):
         return self.wage_and_salary_dsi + self.get_assimilated()
+    
+    # Calcular Total de Retenciones DSI ------- Columna AKnumero
+    def get_total_isr_retention_dsi(self):
+        return self.get_isr_retention(True) if self.count_minimum_salary > 1 else 0
 
     # Calcular Percepción Actual DSI ------- Columna AOnumero
     def get_current_perception_dsi(self):
         # Columna AJ - Columna AK - Columna AL - Columna AM - Columna AN
-        return self.get_total_wage_and_salary_dsi() - 0 - 0 - 0 - 0
+        return self.get_total_wage_and_salary_dsi() - self.get_total_isr_retention_dsi() - 0 - 0 - 0
     
     # ------------------------------------------------------ CALCULO DE INCREMENTO ------------------------------------------------------
     

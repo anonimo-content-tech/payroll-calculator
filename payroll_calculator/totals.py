@@ -97,7 +97,8 @@ class TotalCalculator:
             "total_current_perception_dsi": sum(row[9] for row in results),
             "total_increment": sum(row[10] for row in results),
             "total_fixed_fee_dsi": sum(row[12] for row in results),
-            "total_income": sum(row[13] for row in results)
+            "total_income": sum(row[13] for row in results),
+            "total_isr_retention_dsi": sum(row[15] for row in results)
         }
         
         # Calculate average percentages

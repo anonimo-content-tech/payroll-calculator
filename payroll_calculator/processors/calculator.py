@@ -6,7 +6,7 @@ from payroll_calculator.parameters import Parameters
 from payroll_calculator.totals import TotalCalculator
 
 
-def process_single_calculation(salary, payment_period, risk_class, smg_multiplier, fixed_fee_dsi, commission_percentage_dsi):
+def process_single_calculation(salary, payment_period, risk_class, smg_multiplier, fixed_fee_dsi, commission_percentage_dsi, count_minimum_salary):
     """
     Process a single calculation for IMSS, ISR, and Savings
     """
@@ -22,7 +22,7 @@ def process_single_calculation(salary, payment_period, risk_class, smg_multiplie
     # Calculate wage_and_salary_dsi based on SMG multiplier
     wage_and_salary_dsi = Parameters.calculate_wage_and_salary_dsi(
         smg_multiplier, payment_period)
-
+    
     # Savings calculations
     saving = Saving(
         wage_and_salary=salary,
@@ -30,13 +30,14 @@ def process_single_calculation(salary, payment_period, risk_class, smg_multiplie
         fixed_fee_dsi=fixed_fee_dsi,
         commission_percentage_dsi=commission_percentage_dsi,
         imss_instance=imss,
-        isr_instance=isr
+        isr_instance=isr,
+        count_minimum_salary=count_minimum_salary
     )
 
     return imss, isr, saving, wage_and_salary_dsi
 
 
-def process_multiple_calculations(salaries, payment_period, risk_class, smg_multiplier, fixed_fee_dsi, commission_percentage_dsi):
+def process_multiple_calculations(salaries, payment_period, risk_class, smg_multiplier, fixed_fee_dsi, commission_percentage_dsi, count_minimum_salary):
     """
     Process multiple calculations for IMSS, ISR, and Savings, adding column references to labels.
     This function now only returns the individual results for each salary.
@@ -59,7 +60,7 @@ def process_multiple_calculations(salaries, payment_period, risk_class, smg_mult
         # Get calculation instances
         imss, isr, saving, wage_and_salary_dsi = process_single_calculation(
             salary, payment_period, risk_class,
-            smg_multiplier, fixed_fee_dsi, commission_percentage_dsi
+            smg_multiplier, fixed_fee_dsi, commission_percentage_dsi, count_minimum_salary
         )
 
         # Create a combined dictionary for the current salary with column references
@@ -108,6 +109,7 @@ def process_multiple_calculations(salaries, payment_period, risk_class, smg_mult
             "salary_total_income": salary,  # Col. E - Salario (TOTAL INGRESOS)
             
             "commission_percentage_dsi": commission_percentage_dsi * 100,  # Col. Q8 - Comisión DSI
+            "isr_retention_dsi": saving.get_total_isr_retention_dsi(),  # Col. AK9 - ISR Retención DSI
         }
 
         # Append the combined result to the main list
