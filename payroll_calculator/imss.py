@@ -45,6 +45,7 @@ class IMSS:
         self.total_salary = self.employee.calculate_total_salary()
         self.state_payroll_tax = Parameters.STATE_PAYROLL_TAX
         self.severance_and_old_age_employee = Parameters.SEVERANCE_AND_OLD_AGE_EMPLOYEE
+        self.smg_total_salary = self.employee.calculate_total_minimum_salary(self.smg)
 
     # Método auxiliar para inicializar parámetros de beneficios
 
@@ -205,14 +206,15 @@ class IMSS:
     # ------------------------------------------------------ CALCULO DE IMPUESTO SOBRE NÓMINA ------------------------------------------------------
 
     # IMPUESTO SOBRE NÓMINA ------- Columna AFnumero
-    def get_tax_payroll(self):
-        return self.total_salary * self.state_payroll_tax
+    def get_tax_payroll(self, use_smg=False):
+        total_salary = self.smg_total_salary if use_smg else self.total_salary
+        return total_salary * self.state_payroll_tax
 
     # ------------------------------------------------------ CALCULO TOTAL DEL PATRÓN ------------------------------------------------------
 
     # TOTAL PATRÓN ------- Columna AHnumero
-    def get_total_employer(self):
-        return (self.get_quota_employer() + self.get_total_rcv_employer() + self.get_infonavit_employer() + self.get_tax_payroll())
+    def get_total_employer(self, use_smg=False):
+        return (self.get_quota_employer() + self.get_total_rcv_employer() + self.get_infonavit_employer() + self.get_tax_payroll(use_smg))
 
     # ------------------------------------------------------ CALCULO DE TOTAL DEL RCV TRABAJADOR ------------------------------------------------------
 
@@ -233,8 +235,8 @@ class IMSS:
     # ------------------------------------------------------ CALCULO TOTAL SUMA COSTO SOCIAL ------------------------------------------------------
 
     # SUMA COSTO SOCIAL ------- Columna ALnumero
-    def get_total_social_cost(self):
-        return self.get_total_employer() + self.get_total_employee()
+    def get_total_social_cost(self, use_smg=False):
+        return self.get_total_employer(use_smg) + self.get_total_employee()
 
     # ------------------------------------------------------ CALCULO 2.5 INCREMENTO ------------------------------------------------------
 
@@ -247,3 +249,7 @@ class IMSS:
     # SUMA COSTO SOCIAL SUGERIDO ------- Columna APnumero
     def get_total_social_cost_suggested(self):
         return math.ceil(self.get_total_social_cost() + self.get_increment())
+    
+    # SUMA COSTO SOCIAL SUGERIDO PARA OBTENER LA CUOTA FIJA ------- Columna APnumero
+    def get_fixed_fee_for_smg(self):
+        return math.ceil(self.get_total_social_cost(True) + self.get_increment())

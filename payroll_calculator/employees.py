@@ -13,3 +13,6 @@ class Employee:
 
     def calculate_total_salary(self):
         return self.imss_salary + self.compensation + self.double_overtime + self.christmas_bonus
+    
+    def calculate_total_minimum_salary(self, smg):
+        return smg + self.compensation + self.double_overtime + self.christmas_bonus

@@ -6,18 +6,23 @@ from typing import Optional
 class Saving:
     # ------------------------------------------------------ INICIALIZACIÓN DE CLASE ------------------------------------------------------
 
-    def __init__(self, wage_and_salary, wage_and_salary_dsi, fixed_fee_dsi, commission_percentage_dsi, count_minimum_salary, imss_instance: Optional[IMSS] = None, isr_instance: Optional[ISR] = None):
+    # Remove fixed_fee_dsi from parameters, make imss_instance non-optional
+    def __init__(self, wage_and_salary, wage_and_salary_dsi, commission_percentage_dsi, count_minimum_salary, imss_instance: IMSS, isr_instance: Optional[ISR] = None):
         self.wage_and_salary = wage_and_salary
-        self.imss: Optional[IMSS] = imss_instance
+        self.imss: IMSS = imss_instance # Now non-optional
         self.isr: Optional[ISR] = isr_instance
         self.wage_and_salary_dsi = wage_and_salary_dsi
-        self.fixed_fee_dsi = fixed_fee_dsi
+        # Calculate fixed_fee_dsi using the IMSS instance method
+        self.fixed_fee_dsi = self.imss.get_fixed_fee_for_smg()
         self.commission_percentage_dsi = commission_percentage_dsi
         self.count_minimum_salary = count_minimum_salary
 
+    # set_imss might be less necessary if IMSS is required at init, but keep for flexibility
     def set_imss(self, imss_instance: IMSS) -> None:
         """Establece una instancia de IMSS para usar sus métodos"""
         self.imss = imss_instance
+        # Recalculate fixed_fee_dsi if IMSS instance changes
+        self.fixed_fee_dsi = self.imss.get_fixed_fee_for_smg()
 
     def set_isr(self, isr_instance: ISR) -> None:
         """Establece una instancia de ISR para usar sus métodos"""
@@ -45,6 +50,7 @@ class Saving:
 
     # Calcular el Costo Total DSI ------- Columna Rnumero
     def get_dsi_scheme_biweekly_total(self):
+        # This method now correctly uses the internally calculated self.fixed_fee_dsi
         return self.wage_and_salary + self.fixed_fee_dsi + self.get_commission_dsi()
 
     # ------------------------------------------------------ CALCULO DE AHORRO ------------------------------------------------------

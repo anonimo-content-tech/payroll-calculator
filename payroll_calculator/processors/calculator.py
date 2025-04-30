@@ -6,7 +6,7 @@ from payroll_calculator.parameters import Parameters
 from payroll_calculator.totals import TotalCalculator
 
 
-def process_single_calculation(salary, payment_period, risk_class, smg_multiplier, fixed_fee_dsi, commission_percentage_dsi, count_minimum_salary):
+def process_single_calculation(salary, payment_period, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary):
     """
     Process a single calculation for IMSS, ISR, and Savings
     """
@@ -27,7 +27,6 @@ def process_single_calculation(salary, payment_period, risk_class, smg_multiplie
     saving = Saving(
         wage_and_salary=salary,
         wage_and_salary_dsi=wage_and_salary_dsi,
-        fixed_fee_dsi=fixed_fee_dsi,
         commission_percentage_dsi=commission_percentage_dsi,
         imss_instance=imss,
         isr_instance=isr,
@@ -37,7 +36,7 @@ def process_single_calculation(salary, payment_period, risk_class, smg_multiplie
     return imss, isr, saving, wage_and_salary_dsi
 
 
-def process_multiple_calculations(salaries, payment_period, risk_class, smg_multiplier, fixed_fee_dsi, commission_percentage_dsi, count_minimum_salary):
+def process_multiple_calculations(salaries, payment_period, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary):
     """
     Process multiple calculations for IMSS, ISR, and Savings, adding column references to labels.
     This function now only returns the individual results for each salary.
@@ -60,7 +59,7 @@ def process_multiple_calculations(salaries, payment_period, risk_class, smg_mult
         # Get calculation instances
         imss, isr, saving, wage_and_salary_dsi = process_single_calculation(
             salary, payment_period, risk_class,
-            smg_multiplier, fixed_fee_dsi, commission_percentage_dsi, count_minimum_salary
+            smg_multiplier, commission_percentage_dsi, count_minimum_salary
         )
 
         # Create a combined dictionary for the current salary with column references
