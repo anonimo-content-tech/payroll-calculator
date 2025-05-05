@@ -66,24 +66,6 @@ class TotalCalculator:
         """
         # --- Inicio: Debugging ---
         num_records = len(results)
-        # print(f"--- Debugging calculate_saving_totals ---")
-        # print(f"Total records received: {num_records}")
-        # if num_records > 0:
-        #     last_record = results[-1]
-        #     print(f"Values from the last record (index {num_records - 1}):")
-        #     print(f"  Salary (row[0]): {last_record[0]}")
-        #     print(f"  Wage/Salary DSI (row[1]): {last_record[1]}")
-        #     print(f"  Productivity (row[2]): {last_record[2]}")
-        #     print(f"  Commission DSI (row[3]): {last_record[3]}")
-        #     print(f"  Traditional Scheme (row[4]): {last_record[4]}")
-        #     print(f"  DSI Scheme (row[5]): {last_record[5]}")
-        #     print(f"  Saving Amount (row[6]): {last_record[6]}")
-        #     print(f"  Saving Percentage (row[7]): {last_record[7]}")
-        #     print(f"  Current Perception (row[8]): {last_record[8]}")
-        #     print(f"  Current Perception DSI (row[9]): {last_record[9]}")
-        #     print(f"  Increment (row[10]): {last_record[10]}")
-        #     print(f"  Increment Percentage (row[11]): {last_record[11]}")
-        # --- Fin: Debugging ---
 
         totals = {
             "total_salary": sum(row[0] for row in results),

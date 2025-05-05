@@ -11,13 +11,17 @@ def process_single_calculation(salary, payment_period, risk_class, smg_multiplie
     """
     Process a single calculation for IMSS, ISR, and Savings
     """
+    minimum_threshold_salary = 0
+    if count_minimum_salary > 1:
+        minimum_threshold_salary = (Parameters.SMG * count_minimum_salary) * payment_period
+        
     # IMSS calculations
     imss = IMSS(imss_salary=salary, payment_period=payment_period,
-                risk_class=risk_class)
+                risk_class=risk_class, minimum_threshold_salary=minimum_threshold_salary)
 
     # ISR calculations
     isr = ISR(monthly_salary=salary, payment_period=payment_period,
-              employee=imss.employee)
+              employee=imss.employee, minimum_threshold_salary=minimum_threshold_salary)
 
     # Calculate wage_and_salary_dsi based on SMG multiplier
     wage_and_salary_dsi = Parameters.calculate_wage_and_salary_dsi(
@@ -58,9 +62,9 @@ def process_multiple_calculations(salaries, payment_period, risk_class, smg_mult
         if estricted_mode:
             if smg_for_payment_period > salary:
                 print(
-                    f"SMG for {payment_period} months is higher than salary. Skipping salary {salary}.")
+                    f"SMG for {payment_period} days is higher than salary. Skipping salary {salary}.")
                 raise ValueError(
-                    f"SMG for {payment_period} months is higher than salary. Skipping salary {salary}.")
+                    f"SMG for {payment_period} days is higher than salary. Skipping salary {salary}.")
 
         # Get calculation instances
         imss, isr, saving, wage_and_salary_dsi = process_single_calculation(

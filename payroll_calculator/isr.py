@@ -3,13 +3,14 @@ from .parameters import Parameters
 
 
 class ISR:
-    def __init__(self, monthly_salary, payment_period, employee: Employee):
+    def __init__(self, monthly_salary, payment_period, employee: Employee, minimum_threshold_salary=None):
         self.employee = employee
         self.parameters = Parameters()
         self.monthly_salary = monthly_salary
         self.payment_period = payment_period
         self.SALARY_CREDIT_TABLE = Parameters.SALARY_CREDIT_TABLE
         self.smg = Parameters.SMG
+        self.monthly_smg = minimum_threshold_salary
 
     # ------------------------------------------------------ CALCULO DEL IMPUESTO ------------------------------------------------------
 
@@ -23,7 +24,7 @@ class ISR:
         applicable_limit = None
         isr_table = self.get_isr_table()
         
-        user_salary = self.smg if use_smg else self.monthly_salary
+        user_salary = self.monthly_smg if use_smg else self.monthly_salary
         
         for row in isr_table:
             if row['lower_limit'] <= user_salary:
@@ -32,15 +33,16 @@ class ISR:
         return applicable_limit
     
     # Calcula el excedente ------- Columna Fnumero
-    def get_surplus(self):
-        lower_limit = self.get_lower_limit()
+    def get_surplus(self, use_smg=False):
+        lower_limit = self.get_lower_limit(use_smg)
         if lower_limit is None:
             return 0
-        return self.monthly_salary - lower_limit
+        salary = self.monthly_smg if use_smg else self.monthly_salary
+        return salary - lower_limit
 
     # Calcular el Porcentaje a aplicar en el excedente ------- Columna Gnumero
-    def get_percentage_applied_to_excess(self):
-        lower_limit = self.get_lower_limit()
+    def get_percentage_applied_to_excess(self, use_smg=False):
+        lower_limit = self.get_lower_limit(use_smg)
         if lower_limit is None:
             return 0
             
@@ -51,8 +53,8 @@ class ISR:
         return 0  # Default to 0 if no matching row is found
             
     # Calcula el impuesto sobre el excedente ------- Columna Hnumero
-    def get_surplus_tax(self):
-        return self.get_surplus() * self.get_percentage_applied_to_excess()
+    def get_surplus_tax(self, use_smg=False):
+        return self.get_surplus(use_smg) * self.get_percentage_applied_to_excess(use_smg)
     
     # Calcula la Cuota Fija ------- Columna Inumero
     def get_fixed_fee(self, use_smg=False):
@@ -69,7 +71,7 @@ class ISR:
 
     # Calcula el impuesto total ------- Columna Jnumero
     def get_total_tax(self, use_smg=False):
-        return self.get_surplus_tax() + self.get_fixed_fee(use_smg)
+        return self.get_surplus_tax(use_smg) + self.get_fixed_fee(use_smg)
 
     # ------------------------------------------------------ CALCULO DE TOTALES ISR ------------------------------------------------------
 

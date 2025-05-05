@@ -7,19 +7,19 @@ import math
 
 
 class IMSS:
-    def __init__(self, imss_salary, payment_period, risk_class='I'):
+    def __init__(self, imss_salary, payment_period, risk_class='I', minimum_threshold_salary=None):
         # Handle the case where payment_period might be a risk class
         if isinstance(payment_period, str):
             risk_class = payment_period
             payment_period = 15
 
         # Inicialización de parámetros base
-        self._init_base_parameters(imss_salary, risk_class, payment_period)
+        self._init_base_parameters(imss_salary, risk_class, payment_period, minimum_threshold_salary)
         # Inicialización de parámetros de beneficios
         self._init_benefit_parameters()
 
     # Método auxiliar para inicializar parámetros base
-    def _init_base_parameters(self, imss_salary, risk_class, payment_period):
+    def _init_base_parameters(self, imss_salary, risk_class, payment_period, minimum_threshold_salary=None):
         self.salary = imss_salary
         self.payment_period = payment_period
         self.risk_class = risk_class
@@ -46,6 +46,7 @@ class IMSS:
         self.state_payroll_tax = Parameters.STATE_PAYROLL_TAX
         self.severance_and_old_age_employee = Parameters.SEVERANCE_AND_OLD_AGE_EMPLOYEE
         self.smg_total_salary = self.employee.calculate_total_minimum_salary(self.smg)
+        self.smg_total_monthly_salary = minimum_threshold_salary
 
     # Método auxiliar para inicializar parámetros de beneficios
 
@@ -207,7 +208,7 @@ class IMSS:
 
     # IMPUESTO SOBRE NÓMINA ------- Columna AFnumero
     def get_tax_payroll(self, use_smg=False):
-        total_salary = self.smg_total_salary if use_smg else self.total_salary
+        total_salary = self.smg_total_monthly_salary if use_smg else self.total_salary
         return total_salary * self.state_payroll_tax
 
     # ------------------------------------------------------ CALCULO TOTAL DEL PATRÓN ------------------------------------------------------
