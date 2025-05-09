@@ -1,9 +1,8 @@
-# Cambiar
 from .employees import Employee
 from .parameters import Parameters
 from .rcv import RCV
-
 import math
+from typing import Optional
 
 
 class IMSS:
@@ -24,7 +23,7 @@ class IMSS:
         self.payment_period = payment_period
         self.risk_class = risk_class
         self.parameters = Parameters()
-        self.employee = Employee(imss_salary, payment_period=int(payment_period))  # Ensure payment_period is int
+        self.employee = Employee(imss_salary, payment_period=int(payment_period))
         self.days = self.employee.payment_period
         self.integration_factor = Parameters.INTEGRATION_FACTOR
         self.fixed_fee = Parameters.FIXED_FEE
@@ -149,6 +148,7 @@ class IMSS:
     # ENFERMEDADES Y MATERNIDAD EXCEDENTE DEL TRABAJADOR ------- Columna Jnumero
     def get_diseases_and_maternity_employee_surplus(self):
         salary_cap_25_smg = self.get_salary_cap_25_smg()
+        # print("Columna G: ", salary_cap_25_smg, "Columna H: ", self.get_diseases_and_maternity_employer_quota(), "Columna I: ", self.get_diseases_and_maternity_employer_surplus())
         return ((salary_cap_25_smg - self.tcf) * self.surplus_employee * self.days) if salary_cap_25_smg > self.tcf else 0
 
     # PRESTACIONES EN ESPECIE TRABAJADOR (GASTOS MÉDICOS) ------- Columna Nnumero
@@ -163,6 +163,7 @@ class IMSS:
 
     # CUOTAS IMSS TRABAJADOR ------- Columna Wnumero
     def get_quota_employee(self):
+        # print("Columna J: ", self.get_diseases_and_maternity_employee_surplus(), "Columna L: ", self.get_employee_cash_benefits(), "Columna N: ", self.get_benefits_in_kind_medical_expenses_employee(), "Columna S: ", self.get_invalidity_and_retirement_employee())
         quotas = [
             self.get_diseases_and_maternity_employee_surplus(),
             self.get_employee_cash_benefits(),
@@ -181,12 +182,14 @@ class IMSS:
 
     # RETIRO PATRÓN ------- Columna Znumero
     def get_retirement_employer(self):
-        return self.get_salary_cap_25_smg() * self.days * self.retirement_employer
+        salary_cap_25_smg = self.get_salary_cap_25_smg()
+        print("COLUMNA Z: ", salary_cap_25_smg * self.days * self.retirement_employer, " CON SALARY: ", salary_cap_25_smg)
+        return salary_cap_25_smg * self.days * self.retirement_employer
 
     # CESANTIA Y VEJEZ PATRÓN ------- Columna AAnumero
     def _get_rcv(self):
-        if self.rcv is None:
-            self.rcv = RCV(self.get_integrated_daily_wage())
+        # Siempre crear una nueva instancia con el valor actual del salario diario integrado
+        self.rcv = RCV(self.get_integrated_daily_wage())
         return self.rcv
 
     # CESANTIA Y VEJEZ PATRÓN ------- Columna AAnumero
@@ -207,15 +210,38 @@ class IMSS:
     # ------------------------------------------------------ CALCULO DE IMPUESTO SOBRE NÓMINA ------------------------------------------------------
 
     # IMPUESTO SOBRE NÓMINA ------- Columna AFnumero
-    def get_tax_payroll(self, use_smg=False):
-        total_salary = self.smg_total_monthly_salary if use_smg else self.total_salary
+    def get_tax_payroll(self, use_smg=False, minimum_threshold_salary_override: Optional[float] = None):
+        if use_smg:
+            if minimum_threshold_salary_override is not None:
+                total_salary = minimum_threshold_salary_override
+            else:
+                total_salary = self.smg_total_monthly_salary
+        else:
+            total_salary = self.total_salary
+        
+        # Asegurarse de que total_salary no sea None antes de la multiplicación
+        if total_salary is None:
+            # Podrías decidir devolver 0, lanzar un error, o manejarlo de otra manera
+            # Por ahora, si es None y se supone que debe usarse (ej. use_smg=True sin override y self.smg_total_monthly_salary es None),
+            # esto podría indicar un problema de configuración o lógica previa.
+            # Para el cálculo de impuestos, si el salario base es None, el impuesto es 0.
+            return 0
+            
         return total_salary * self.state_payroll_tax
 
     # ------------------------------------------------------ CALCULO TOTAL DEL PATRÓN ------------------------------------------------------
 
     # TOTAL PATRÓN ------- Columna AHnumero
-    def get_total_employer(self, use_smg=False):
-        return (self.get_quota_employer() + self.get_total_rcv_employer() + self.get_infonavit_employer() + self.get_tax_payroll(use_smg))
+    def get_total_employer(self, use_smg=False, minimum_threshold_salary_override: Optional[float] = None):
+        quota_employer = self.get_quota_employer()
+        total_rcv_employer = self.get_total_rcv_employer()
+        infonavit_employer = self.get_infonavit_employer()
+        tax_payroll = self.get_tax_payroll(use_smg, minimum_threshold_salary_override=minimum_threshold_salary_override)
+        if use_smg:
+            print("COLUMNA V: ", quota_employer, " COLUMNA AC: ", total_rcv_employer, " COLUMNA AE: ", infonavit_employer, " COLUMNA AF: ", tax_payroll)
+        result_total_employee = quota_employer + total_rcv_employer + infonavit_employer + tax_payroll
+        # print("Columna AH: ", result_total_employee)
+        return result_total_employee
 
     # ------------------------------------------------------ CALCULO DE TOTAL DEL RCV TRABAJADOR ------------------------------------------------------
 
@@ -231,19 +257,36 @@ class IMSS:
 
     # TOTAL TRABAJADOR ------- Columna AJnumero
     def get_total_employee(self):
-        return self.get_quota_employee() + self.get_total_rcv_employee()
+        result_total_employee = self.get_quota_employee() + self.get_total_rcv_employee()
+        # print("TOTAL TRABAJADOR COL. AJ: ", result_total_employee)
+        return result_total_employee
 
     # ------------------------------------------------------ CALCULO TOTAL SUMA COSTO SOCIAL ------------------------------------------------------
 
     # SUMA COSTO SOCIAL ------- Columna ALnumero
-    def get_total_social_cost(self, use_smg=False):
-        return self.get_total_employer(use_smg) + self.get_total_employee()
+    def get_total_social_cost(self, use_smg=False, minimum_threshold_salary_override: Optional[float] = None):
+        total_employer = self.get_total_employer(use_smg, minimum_threshold_salary_override=minimum_threshold_salary_override)
+        total_employee = self.get_total_employee()
+        result_social_cost = total_employer + total_employee
+        if use_smg:
+            # Determinar el salario base para el print
+            salary_for_print_info = self.salary
+            if minimum_threshold_salary_override is not None:
+                salary_for_print_info = f"override {minimum_threshold_salary_override}"
+            elif self.smg_total_monthly_salary is not None:
+                 salary_for_print_info = f"smg_monthly {self.smg_total_monthly_salary}"
+
+            # print("COL. AH: ", total_employer, " COL. AJ: ", total_employee, " COL. AL: ", result_social_cost, " CON SALARIO (info): ", salary_for_print_info)
+        return result_social_cost
 
     # ------------------------------------------------------ CALCULO 2.5 INCREMENTO ------------------------------------------------------
 
     # 2.5 INCREMENTO ------- Columna ANnumero
-    def get_increment(self):
-        return self.get_total_social_cost() * self.increase
+    def get_increment(self, use_smg=False, minimum_threshold_salary_override: Optional[float] = None):
+        result_total_social_cost = self.get_total_social_cost(use_smg, minimum_threshold_salary_override=minimum_threshold_salary_override) * self.increase
+        # if use_smg:
+        #     print("INCREMENTO DEL 2.5 Col. AN: ", result_total_social_cost)
+        return result_total_social_cost
 
     # ------------------------------------------------------ CALCULO SUMA COSTO SOCIAL SUGERIDO ------------------------------------------------------
 
@@ -251,6 +294,36 @@ class IMSS:
     def get_total_social_cost_suggested(self):
         return math.ceil(self.get_total_social_cost() + self.get_increment())
     
+    # SALARIO DIARIO INTEGRADO PARA SMG, después de aplicar el factor de integración
+    def get_integrated_daily_wage_for_smg(self, minimum_threshold_salary_override: Optional[float] = None):
+        """Calcula el salario diario integrado basado en el salario mínimo en lugar del salario del empleado"""
+        if minimum_threshold_salary_override is not None:
+            daily_salary = minimum_threshold_salary_override / self.days
+        elif self.smg_total_monthly_salary is not None:
+            daily_salary = self.smg_total_monthly_salary / self.days
+        else:
+            # Si no hay override ni salario mensual SMG, usar el SMG base
+            daily_salary = self.smg
+        
+        return daily_salary * self.integration_factor
+    
     # SUMA COSTO SOCIAL SUGERIDO PARA OBTENER LA CUOTA FIJA ------- Columna APnumero
-    def get_fixed_fee_for_smg(self):
-        return math.ceil(self.get_total_social_cost(True) + self.get_increment())
+    def get_fixed_fee_for_smg(self, minimum_threshold_salary_override: Optional[float] = None):
+        # Guardar el valor original del salario diario integrado
+        original_method = self.get_integrated_daily_wage
+        
+        # Reemplazar temporalmente el método get_integrated_daily_wage con nuestra versión para SMG
+        def get_integrated_daily_wage_override():
+            return self.get_integrated_daily_wage_for_smg(minimum_threshold_salary_override)
+        
+        self.get_integrated_daily_wage = get_integrated_daily_wage_override
+        
+        try:
+            # Calcular la cuota fija usando el salario mínimo
+            fixed_fee_result = self.get_total_social_cost(True, minimum_threshold_salary_override=minimum_threshold_salary_override) + self.get_increment(True, minimum_threshold_salary_override=minimum_threshold_salary_override)
+            # print("SELF.GET_INCREMENT: ", self.get_increment(True, minimum_threshold_salary_override=minimum_threshold_salary_override))
+            # print("SUMA COSTO SOCIAL SUGERIDO: ", fixed_fee_result)
+            return math.ceil(fixed_fee_result)
+        finally:
+            # Restaurar el método original
+            self.get_integrated_daily_wage = original_method

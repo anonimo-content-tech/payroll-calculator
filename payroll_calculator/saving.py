@@ -7,13 +7,14 @@ class Saving:
     # ------------------------------------------------------ INICIALIZACIÓN DE CLASE ------------------------------------------------------
 
     # Remove fixed_fee_dsi from parameters, make imss_instance non-optional
-    def __init__(self, wage_and_salary, wage_and_salary_dsi, commission_percentage_dsi, count_minimum_salary, imss_instance: IMSS, isr_instance: Optional[ISR] = None):
+    def __init__(self, wage_and_salary, wage_and_salary_dsi, commission_percentage_dsi, count_minimum_salary, imss_instance: IMSS, isr_instance: Optional[ISR] = None, minimum_threshold_salary: Optional[float] = None):
         self.wage_and_salary = wage_and_salary
         self.imss: IMSS = imss_instance # Now non-optional
         self.isr: Optional[ISR] = isr_instance
         self.wage_and_salary_dsi = wage_and_salary_dsi
-        # Calculate fixed_fee_dsi using the IMSS instance method
-        self.fixed_fee_dsi = self.imss.get_fixed_fee_for_smg()
+        self.minimum_threshold_salary = minimum_threshold_salary # Store the new parameter
+        # Calculate fixed_fee_dsi using the IMSS instance method and pass minimum_threshold_salary
+        self.fixed_fee_dsi = self.imss.get_fixed_fee_for_smg(minimum_threshold_salary_override=self.minimum_threshold_salary)
         self.commission_percentage_dsi = commission_percentage_dsi
         self.count_minimum_salary = count_minimum_salary
 
@@ -21,8 +22,8 @@ class Saving:
     def set_imss(self, imss_instance: IMSS) -> None:
         """Establece una instancia de IMSS para usar sus métodos"""
         self.imss = imss_instance
-        # Recalculate fixed_fee_dsi if IMSS instance changes
-        self.fixed_fee_dsi = self.imss.get_fixed_fee_for_smg()
+        # Recalculate fixed_fee_dsi if IMSS instance changes, passing minimum_threshold_salary
+        self.fixed_fee_dsi = self.imss.get_fixed_fee_for_smg(minimum_threshold_salary_override=self.minimum_threshold_salary)
 
     def set_isr(self, isr_instance: ISR) -> None:
         """Establece una instancia de ISR para usar sus métodos"""

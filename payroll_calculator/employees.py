@@ -12,6 +12,7 @@ class Employee:
         return self.imss_salary / self.payment_period
 
     def calculate_total_salary(self):
+        print("IMSS SALARY: ", self.imss_salary)
         return self.imss_salary + self.compensation + self.double_overtime + self.christmas_bonus
     
     def calculate_total_minimum_salary(self, smg):

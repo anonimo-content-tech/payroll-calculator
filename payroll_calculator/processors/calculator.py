@@ -6,26 +6,29 @@ from payroll_calculator.parameters import Parameters
 # Import the TotalCalculator class
 from payroll_calculator.totals import TotalCalculator
 
-
+# VERIFICAR QUE SMG_MULTIPLIER Y COUNT_MINIMUM_SALARY SEAN LO MISMO, TAL PARECE QUE SÍ
 def process_single_calculation(salary, payment_period, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary):
     """
     Process a single calculation for IMSS, ISR, and Savings
     """
-    minimum_threshold_salary = 0
-    if count_minimum_salary > 1:
-        minimum_threshold_salary = (Parameters.SMG * count_minimum_salary) * payment_period
-        
-    # IMSS calculations
-    imss = IMSS(imss_salary=salary, payment_period=payment_period,
-                risk_class=risk_class, minimum_threshold_salary=minimum_threshold_salary)
-
-    # ISR calculations
-    isr = ISR(monthly_salary=salary, payment_period=payment_period,
-              employee=imss.employee, minimum_threshold_salary=minimum_threshold_salary)
-
     # Calculate wage_and_salary_dsi based on SMG multiplier
     wage_and_salary_dsi = Parameters.calculate_wage_and_salary_dsi(
         smg_multiplier, payment_period)
+    
+    # Calcular el salario mínimo para el período de pago
+    smg_for_period = Parameters.SMG * payment_period
+    
+    # Determinar los umbrales para ISR e IMSS basados en count_minimum_salary
+    isr_threshold_salary = smg_for_period * count_minimum_salary if count_minimum_salary > 1 else 0
+    imss_threshold_salary = smg_for_period * count_minimum_salary
+    
+    # IMSS calculations
+    imss = IMSS(imss_salary=salary, payment_period=payment_period,
+                risk_class=risk_class, minimum_threshold_salary=imss_threshold_salary)
+
+    # ISR calculations
+    isr = ISR(monthly_salary=salary, payment_period=payment_period,
+              employee=imss.employee, minimum_threshold_salary=isr_threshold_salary)
 
     # Savings calculations
     saving = Saving(
@@ -34,7 +37,8 @@ def process_single_calculation(salary, payment_period, risk_class, smg_multiplie
         commission_percentage_dsi=commission_percentage_dsi,
         imss_instance=imss,
         isr_instance=isr,
-        count_minimum_salary=count_minimum_salary
+        count_minimum_salary=count_minimum_salary,
+        minimum_threshold_salary=imss_threshold_salary
     )
 
     return imss, isr, saving, wage_and_salary_dsi
@@ -71,6 +75,7 @@ def process_multiple_calculations(salaries, payment_period, risk_class, smg_mult
             salary, payment_period, risk_class,
             smg_multiplier, commission_percentage_dsi, count_minimum_salary
         )
+        # print("SAVING FIXED FEE, COL. P: ", saving.fixed_fee_dsi)
 
         # Create a combined dictionary for the current salary with column references
         combined_result = {
