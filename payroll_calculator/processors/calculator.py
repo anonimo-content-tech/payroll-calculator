@@ -44,22 +44,34 @@ def process_single_calculation(salary, payment_period, risk_class, smg_multiplie
     return imss, isr, saving, wage_and_salary_dsi
 
 
-def process_multiple_calculations(salaries, payment_period, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary):
+def process_multiple_calculations(salaries, payment_periods, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary):
     """
     Process multiple calculations for IMSS, ISR, and Savings, adding column references to labels.
     This function now only returns the individual results for each salary.
     Total calculations should be handled by the calling code after grouping if necessary.
+    
+    Parameters:
+    - salaries: Lista de salarios
+    - payment_periods: Lista de períodos de pago correspondientes a cada salario
+    - risk_class: Clase de riesgo
+    - smg_multiplier: Multiplicador de salario mínimo
+    - commission_percentage_dsi: Porcentaje de comisión DSI
+    - count_minimum_salary: Contador de salario mínimo
     """
 
     # Initialize a list to store combined results for each salary
     individual_results = []
     estricted_mode = os.getenv('ESTRICTED_MODE', 'False').lower() == 'true'
 
-    smg_for_payment_period = Parameters.SMG * payment_period
-
     # Process salaries with a progress indicator
     total_salaries = len(salaries)
     for i, salary in enumerate(salaries):
+        # Obtener el período de pago correspondiente a este salario
+        payment_period = payment_periods[i]
+        
+        # Calcular el salario mínimo para este período de pago específico
+        smg_for_payment_period = Parameters.SMG * payment_period
+        
         if i % 10 == 0 or i == total_salaries - 1:
             print(f"Processing salary {i+1}/{total_salaries}...")
 
@@ -91,6 +103,7 @@ def process_multiple_calculations(salaries, payment_period, risk_class, smg_mult
             "payroll_tax": imss.get_tax_payroll(),  # Col. AF - Impuesto Sobre Nómina
             "suggested_total_social_cost": imss.get_total_social_cost_suggested(), # Col. AP - Costo Social Total Sugerido
             "minimum_salary": imss.smg,  # Col. AP - Costo Social Total Sugerido
+            "payment_period": payment_period,  # Período de pago para este salario
 
             # ISR results
             "isr_lower_limit": isr.get_lower_limit(),  # Col. E - Límite Inferior ISR

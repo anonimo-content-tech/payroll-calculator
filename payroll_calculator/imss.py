@@ -183,7 +183,6 @@ class IMSS:
     # RETIRO PATRÓN ------- Columna Znumero
     def get_retirement_employer(self):
         salary_cap_25_smg = self.get_salary_cap_25_smg()
-        print("COLUMNA Z: ", salary_cap_25_smg * self.days * self.retirement_employer, " CON SALARY: ", salary_cap_25_smg)
         return salary_cap_25_smg * self.days * self.retirement_employer
 
     # CESANTIA Y VEJEZ PATRÓN ------- Columna AAnumero
@@ -233,15 +232,7 @@ class IMSS:
 
     # TOTAL PATRÓN ------- Columna AHnumero
     def get_total_employer(self, use_smg=False, minimum_threshold_salary_override: Optional[float] = None):
-        quota_employer = self.get_quota_employer()
-        total_rcv_employer = self.get_total_rcv_employer()
-        infonavit_employer = self.get_infonavit_employer()
-        tax_payroll = self.get_tax_payroll(use_smg, minimum_threshold_salary_override=minimum_threshold_salary_override)
-        if use_smg:
-            print("COLUMNA V: ", quota_employer, " COLUMNA AC: ", total_rcv_employer, " COLUMNA AE: ", infonavit_employer, " COLUMNA AF: ", tax_payroll)
-        result_total_employee = quota_employer + total_rcv_employer + infonavit_employer + tax_payroll
-        # print("Columna AH: ", result_total_employee)
-        return result_total_employee
+        return self.get_quota_employer() + self.get_total_rcv_employer() + self.get_infonavit_employer() + self.get_tax_payroll(use_smg, minimum_threshold_salary_override=minimum_threshold_salary_override)
 
     # ------------------------------------------------------ CALCULO DE TOTAL DEL RCV TRABAJADOR ------------------------------------------------------
 
@@ -257,36 +248,19 @@ class IMSS:
 
     # TOTAL TRABAJADOR ------- Columna AJnumero
     def get_total_employee(self):
-        result_total_employee = self.get_quota_employee() + self.get_total_rcv_employee()
-        # print("TOTAL TRABAJADOR COL. AJ: ", result_total_employee)
-        return result_total_employee
+        return self.get_quota_employee() + self.get_total_rcv_employee()
 
     # ------------------------------------------------------ CALCULO TOTAL SUMA COSTO SOCIAL ------------------------------------------------------
 
     # SUMA COSTO SOCIAL ------- Columna ALnumero
     def get_total_social_cost(self, use_smg=False, minimum_threshold_salary_override: Optional[float] = None):
-        total_employer = self.get_total_employer(use_smg, minimum_threshold_salary_override=minimum_threshold_salary_override)
-        total_employee = self.get_total_employee()
-        result_social_cost = total_employer + total_employee
-        if use_smg:
-            # Determinar el salario base para el print
-            salary_for_print_info = self.salary
-            if minimum_threshold_salary_override is not None:
-                salary_for_print_info = f"override {minimum_threshold_salary_override}"
-            elif self.smg_total_monthly_salary is not None:
-                 salary_for_print_info = f"smg_monthly {self.smg_total_monthly_salary}"
-
-            # print("COL. AH: ", total_employer, " COL. AJ: ", total_employee, " COL. AL: ", result_social_cost, " CON SALARIO (info): ", salary_for_print_info)
-        return result_social_cost
+        return self.get_total_employer(use_smg, minimum_threshold_salary_override=minimum_threshold_salary_override) + self.get_total_employee()
 
     # ------------------------------------------------------ CALCULO 2.5 INCREMENTO ------------------------------------------------------
 
     # 2.5 INCREMENTO ------- Columna ANnumero
     def get_increment(self, use_smg=False, minimum_threshold_salary_override: Optional[float] = None):
-        result_total_social_cost = self.get_total_social_cost(use_smg, minimum_threshold_salary_override=minimum_threshold_salary_override) * self.increase
-        # if use_smg:
-        #     print("INCREMENTO DEL 2.5 Col. AN: ", result_total_social_cost)
-        return result_total_social_cost
+        return self.get_total_social_cost(use_smg, minimum_threshold_salary_override=minimum_threshold_salary_override) * self.increase
 
     # ------------------------------------------------------ CALCULO SUMA COSTO SOCIAL SUGERIDO ------------------------------------------------------
 
@@ -320,10 +294,7 @@ class IMSS:
         
         try:
             # Calcular la cuota fija usando el salario mínimo
-            fixed_fee_result = self.get_total_social_cost(True, minimum_threshold_salary_override=minimum_threshold_salary_override) + self.get_increment(True, minimum_threshold_salary_override=minimum_threshold_salary_override)
-            # print("SELF.GET_INCREMENT: ", self.get_increment(True, minimum_threshold_salary_override=minimum_threshold_salary_override))
-            # print("SUMA COSTO SOCIAL SUGERIDO: ", fixed_fee_result)
-            return math.ceil(fixed_fee_result)
+            return math.ceil(self.get_total_social_cost(True, minimum_threshold_salary_override=minimum_threshold_salary_override) + self.get_increment(True, minimum_threshold_salary_override=minimum_threshold_salary_override))
         finally:
             # Restaurar el método original
             self.get_integrated_daily_wage = original_method

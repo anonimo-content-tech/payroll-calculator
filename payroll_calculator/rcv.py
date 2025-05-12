@@ -18,5 +18,4 @@ class RCV:
         if self.daily_integrated_wage <= 0:
             return 0
         retirement_percentage = self.get_retirement_percentage()
-        print("RCV - Columna C: ", self.daily_integrated_wage, " Columna E: ", retirement_percentage, " DAYS: ", self.days, " COLUMNA F: ", (self.daily_integrated_wage * retirement_percentage), " RETIREMENT * DAYS: ", (self.daily_integrated_wage * retirement_percentage) * self.days, )
         return (self.daily_integrated_wage * retirement_percentage) * self.days
