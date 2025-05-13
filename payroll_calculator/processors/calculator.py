@@ -7,7 +7,7 @@ from payroll_calculator.parameters import Parameters
 from payroll_calculator.totals import TotalCalculator
 
 # VERIFICAR QUE SMG_MULTIPLIER Y COUNT_MINIMUM_SALARY SEAN LO MISMO, TAL PARECE QUE SÍ
-def process_single_calculation(salary, payment_period, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary):
+def process_single_calculation(salary, payment_period, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary):
     """
     Process a single calculation for IMSS, ISR, and Savings
     """
@@ -24,7 +24,7 @@ def process_single_calculation(salary, payment_period, risk_class, smg_multiplie
     
     # IMSS calculations
     imss = IMSS(imss_salary=salary, payment_period=payment_period,
-                risk_class=risk_class, minimum_threshold_salary=imss_threshold_salary)
+                risk_class=risk_class, minimum_threshold_salary=imss_threshold_salary, use_increment_percentage=use_increment_percentage)
 
     # ISR calculations
     isr = ISR(monthly_salary=salary, payment_period=payment_period,
@@ -44,7 +44,7 @@ def process_single_calculation(salary, payment_period, risk_class, smg_multiplie
     return imss, isr, saving, wage_and_salary_dsi
 
 
-def process_multiple_calculations(salaries, payment_periods, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary):
+def process_multiple_calculations(salaries, payment_periods, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary):
     """
     Process multiple calculations for IMSS, ISR, and Savings, adding column references to labels.
     This function now only returns the individual results for each salary.
@@ -61,7 +61,7 @@ def process_multiple_calculations(salaries, payment_periods, risk_class, smg_mul
 
     # Initialize a list to store combined results for each salary
     individual_results = []
-    estricted_mode = os.getenv('ESTRICTED_MODE', 'False').lower() == 'true'
+    estricted_mode = os.getenv('ESTRICTED_MODE', 'False').lower() == 'true'    
 
     # Process salaries with a progress indicator
     total_salaries = len(salaries)
@@ -84,7 +84,7 @@ def process_multiple_calculations(salaries, payment_periods, risk_class, smg_mul
 
         # Get calculation instances
         imss, isr, saving, wage_and_salary_dsi = process_single_calculation(
-            salary, payment_period, risk_class,
+            salary, payment_period, use_increment_percentage, risk_class,
             smg_multiplier, commission_percentage_dsi, count_minimum_salary
         )
         # print("SAVING FIXED FEE, COL. P: ", saving.fixed_fee_dsi)

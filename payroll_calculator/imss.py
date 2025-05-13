@@ -6,19 +6,19 @@ from typing import Optional
 
 
 class IMSS:
-    def __init__(self, imss_salary, payment_period, risk_class='I', minimum_threshold_salary=None):
+    def __init__(self, imss_salary, payment_period, risk_class='I', minimum_threshold_salary=None, use_increment_percentage=None):
         # Handle the case where payment_period might be a risk class
         if isinstance(payment_period, str):
             risk_class = payment_period
             payment_period = 15
 
         # Inicialización de parámetros base
-        self._init_base_parameters(imss_salary, risk_class, payment_period, minimum_threshold_salary)
+        self._init_base_parameters(imss_salary, risk_class, payment_period, minimum_threshold_salary, use_increment_percentage)
         # Inicialización de parámetros de beneficios
         self._init_benefit_parameters()
 
     # Método auxiliar para inicializar parámetros base
-    def _init_base_parameters(self, imss_salary, risk_class, payment_period, minimum_threshold_salary=None):
+    def _init_base_parameters(self, imss_salary, risk_class, payment_period, minimum_threshold_salary=None, use_increment_percentage=None):
         self.salary = imss_salary
         self.payment_period = payment_period
         self.risk_class = risk_class
@@ -36,7 +36,7 @@ class IMSS:
         self.smg = Parameters.SMG
         self.risk_percentage = Parameters.get_risk_percentage(risk_class)
         self.retirement_employer = Parameters.RETIREMENT_EMPLOYER
-        self.increase = Parameters.INCREASE
+        self.increase = Parameters.INCREASE if use_increment_percentage else 0
 
         # Inicializamos RCV después de tener el salario diario integrado
         self.rcv = None  # Se inicializará cuando se necesite
