@@ -44,7 +44,7 @@ def process_single_calculation(salary, payment_period, use_increment_percentage,
     return imss, isr, saving, wage_and_salary_dsi
 
 
-def process_multiple_calculations(salaries, payment_periods, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary):
+def process_multiple_calculations(salaries, payment_periods, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, stricted_mode):
     """
     Process multiple calculations for IMSS, ISR, and Savings, adding column references to labels.
     This function now only returns the individual results for each salary.
@@ -61,7 +61,6 @@ def process_multiple_calculations(salaries, payment_periods, use_increment_perce
 
     # Initialize a list to store combined results for each salary
     individual_results = []
-    estricted_mode = os.getenv('ESTRICTED_MODE', 'False').lower() == 'true'    
 
     # Process salaries with a progress indicator
     total_salaries = len(salaries)
@@ -75,7 +74,7 @@ def process_multiple_calculations(salaries, payment_periods, use_increment_perce
         if i % 10 == 0 or i == total_salaries - 1:
             print(f"Processing salary {i+1}/{total_salaries}...")
 
-        if estricted_mode:
+        if stricted_mode:
             if smg_for_payment_period > salary:
                 print(
                     f"SMG for {payment_period} days is higher than salary. Skipping salary {salary}.")
