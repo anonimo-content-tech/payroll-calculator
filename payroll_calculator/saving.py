@@ -7,7 +7,7 @@ class Saving:
     # ------------------------------------------------------ INICIALIZACIÓN DE CLASE ------------------------------------------------------
 
     # Remove fixed_fee_dsi from parameters, make imss_instance non-optional
-    def __init__(self, wage_and_salary, wage_and_salary_dsi, commission_percentage_dsi, count_minimum_salary, imss_instance: IMSS, isr_instance: Optional[ISR] = None, minimum_threshold_salary: Optional[float] = None):
+    def __init__(self, wage_and_salary, wage_and_salary_dsi, commission_percentage_dsi, count_minimum_salary, imss_instance: IMSS, isr_instance: Optional[ISR] = None, minimum_threshold_salary: Optional[float] = None, productivity: Optional[float] = None):
         self.wage_and_salary = wage_and_salary
         self.imss: IMSS = imss_instance # Now non-optional
         self.isr: Optional[ISR] = isr_instance
@@ -17,6 +17,7 @@ class Saving:
         self.fixed_fee_dsi = self.imss.get_fixed_fee_for_smg(minimum_threshold_salary_override=self.minimum_threshold_salary)
         self.commission_percentage_dsi = commission_percentage_dsi
         self.count_minimum_salary = count_minimum_salary
+        self.current_productivity = productivity
 
     # set_imss might be less necessary if IMSS is required at init, but keep for flexibility
     def set_imss(self, imss_instance: IMSS) -> None:
@@ -43,7 +44,8 @@ class Saving:
 
     # Calcular la productividad según el Total de Ingresos y Sueldos y Salarios DSI ------- Columna Nnumero
     def get_productivity(self):
-        return self.wage_and_salary - self.wage_and_salary_dsi
+        employee_productivity = self.wage_and_salary - self.wage_and_salary_dsi 
+        return employee_productivity if self.current_productivity is None else employee_productivity + self.current_productivity
 
     # Calcular la Comisión DSI ------- Columna Qnumero
     def get_commission_dsi(self):

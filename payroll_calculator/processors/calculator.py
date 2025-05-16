@@ -7,9 +7,12 @@ from payroll_calculator.parameters import Parameters
 from payroll_calculator.totals import TotalCalculator
 
 # VERIFICAR QUE SMG_MULTIPLIER Y COUNT_MINIMUM_SALARY SEAN LO MISMO, TAL PARECE QUE SÍ
-def process_single_calculation(salary, payment_period, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary):
+def process_single_calculation(salary, payment_period, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, productivity=None):
     """
     Process a single calculation for IMSS, ISR, and Savings
+    
+    Parameters:
+    - productivity: Valor opcional de productividad para este cálculo
     """
     # Calculate wage_and_salary_dsi based on SMG multiplier
     wage_and_salary_dsi = Parameters.calculate_wage_and_salary_dsi(
@@ -38,13 +41,14 @@ def process_single_calculation(salary, payment_period, use_increment_percentage,
         imss_instance=imss,
         isr_instance=isr,
         count_minimum_salary=count_minimum_salary,
-        minimum_threshold_salary=imss_threshold_salary
+        minimum_threshold_salary=imss_threshold_salary,
+        productivity=productivity
     )
 
     return imss, isr, saving, wage_and_salary_dsi
 
 
-def process_multiple_calculations(salaries, payment_periods, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, stricted_mode):
+def process_multiple_calculations(salaries, payment_periods, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, stricted_mode, productivities=None):
     """
     Process multiple calculations for IMSS, ISR, and Savings, adding column references to labels.
     This function now only returns the individual results for each salary.
@@ -57,6 +61,8 @@ def process_multiple_calculations(salaries, payment_periods, use_increment_perce
     - smg_multiplier: Multiplicador de salario mínimo
     - commission_percentage_dsi: Porcentaje de comisión DSI
     - count_minimum_salary: Contador de salario mínimo
+    - stricted_mode: Modo estricto para validación de salarios
+    - productivity: Lista opcional de valores de productividad correspondientes a cada salario
     """
 
     # Initialize a list to store combined results for each salary
@@ -67,6 +73,11 @@ def process_multiple_calculations(salaries, payment_periods, use_increment_perce
     for i, salary in enumerate(salaries):
         # Obtener el período de pago correspondiente a este salario
         payment_period = payment_periods[i]
+        
+        # Obtener el valor de productividad para este salario si existe
+        productivity = None
+        if productivities is not None and i < len(productivities):
+            productivity = productivities[i]
         
         # Calcular el salario mínimo para este período de pago específico
         smg_for_payment_period = Parameters.SMG * payment_period
@@ -84,7 +95,8 @@ def process_multiple_calculations(salaries, payment_periods, use_increment_perce
         # Get calculation instances
         imss, isr, saving, wage_and_salary_dsi = process_single_calculation(
             salary, payment_period, use_increment_percentage, risk_class,
-            smg_multiplier, commission_percentage_dsi, count_minimum_salary
+            smg_multiplier, commission_percentage_dsi, count_minimum_salary,
+            productivity
         )
         # print("SAVING FIXED FEE, COL. P: ", saving.fixed_fee_dsi)
 
