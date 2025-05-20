@@ -34,7 +34,7 @@ class IMSS:
         self.surplus_employee = Parameters.SURPLUS_EMPLOYEE
         self.tcf = Parameters.TCF
         self.smg = Parameters.SMG
-        self.risk_percentage = Parameters.get_risk_percentage(risk_class)
+        self.risk_percentage = Parameters.get_risk_percentage(risk_class) if type(risk_class) == str else risk_class
         self.retirement_employer = Parameters.RETIREMENT_EMPLOYER
         self.increase = Parameters.INCREASE if use_increment_percentage else 0
 
