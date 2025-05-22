@@ -6,26 +6,26 @@ from typing import Optional
 
 
 class IMSS:
-    def __init__(self, imss_salary, payment_period, risk_class='I', minimum_threshold_salary=None, use_increment_percentage=None):
+    def __init__(self, imss_salary, payment_period, integration_factor, risk_class='I', minimum_threshold_salary=None, use_increment_percentage=None):
         # Handle the case where payment_period might be a risk class
         if isinstance(payment_period, str):
             risk_class = payment_period
             payment_period = 15
 
         # Inicialización de parámetros base
-        self._init_base_parameters(imss_salary, risk_class, payment_period, minimum_threshold_salary, use_increment_percentage)
+        self._init_base_parameters(imss_salary, integration_factor, risk_class, payment_period, minimum_threshold_salary, use_increment_percentage)
         # Inicialización de parámetros de beneficios
         self._init_benefit_parameters()
 
     # Método auxiliar para inicializar parámetros base
-    def _init_base_parameters(self, imss_salary, risk_class, payment_period, minimum_threshold_salary=None, use_increment_percentage=None):
+    def _init_base_parameters(self, imss_salary, integration_factor, risk_class, payment_period, minimum_threshold_salary=None, use_increment_percentage=None):
         self.salary = imss_salary
         self.payment_period = payment_period
         self.risk_class = risk_class
         self.parameters = Parameters()
         self.employee = Employee(imss_salary, payment_period=int(payment_period))
         self.days = self.employee.payment_period
-        self.integration_factor = Parameters.INTEGRATION_FACTOR
+        self.integration_factor = integration_factor
         self.fixed_fee = Parameters.FIXED_FEE
         self.vsdf = Parameters.VSDF
         self.contribution_ceiling = Parameters.CONTRIBUTION_CEILING

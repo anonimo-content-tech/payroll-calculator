@@ -7,7 +7,7 @@ from payroll_calculator.parameters import Parameters
 from payroll_calculator.totals import TotalCalculator
 
 # VERIFICAR QUE SMG_MULTIPLIER Y COUNT_MINIMUM_SALARY SEAN LO MISMO, TAL PARECE QUE SÍ
-def process_single_calculation(salary, payment_period, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, productivity=None):
+def process_single_calculation(salary, payment_period, integration_factor, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, productivity=None):
     """
     Process a single calculation for IMSS, ISR, and Savings
     
@@ -26,7 +26,7 @@ def process_single_calculation(salary, payment_period, use_increment_percentage,
     imss_threshold_salary = smg_for_period * count_minimum_salary
     
     # IMSS calculations
-    imss = IMSS(imss_salary=salary, payment_period=payment_period,
+    imss = IMSS(imss_salary=salary, payment_period=payment_period, integration_factor=integration_factor,
                 risk_class=risk_class, minimum_threshold_salary=imss_threshold_salary, use_increment_percentage=use_increment_percentage)
 
     # ISR calculations
@@ -48,7 +48,7 @@ def process_single_calculation(salary, payment_period, use_increment_percentage,
     return imss, isr, saving, wage_and_salary_dsi
 
 
-def process_multiple_calculations(salaries, payment_periods, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, stricted_mode, productivities=None):
+def process_multiple_calculations(salaries, payment_periods, integration_factors, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, stricted_mode, productivities=None):
     """
     Process multiple calculations for IMSS, ISR, and Savings, adding column references to labels.
     This function now only returns the individual results for each salary.
@@ -73,6 +73,7 @@ def process_multiple_calculations(salaries, payment_periods, use_increment_perce
     for i, salary in enumerate(salaries):
         # Obtener el período de pago correspondiente a este salario
         payment_period = payment_periods[i]
+        integration_factor = integration_factors[i]
         
         # Obtener el valor de productividad para este salario si existe
         productivity = None
@@ -94,7 +95,7 @@ def process_multiple_calculations(salaries, payment_periods, use_increment_perce
 
         # Get calculation instances
         imss, isr, saving, wage_and_salary_dsi = process_single_calculation(
-            salary, payment_period, use_increment_percentage, risk_class,
+            salary, payment_period, integration_factor, use_increment_percentage, risk_class,
             smg_multiplier, commission_percentage_dsi, count_minimum_salary,
             productivity
         )
@@ -105,7 +106,8 @@ def process_multiple_calculations(salaries, payment_periods, use_increment_perce
             # IMSS results
             "base_salary": salary,  # Col. B - Salario Base
             "daily_salary": imss.employee.calculate_salary_dialy(), # Col. C - Salario Diario
-            "integrated_daily_wage": imss.get_integrated_daily_wage(), # Col. D - Salario Diario Integrado
+            "integration_factor": integration_factor, # Col. D - Factor de Integración
+            "integrated_daily_wage": imss.get_integrated_daily_wage(), # Col. E - Salario Diario Integrado
             "imss_employer_fee": imss.get_quota_employer(),  # Col. V - Cuota Patrón IMSS
             "imss_employee_fee": imss.get_quota_employee(),  # Col. W - Cuota Trabajador IMSS
             "rcv_employer": imss.get_total_rcv_employer(),  # Col. AC - RCV Patrón
