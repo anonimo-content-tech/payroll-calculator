@@ -112,7 +112,7 @@ class IMSS:
 
     # RIESGOS DEL TRABAJO PATRÓN ------- Columna Onumero
     def get_occupational_risks_employer(self):
-        return self.days * self.get_salary_cap_25_smg() * self.risk_percentage
+        return self.days * self.get_salary_cap_25_smg() * (self.risk_percentage / 100)
 
     # TOPE DE SALARIO 25 SMG DF CON TC2 ------- Columna Qnumero
     def get_salary_cap_25_smg_2(self):

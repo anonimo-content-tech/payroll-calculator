@@ -71,6 +71,11 @@ def process_multiple_calculations(salaries, payment_periods, integration_factors
     # Process salaries with a progress indicator
     total_salaries = len(salaries)
     for i, salary in enumerate(salaries):
+        # Ignorar salarios que sean 0
+        if salary == 0:
+            print(f"Salary is 0. Skipping salary at index {i}. {salary}")
+            continue
+            
         # Obtener el período de pago correspondiente a este salario
         payment_period = payment_periods[i]
         integration_factor = integration_factors[i]
@@ -99,7 +104,6 @@ def process_multiple_calculations(salaries, payment_periods, integration_factors
             smg_multiplier, commission_percentage_dsi, count_minimum_salary,
             productivity
         )
-        # print("SAVING FIXED FEE, COL. P: ", saving.fixed_fee_dsi)
 
         # Create a combined dictionary for the current salary with column references
         combined_result = {
