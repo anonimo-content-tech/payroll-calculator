@@ -3,12 +3,13 @@ from .parameters import Parameters
 
 
 class ISR:
-    def __init__(self, monthly_salary, payment_period, employee: Employee, minimum_threshold_salary=None):
+    def __init__(self, monthly_salary, payment_period, periodicity, employee: Employee, minimum_threshold_salary=None):
         self.employee = employee
         self.parameters = Parameters()
         self.monthly_salary = monthly_salary
         self.payment_period = payment_period
-        self.SALARY_CREDIT_TABLE = Parameters.SALARY_CREDIT_TABLE
+        self.periodicity = periodicity
+        self.SALARY_CREDIT_TABLE = Parameters.get_employee_subsidy_table(self.periodicity)
         self.smg = Parameters.SMG
         self.monthly_smg = minimum_threshold_salary
 
@@ -16,7 +17,7 @@ class ISR:
 
     # Obtener la tabla del ISR según el periodo de pago
     def get_isr_table(self):
-        return self.parameters.get_isr_table(self.payment_period)
+        return self.parameters.get_isr_table(self.periodicity)
 
     # Calcula el ISR mensual ------- Columna Enumero
     def get_lower_limit(self, use_smg=False):

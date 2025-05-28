@@ -7,7 +7,7 @@ from payroll_calculator.parameters import Parameters
 from payroll_calculator.totals import TotalCalculator
 
 # VERIFICAR QUE SMG_MULTIPLIER Y COUNT_MINIMUM_SALARY SEAN LO MISMO, TAL PARECE QUE SÍ
-def process_single_calculation(salary, payment_period, integration_factor, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, productivity=None):
+def process_single_calculation(salary, payment_period, periodicity, integration_factor, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, productivity=None):
     """
     Process a single calculation for IMSS, ISR, and Savings
     
@@ -30,7 +30,7 @@ def process_single_calculation(salary, payment_period, integration_factor, use_i
                 risk_class=risk_class, minimum_threshold_salary=imss_threshold_salary, use_increment_percentage=use_increment_percentage)
 
     # ISR calculations
-    isr = ISR(monthly_salary=salary, payment_period=payment_period,
+    isr = ISR(monthly_salary=salary, payment_period=payment_period, periodicity=periodicity,
               employee=imss.employee, minimum_threshold_salary=isr_threshold_salary)
 
     # Savings calculations
@@ -48,7 +48,7 @@ def process_single_calculation(salary, payment_period, integration_factor, use_i
     return imss, isr, saving, wage_and_salary_dsi
 
 
-def process_multiple_calculations(salaries, payment_periods, integration_factors, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, stricted_mode, productivities=None):
+def process_multiple_calculations(salaries, payment_periods, periodicity, integration_factors, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, stricted_mode, productivities=None):
     """
     Process multiple calculations for IMSS, ISR, and Savings, adding column references to labels.
     This function now only returns the individual results for each salary.
@@ -100,7 +100,7 @@ def process_multiple_calculations(salaries, payment_periods, integration_factors
 
         # Get calculation instances
         imss, isr, saving, wage_and_salary_dsi = process_single_calculation(
-            salary, payment_period, integration_factor, use_increment_percentage, risk_class,
+            salary, payment_period, periodicity, integration_factor, use_increment_percentage, risk_class,
             smg_multiplier, commission_percentage_dsi, count_minimum_salary,
             productivity
         )

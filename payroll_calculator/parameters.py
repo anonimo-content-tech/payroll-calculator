@@ -90,21 +90,6 @@ class Parameters:
         'V': 0.0758875    # RIESGO MAXIMO DE VIDA
     }
 
-    # Tabla de Crédito Salarial
-    SALARY_CREDIT_TABLE = [
-        {'lower_limit': 0.01, 'upper_limit': 872.85, 'credit': 407.02},
-        {'lower_limit': 872.86, 'upper_limit': 1309.20, 'credit': 406.83},
-        {'lower_limit': 1309.21, 'upper_limit': 1713.60, 'credit': 406.62},
-        {'lower_limit': 1713.61, 'upper_limit': 1745.70, 'credit': 392.77},
-        {'lower_limit': 1745.71, 'upper_limit': 2193.75, 'credit': 382.46},
-        {'lower_limit': 2193.76, 'upper_limit': 2327.55, 'credit': 354.23},
-        {'lower_limit': 2327.56, 'upper_limit': 2632.65, 'credit': 324.87},
-        {'lower_limit': 2632.66, 'upper_limit': 3071.40, 'credit': 294.63},
-        {'lower_limit': 3071.41, 'upper_limit': 3510.15, 'credit': 253.54},
-        {'lower_limit': 3510.16, 'upper_limit': 3642.60, 'credit': 217.61},
-        {'lower_limit': 3642.61, 'upper_limit': float('inf'), 'credit': 192.45},
-    ]
-
     @staticmethod
     def get_isr_table(payment_period):
         """
@@ -116,6 +101,19 @@ class Parameters:
         """
         from .isr_tables import get_isr_table
         return get_isr_table(payment_period)
+    
+    # Tabla de Crédito Salarial
+    @staticmethod
+    def get_employee_subsidy_table(payment_period):
+        """
+        Obtiene la tabla de subsidio para el periodo de pago especificado
+        Args:
+            payment_period (int): Periodo de pago (1, 7, 10, 15, 30)
+        Returns:
+            list: Tabla de subsidio correspondiente al periodo
+        """
+        from.isr_tables import get_employee_subsidy_table
+        return get_employee_subsidy_table(payment_period)
 
     @staticmethod
     def get_risk_percentage(risk_class):
@@ -141,7 +139,8 @@ class Parameters:
         return Parameters.RETIREMENT_TABLE[-1]['percentage'] / 100
 
     @staticmethod
-    def calculate_wage_and_salary_dsi(smg_multiplier, payment_period):
+    def calculate_wage_and_salary_dsi(smg_multiplier, payment_period=None):
+        
         """
         Calcula el salario DSI basado en un múltiplo del salario mínimo
         
