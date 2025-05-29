@@ -3,27 +3,30 @@ from .parameters import Parameters
 from .rcv import RCV
 import math
 from typing import Optional
+import inspect
 
 
 class IMSS:
-    def __init__(self, imss_salary, payment_period, integration_factor, risk_class='I', minimum_threshold_salary=None, use_increment_percentage=None):
+    def __init__(self, imss_salary, daily_salary, payment_period, integration_factor, risk_class='I', minimum_threshold_salary=None, use_increment_percentage=None, imss_breakdown=None):
         # Handle the case where payment_period might be a risk class
         if isinstance(payment_period, str):
-            risk_class = payment_period
-            payment_period = 15
+            risk_class = risk_class
+            payment_period = payment_period
 
         # Inicialización de parámetros base
-        self._init_base_parameters(imss_salary, integration_factor, risk_class, payment_period, minimum_threshold_salary, use_increment_percentage)
+        self._init_base_parameters(imss_salary, daily_salary, integration_factor, risk_class, payment_period, minimum_threshold_salary, use_increment_percentage, imss_breakdown)
         # Inicialización de parámetros de beneficios
         self._init_benefit_parameters()
 
     # Método auxiliar para inicializar parámetros base
-    def _init_base_parameters(self, imss_salary, integration_factor, risk_class, payment_period, minimum_threshold_salary=None, use_increment_percentage=None):
+    def _init_base_parameters(self, imss_salary, daily_salary, integration_factor, risk_class, payment_period, minimum_threshold_salary=None, use_increment_percentage=None, imss_breakdown=None):
         self.salary = imss_salary
+        print("SELF SALARY: ", self.salary, " ---------- IMSS SALARY: ", imss_salary)
         self.payment_period = payment_period
+        print("PAYMENT PERIOD: ", self.payment_period, " ---------- PAYMENT PERIOD: ", payment_period)
         self.risk_class = risk_class
         self.parameters = Parameters()
-        self.employee = Employee(imss_salary, payment_period=int(payment_period))
+        self.employee = Employee(imss_salary, payment_period)
         self.days = self.employee.payment_period
         self.integration_factor = integration_factor
         self.fixed_fee = Parameters.FIXED_FEE
@@ -70,6 +73,7 @@ class IMSS:
     # SALARIO DIARIO INTEGRADO, después de aplicar el factor de integración ------- Columna Enumero
     def get_integrated_daily_wage(self):
         daily_salary_integrated = self.employee.calculate_salary_dialy()
+        print("DAILY SALARY INTEGRATED: ", daily_salary_integrated, " espero sea 200")
         return daily_salary_integrated * self.integration_factor
 
     # ENFERMEDADES Y MATERNIDAD CUOTA DEL PATRÓN ------- Columna Hnumero
@@ -187,13 +191,21 @@ class IMSS:
 
     # CESANTIA Y VEJEZ PATRÓN ------- Columna AAnumero
     def _get_rcv(self):
+        caller_frame = inspect.currentframe().f_back
+        info = inspect.getframeinfo(caller_frame)
+        print(f"_get_rcv invocada desde {info.filename}, función {info.function}, línea {info.lineno}")
         # Siempre crear una nueva instancia con el valor actual del salario diario integrado
-        self.rcv = RCV(self.get_integrated_daily_wage())
+        print("self.get_integrated_daily_wage(): ", self.get_integrated_daily_wage())
+        self.rcv = RCV(self.get_integrated_daily_wage(), self.payment_period)
         return self.rcv
 
     # CESANTIA Y VEJEZ PATRÓN ------- Columna AAnumero
     def get_severance_and_old_age_employer(self):
-        return self._get_rcv().get_quota_employer()
+        result_rcv = self._get_rcv()
+        print("----------------------------result_rcv()----------------------------: ", result_rcv)
+        result_get_quota_employer = result_rcv.get_quota_employer()
+        print("----------------------------result_get_quota_employer----------------------------: ", result_get_quota_employer)
+        return result_get_quota_employer
 
     # ------------------------------------------------------ TOTAL RCV PATRÓN ------------------------------------------------------
     # TOTAL RCV PATRÓN ------- Columna ACnumero

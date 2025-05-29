@@ -153,6 +153,10 @@ class Parameters:
             float: Valor calculado para wage_and_salary_dsi
         """
         daily_smg_value = Parameters.SMG * smg_multiplier
+        
+        if payment_period is None:
+            return daily_smg_value
+        
         period_smg_value = daily_smg_value * payment_period
         
         # Si el salario es menor que el valor calculado, usar el salario

@@ -7,7 +7,7 @@ from payroll_calculator.parameters import Parameters
 from payroll_calculator.totals import TotalCalculator
 
 # VERIFICAR QUE SMG_MULTIPLIER Y COUNT_MINIMUM_SALARY SEAN LO MISMO, TAL PARECE QUE SÍ
-def process_single_calculation(salary, payment_period, periodicity, integration_factor, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, productivity=None):
+def process_single_calculation(salary, daily_salary, payment_period, periodicity, integration_factor, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, productivity=None, imss_breakdown=None):
     """
     Process a single calculation for IMSS, ISR, and Savings
     
@@ -20,15 +20,24 @@ def process_single_calculation(salary, payment_period, periodicity, integration_
     
     # Calcular el salario mínimo para el período de pago
     smg_for_period = Parameters.SMG * payment_period
+    print("EL MISMO PERO DESDE FOKIN DENTRO SMG FOR PERIOD: ", smg_for_period)
     
     # Determinar los umbrales para ISR e IMSS basados en count_minimum_salary
     isr_threshold_salary = smg_for_period * count_minimum_salary if count_minimum_salary > 1 else 0
+    print("ISR THRESHOLD SALARY: ", isr_threshold_salary)
     imss_threshold_salary = smg_for_period * count_minimum_salary
+    print("IMSS THRESHOLD SALARY: ", imss_threshold_salary)
+    
+    print("IMSS SALARY: ", salary, " DAILY SALARY: ", daily_salary)
     
     # IMSS calculations
-    imss = IMSS(imss_salary=salary, payment_period=payment_period, integration_factor=integration_factor,
-                risk_class=risk_class, minimum_threshold_salary=imss_threshold_salary, use_increment_percentage=use_increment_percentage)
-
+    imss = IMSS(imss_salary=salary, daily_salary=daily_salary, payment_period=payment_period, integration_factor=integration_factor,
+                risk_class=risk_class, minimum_threshold_salary=imss_threshold_salary, use_increment_percentage=use_increment_percentage, imss_breakdown=imss_breakdown)
+    
+    # Calcular los valores de breakdown si es necesario
+    # if imss_breakdown:
+    #     imss.calculate_breakdown_values()
+    
     # ISR calculations
     isr = ISR(monthly_salary=salary, payment_period=payment_period, periodicity=periodicity,
               employee=imss.employee, minimum_threshold_salary=isr_threshold_salary)
@@ -48,7 +57,7 @@ def process_single_calculation(salary, payment_period, periodicity, integration_
     return imss, isr, saving, wage_and_salary_dsi
 
 
-def process_multiple_calculations(salaries, payment_periods, periodicity, integration_factors, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, stricted_mode, productivities=None):
+def process_multiple_calculations(salaries, period_salaries, payment_periods, periodicity, integration_factors, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, stricted_mode, productivities=None, imss_breakdown=None):
     """
     Process multiple calculations for IMSS, ISR, and Savings, adding column references to labels.
     This function now only returns the individual results for each salary.
@@ -70,10 +79,10 @@ def process_multiple_calculations(salaries, payment_periods, periodicity, integr
 
     # Process salaries with a progress indicator
     total_salaries = len(salaries)
-    for i, salary in enumerate(salaries):
+    for i, daily_salary in enumerate(salaries):
         # Ignorar salarios que sean 0
-        if salary == 0:
-            print(f"Salary is 0. Skipping salary at index {i}. {salary}")
+        if daily_salary == 0:
+            print(f"Salary is 0. Skipping salary at index {i}. {daily_salary}")
             continue
             
         # Obtener el período de pago correspondiente a este salario
@@ -87,9 +96,12 @@ def process_multiple_calculations(salaries, payment_periods, periodicity, integr
         
         # Calcular el salario mínimo para este período de pago específico
         smg_for_payment_period = Parameters.SMG * payment_period
+        print("SMG FOR PAYMENT PERIOD: ", smg_for_payment_period)
         
         if i % 10 == 0 or i == total_salaries - 1:
             print(f"Processing salary {i+1}/{total_salaries}...")
+            
+        salary = period_salaries[i] if period_salaries else daily_salary * payment_periods[i]
 
         if stricted_mode:
             if smg_for_payment_period > salary:
@@ -100,20 +112,24 @@ def process_multiple_calculations(salaries, payment_periods, periodicity, integr
 
         # Get calculation instances
         imss, isr, saving, wage_and_salary_dsi = process_single_calculation(
-            salary, payment_period, periodicity, integration_factor, use_increment_percentage, risk_class,
+            salary, daily_salary, payment_period, periodicity, integration_factor, use_increment_percentage, risk_class,
             smg_multiplier, commission_percentage_dsi, count_minimum_salary,
-            productivity
+            productivity, imss_breakdown
         )
+        
+        print("IMSS: ", imss)
 
         # Create a combined dictionary for the current salary with column references
         combined_result = {
             # IMSS results
             "base_salary": salary,  # Col. B - Salario Base
             "daily_salary": imss.employee.calculate_salary_dialy(), # Col. C - Salario Diario
+            "salary_for_calculation": daily_salary,
             "integration_factor": integration_factor, # Col. D - Factor de Integración
             "integrated_daily_wage": imss.get_integrated_daily_wage(), # Col. E - Salario Diario Integrado
             "imss_employer_fee": imss.get_quota_employer(),  # Col. V - Cuota Patrón IMSS
             "imss_employee_fee": imss.get_quota_employee(),  # Col. W - Cuota Trabajador IMSS
+            "rcv_employer_table": imss.get_severance_and_old_age_employer(),  # Col. AA - CESANTIA Y VEJEZ PATRÓN
             "rcv_employer": imss.get_total_rcv_employer(),  # Col. AC - RCV Patrón
             "rcv_employee": imss.get_total_rcv_employee(),  # Col. AD - RCV Trabajador
             "infonavit_employer": imss.get_infonavit_employer(),  # Col. AE - INFONAVIT Patrón
