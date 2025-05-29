@@ -35,8 +35,8 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
                 risk_class=risk_class, minimum_threshold_salary=imss_threshold_salary, use_increment_percentage=use_increment_percentage, imss_breakdown=imss_breakdown)
     
     # Calcular los valores de breakdown si es necesario
-    # if imss_breakdown:
-    #     imss.calculate_breakdown_values()
+    if imss_breakdown:
+        imss.calculate_breakdown_values()
     
     # ISR calculations
     isr = ISR(monthly_salary=salary, payment_period=payment_period, periodicity=periodicity,

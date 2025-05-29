@@ -22,6 +22,7 @@ class IMSS:
     def _init_base_parameters(self, imss_salary, daily_salary, integration_factor, risk_class, payment_period, minimum_threshold_salary=None, use_increment_percentage=None, imss_breakdown=None):
         self.salary = imss_salary
         print("SELF SALARY: ", self.salary, " ---------- IMSS SALARY: ", imss_salary)
+        self.daily_salary = daily_salary
         self.payment_period = payment_period
         print("PAYMENT PERIOD: ", self.payment_period, " ---------- PAYMENT PERIOD: ", payment_period)
         self.risk_class = risk_class
@@ -29,6 +30,7 @@ class IMSS:
         self.employee = Employee(imss_salary, payment_period)
         self.days = self.employee.payment_period
         self.integration_factor = integration_factor
+        self.imss_breakdown = imss_breakdown
         self.fixed_fee = Parameters.FIXED_FEE
         self.vsdf = Parameters.VSDF
         self.contribution_ceiling = Parameters.CONTRIBUTION_CEILING
@@ -49,6 +51,12 @@ class IMSS:
         self.severance_and_old_age_employee = Parameters.SEVERANCE_AND_OLD_AGE_EMPLOYEE
         self.smg_total_salary = self.employee.calculate_total_minimum_salary(self.smg)
         self.smg_total_monthly_salary = minimum_threshold_salary
+        
+        # Variables para almacenar los resultados cuando imss_breakdown es True
+        self.quota_employer_with_daily_salary = None
+        self.total_rcv_employer_with_daily_salary = None
+        self.infonavit_employer_with_daily_salary = None
+        self.tax_payroll_with_daily_salary = None
 
     # Método auxiliar para inicializar parámetros de beneficios
 
@@ -71,9 +79,12 @@ class IMSS:
         return min(self.get_integrated_daily_wage(), self.contribution_ceiling)
 
     # SALARIO DIARIO INTEGRADO, después de aplicar el factor de integración ------- Columna Enumero
-    def get_integrated_daily_wage(self):
+    def get_integrated_daily_wage(self, use_direct_daily_salary=False):
+        if use_direct_daily_salary:
+            print("ENTRA AL IF DE USE DIRECT EN GET INTEGRATED_DAILY_WAGE CON SALARIO DIARIO: ", self.daily_salary, " CON FACTOR DE INTEGRACIÓN DE: ", self.integration_factor)
+            return self.daily_salary * self.integration_factor
         daily_salary_integrated = self.employee.calculate_salary_dialy()
-        print("DAILY SALARY INTEGRATED: ", daily_salary_integrated, " espero sea 200")
+        # print("DAILY SALARY INTEGRATED: ", daily_salary_integrated, " espero sea 200 CON FACTOR DE INTEGRACIÓN DE: ", self.integration_factor)
         return daily_salary_integrated * self.integration_factor
 
     # ENFERMEDADES Y MATERNIDAD CUOTA DEL PATRÓN ------- Columna Hnumero
@@ -116,7 +127,11 @@ class IMSS:
 
     # RIESGOS DEL TRABAJO PATRÓN ------- Columna Onumero
     def get_occupational_risks_employer(self):
-        return self.days * self.get_salary_cap_25_smg() * (self.risk_percentage / 100)
+        print("SELF.DAYS: ", self.days)
+        print("SELF.SALARY: ", self.salary)
+        print("SELF.SALARY CAP 25 SMG: ", self.get_salary_cap_25_smg())
+        print("SELF.RISK PERCENTAGE: ", self.risk_percentage)
+        return self.days * self.get_salary_cap_25_smg() * self.risk_percentage
 
     # TOPE DE SALARIO 25 SMG DF CON TC2 ------- Columna Qnumero
     def get_salary_cap_25_smg_2(self):
@@ -135,17 +150,38 @@ class IMSS:
         return self.childcare * self.get_salary_cap_25_smg() * self.days
 
     # CUOTAS IMSS PATRÓN ------- Columna Vnumero
-    def get_quota_employer(self):
-        quotas = [
-            self.get_diseases_and_maternity_employer_quota(),
-            self.get_diseases_and_maternity_employer_surplus(),
-            self.get_employer_cash_benefits(),
-            self.get_benefits_in_kind_medical_expenses_employer(),
-            self.get_occupational_risks_employer(),
-            self.get_invalidity_and_retirement_employer(),
-            self.get_childcare_employer()
-        ]
-        return sum(quotas)
+                
+    def get_quota_employer(self, use_direct_daily_salary=False):
+        # Guardar el método original
+        original_method = self.get_integrated_daily_wage
+        if use_direct_daily_salary:
+            print("ENTRA AL IF DE USE DIRECT")
+            # Override que usa daily_salary directo (captura original_method)
+            def get_integrated_daily_wage_override():
+                return original_method(True)
+            self.get_integrated_daily_wage = get_integrated_daily_wage_override
+        try:
+            print("self.get_diseases_and_maternity_employer_quota(): ", self.get_diseases_and_maternity_employer_quota())
+            print("self.get_diseases_and_maternity_employer_surplus(): ", self.get_diseases_and_maternity_employer_surplus())
+            print("self.get_employer_cash_benefits(): ", self.get_employer_cash_benefits())
+            print("self.get_benefits_in_kind_medical_expenses_employer(): ", self.get_benefits_in_kind_medical_expenses_employer())
+            print("self.get_occupational_risks_employer(): ", self.get_occupational_risks_employer())
+            print("self.get_invalidity_and_retirement_employer(): ", self.get_invalidity_and_retirement_employer())
+            print("self.get_childcare_employer(): ", self.get_childcare_employer())
+            quotas = [
+                self.get_diseases_and_maternity_employer_quota(),
+                self.get_diseases_and_maternity_employer_surplus(),
+                self.get_employer_cash_benefits(),
+                self.get_benefits_in_kind_medical_expenses_employer(),
+                self.get_occupational_risks_employer(),
+                self.get_invalidity_and_retirement_employer(),
+                self.get_childcare_employer()
+            ]
+            return sum(quotas)
+        finally:
+            if use_direct_daily_salary:
+                self.get_integrated_daily_wage = original_method
+
 
     # ------------------------------------------------------ CALCULO DE CUOTAS DEL IMSS TRABAJADOR ------------------------------------------------------
 
@@ -185,44 +221,65 @@ class IMSS:
     # ------------------------------------------------------ CALCULO DE TOTAL DEL RCV PATRÓN ------------------------------------------------------
 
     # RETIRO PATRÓN ------- Columna Znumero
-    def get_retirement_employer(self):
-        salary_cap_25_smg = self.get_salary_cap_25_smg()
-        return salary_cap_25_smg * self.days * self.retirement_employer
+    def get_retirement_employer(self, use_direct_daily_salary=False):
+        if use_direct_daily_salary:
+            # Tope con salario diario directo
+            salary_cap = min(self.get_integrated_daily_wage(True), self.contribution_ceiling)
+        else:
+            # Tope estándar
+            salary_cap = self.get_salary_cap_25_smg()
+        return salary_cap * self.days * self.retirement_employer
 
     # CESANTIA Y VEJEZ PATRÓN ------- Columna AAnumero
-    def _get_rcv(self):
+    def _get_rcv(self, use_direct_daily_salary=False):
         caller_frame = inspect.currentframe().f_back
         info = inspect.getframeinfo(caller_frame)
         print(f"_get_rcv invocada desde {info.filename}, función {info.function}, línea {info.lineno}")
         # Siempre crear una nueva instancia con el valor actual del salario diario integrado
-        print("self.get_integrated_daily_wage(): ", self.get_integrated_daily_wage())
-        self.rcv = RCV(self.get_integrated_daily_wage(), self.payment_period)
+        result_rcv = self.get_integrated_daily_wage(use_direct_daily_salary)
+        self.rcv = RCV(result_rcv, self.payment_period)
+        print("RCV: ", result_rcv) if use_direct_daily_salary else print("RCV SINEL USE DIRECT: ", result_rcv)
         return self.rcv
 
     # CESANTIA Y VEJEZ PATRÓN ------- Columna AAnumero
-    def get_severance_and_old_age_employer(self):
-        result_rcv = self._get_rcv()
-        print("----------------------------result_rcv()----------------------------: ", result_rcv)
-        result_get_quota_employer = result_rcv.get_quota_employer()
-        print("----------------------------result_get_quota_employer----------------------------: ", result_get_quota_employer)
-        return result_get_quota_employer
+    def get_severance_and_old_age_employer(self, use_direct_daily_salary=False):
+        return self._get_rcv(use_direct_daily_salary).get_quota_employer()
 
     # ------------------------------------------------------ TOTAL RCV PATRÓN ------------------------------------------------------
     # TOTAL RCV PATRÓN ------- Columna ACnumero
-    def get_total_rcv_employer(self):
-        return self.get_retirement_employer() + self.get_severance_and_old_age_employer()
+    def get_total_rcv_employer(self, use_direct_daily_salary=False):
+        # Ya no necesitamos reemplazar temporalmente el método
+        # Simplemente pasamos el parámetro a los métodos que lo necesitan
+        return self.get_retirement_employer() + self.get_severance_and_old_age_employer(use_direct_daily_salary)
 
     # ------------------------------------------------------ CALCULO DE INFONAVIT DEL PATRÓN ------------------------------------------------------
 
     # INFONAVIT PATRÓN ------- Columna AEnumero
-    def get_infonavit_employer(self):
-        return self.get_salary_cap_25_smg_2() * self.days * self.infonavit_employer
+    def get_infonavit_employer(self, use_direct_daily_salary=False):
+        original_method = self.get_integrated_daily_wage
+
+        if use_direct_daily_salary:
+            # Override que usa daily_salary directamente
+            def get_integrated_daily_wage_override():
+                return original_method(True)
+            self.get_integrated_daily_wage = get_integrated_daily_wage_override
+
+        try:
+            return self.get_salary_cap_25_smg_2() * self.days * self.infonavit_employer
+        finally:
+            if use_direct_daily_salary:
+                # Restaurar el método original
+                self.get_integrated_daily_wage = original_method
+
 
     # ------------------------------------------------------ CALCULO DE IMPUESTO SOBRE NÓMINA ------------------------------------------------------
 
     # IMPUESTO SOBRE NÓMINA ------- Columna AFnumero
-    def get_tax_payroll(self, use_smg=False, minimum_threshold_salary_override: Optional[float] = None):
-        if use_smg:
+    def get_tax_payroll(self, use_smg=False, minimum_threshold_salary_override: Optional[float] = None, use_direct_daily_salary=False):
+        if use_direct_daily_salary and not use_smg:
+            # Calcular el total_salary basado en daily_salary
+            total_salary = self.daily_salary * self.payment_period
+        elif use_smg:
             if minimum_threshold_salary_override is not None:
                 total_salary = minimum_threshold_salary_override
             else:
@@ -232,10 +289,6 @@ class IMSS:
         
         # Asegurarse de que total_salary no sea None antes de la multiplicación
         if total_salary is None:
-            # Podrías decidir devolver 0, lanzar un error, o manejarlo de otra manera
-            # Por ahora, si es None y se supone que debe usarse (ej. use_smg=True sin override y self.smg_total_monthly_salary es None),
-            # esto podría indicar un problema de configuración o lógica previa.
-            # Para el cálculo de impuestos, si el salario base es None, el impuesto es 0.
             return 0
             
         return total_salary * self.state_payroll_tax
@@ -295,18 +348,116 @@ class IMSS:
     
     # SUMA COSTO SOCIAL SUGERIDO PARA OBTENER LA CUOTA FIJA ------- Columna APnumero
     def get_fixed_fee_for_smg(self, minimum_threshold_salary_override: Optional[float] = None):
-        # Guardar el valor original del salario diario integrado
         original_method = self.get_integrated_daily_wage
-        
-        # Reemplazar temporalmente el método get_integrated_daily_wage con nuestra versión para SMG
-        def get_integrated_daily_wage_override():
+
+        # Override que ignora los args y usa siempre el SMG
+        def get_integrated_daily_wage_override(*args, **kwargs):
             return self.get_integrated_daily_wage_for_smg(minimum_threshold_salary_override)
-        
+
+        # Patch temporal
         self.get_integrated_daily_wage = get_integrated_daily_wage_override
-        
+
         try:
-            # Calcular la cuota fija usando el salario mínimo
-            return math.ceil(self.get_total_social_cost(True, minimum_threshold_salary_override=minimum_threshold_salary_override) + self.get_increment(True, minimum_threshold_salary_override=minimum_threshold_salary_override))
+            # Cálculo usando salario mínimo integrado
+            total_social = self.get_total_social_cost(
+                use_smg=True,
+                minimum_threshold_salary_override=minimum_threshold_salary_override
+            )
+            increment = self.get_increment(
+                use_smg=True,
+                minimum_threshold_salary_override=minimum_threshold_salary_override
+            )
+            return math.ceil(total_social + increment)
         finally:
-            # Restaurar el método original
+            # Restaurar método original
             self.get_integrated_daily_wage = original_method
+
+
+
+    # Método para calcular y almacenar los valores con daily_salary cuando imss_breakdown es True
+    def calculate_breakdown_values(self):
+        """
+        Calcula y almacena los valores desglosados usando salario diario directo.
+        """
+        print("SE VA A EJECUTAR EL CALCULATE BREAKDOWN VALUES CON DAILY SALARY DE:", self.daily_salary)
+        
+        if not self.imss_breakdown:
+            return
+
+        # 1) Obtiene el salario diario integrado directo
+        integrated_direct = self.get_integrated_daily_wage(use_direct_daily_salary=True)
+        # 2) Crea una única instancia de RCV con ese salario
+        rcv_obj = RCV(integrated_direct, self.payment_period)
+
+        # 3) Cuota IMSS Patrón con salario diario
+        self.quota_employer_with_daily_salary = self.get_quota_employer(use_direct_daily_salary=True)
+        # 4) Cesantía y vejez (solo componente RCV) — reutiliza rcv_obj
+        self.severance_and_old_age_employer = rcv_obj.get_quota_employer()
+        # 5) Retiro PATRÓN con salario directo
+        retiro_direct = self.get_retirement_employer(use_direct_daily_salary=True)
+        # 6) Total RCV Patrón con salario diario = Retiro + Cesantía
+        self.total_rcv_employer_with_daily_salary = retiro_direct + self.severance_and_old_age_employer
+
+        # 7) INFONAVIT y Nómina también con salario directo
+        self.infonavit_employer_with_daily_salary = self.get_infonavit_employer(use_direct_daily_salary=True)
+        self.tax_payroll_with_daily_salary     = self.get_tax_payroll(use_direct_daily_salary=True)
+    
+    def __str__(self):
+        """Método para mostrar información detallada de la instancia IMSS cuando se imprime"""
+        # Formatear números para mejor legibilidad
+        def fmt(value):
+            if value is None:
+                return "None"
+            elif isinstance(value, float):
+                return f"{value:.4f}"
+            return str(value)
+        
+        # Construir la representación en secciones
+        sections = []
+        
+        # Sección 1: Parámetros de inicialización
+        init_params = [
+            f"Salario IMSS: {fmt(self.salary)}",
+            f"Salario Diario: {fmt(self.daily_salary)}",
+            f"Período de Pago: {fmt(self.payment_period)}",
+            f"Factor de Integración: {fmt(self.integration_factor)}",
+            f"Clase de Riesgo: {fmt(self.risk_class)}",
+            f"Porcentaje de Riesgo: {fmt(self.risk_percentage)}%",
+            f"Salario Mínimo: {fmt(self.smg)}",
+            f"Salario Mínimo Mensual: {fmt(self.smg_total_monthly_salary)}",
+            f"Desglose IMSS: {fmt(self.imss_breakdown)}"
+        ]
+        sections.append("\n== PARÁMETROS DE INICIALIZACIÓN ==\n" + "\n".join(init_params))
+        
+        # Sección 2: Valores calculados principales
+        calculated_values = [
+            f"Salario Diario Integrado: {fmt(self.get_integrated_daily_wage())}",
+            f"Cuota IMSS Patrón (V): {fmt(self.get_quota_employer())}",
+            f"Cuota IMSS Trabajador (W): {fmt(self.get_quota_employee())}",
+            f"Total IMSS (X): {fmt(self.get_total_imss())}",
+            f"Retiro Patrón (Z): {fmt(self.get_retirement_employer())}",
+            f"Cesantía y Vejez Patrón (AA): {fmt(self.get_severance_and_old_age_employer())}",
+            f"RCV Patrón (AC): {fmt(self.get_total_rcv_employer())}",
+            f"RCV Trabajador (AD): {fmt(self.get_total_rcv_employee())}",
+            f"INFONAVIT Patrón (AE): {fmt(self.get_infonavit_employer())}",
+            f"Impuesto Sobre Nómina (AF): {fmt(self.get_tax_payroll())}",
+            f"Costo Total Patrón (AH): {fmt(self.get_total_employer())}",
+            f"Costo Total Trabajador (AJ): {fmt(self.get_total_employee())}",
+            f"Costo Social Total (AL): {fmt(self.get_total_social_cost())}",
+            f"Costo Social Sugerido (AP): {fmt(self.get_total_social_cost_suggested())}"
+        ]
+        sections.append("\n== VALORES CALCULADOS ==\n" + "\n".join(calculated_values))
+        
+        # Sección 3: Valores de desglose (si están disponibles)
+        if self.imss_breakdown and hasattr(self, 'quota_employer_with_daily_salary') and self.quota_employer_with_daily_salary is not None:
+            breakdown_values = [
+                f"Cuota IMSS Patrón con Salario Diario (V): {fmt(self.quota_employer_with_daily_salary)}",
+                f"Cesantía y Vejez Patrón (AA): {fmt(self.severance_and_old_age_employer)}",
+                f"RCV Patrón con Salario Diario (AC): {fmt(self.total_rcv_employer_with_daily_salary)}",
+                f"INFONAVIT Patrón con Salario Diario (AE): {fmt(self.infonavit_employer_with_daily_salary)}",
+                f"Impuesto Sobre Nómina con Salario Diario (AF): {fmt(self.tax_payroll_with_daily_salary)}"
+            ]
+            sections.append("\n== VALORES DE DESGLOSE (con Salario Diario) ==\n" + "\n".join(breakdown_values))
+        
+        # Unir todas las secciones
+        return "\n\n".join(sections)
