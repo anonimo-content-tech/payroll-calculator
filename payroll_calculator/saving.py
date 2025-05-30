@@ -18,6 +18,8 @@ class Saving:
         self.commission_percentage_dsi = commission_percentage_dsi
         self.count_minimum_salary = count_minimum_salary
         self.current_productivity = productivity
+        
+        self.dsi_total_with_breakdown = None
 
     # set_imss might be less necessary if IMSS is required at init, but keep for flexibility
     def set_imss(self, imss_instance: IMSS) -> None:
@@ -52,18 +54,32 @@ class Saving:
         return self.wage_and_salary * self.commission_percentage_dsi
 
     # Calcular el Costo Total DSI ------- Columna Rnumero
-    def get_dsi_scheme_biweekly_total(self):
+    def get_dsi_scheme_biweekly_total(self, use_imss_breakdown=False):
+        if self.imss is None:
+            raise ValueError(
+                "IMSS instance is not set. Use set_imss() method first.")
+            
+        total_to_use = self.fixed_fee_dsi
+        if use_imss_breakdown:
+            total_to_use = self.fixed_fee_dsi if self.imss.total_tax_cost_breakdown <= 0 else self.imss.total_tax_cost_breakdown
         # This method now correctly uses the internally calculated self.fixed_fee_dsi
-        return self.wage_and_salary + self.fixed_fee_dsi + self.get_commission_dsi()
+        print("SELF.WAGE AND SALARY: ", self.wage_and_salary, " TOTAL TO USE: ", total_to_use," COMISSION DSI: ", self.get_commission_dsi())
+        return self.wage_and_salary + total_to_use + self.get_commission_dsi()
 
     # ------------------------------------------------------ CALCULO DE AHORRO ------------------------------------------------------
 
     # Calcular el ahorro ------- Columna Tnumero
-    def get_amount(self):
+    def get_amount(self, use_imss_breakdown=False):
+        if use_imss_breakdown:
+            print("==================== DENTRO DEL IF ==================== GET TRADITIONAL SCHEME BIWEEKLY TOTAL: ", self.get_traditional_scheme_biweekly_total(), " GET DSI SCHEME BIWEEKLY TOTAL: ", self.get_dsi_scheme_biweekly_total()," ====================")
+            return self.get_traditional_scheme_biweekly_total() - self.get_dsi_scheme_biweekly_total(use_imss_breakdown=True)
+        print("==================== GET TRADITIONAL SCHEME BIWEEKLY TOTAL: ", self.get_traditional_scheme_biweekly_total(), " GET DSI SCHEME BIWEEKLY TOTAL: ", self.get_dsi_scheme_biweekly_total()," ====================")
         return self.get_traditional_scheme_biweekly_total() - self.get_dsi_scheme_biweekly_total()
 
     # Calcular el porcentaje de ahorro ------- Columna Unumero
-    def get_percentage(self):
+    def get_percentage(self, use_imss_breakdown=False):
+        if use_imss_breakdown:
+            return self.get_amount(use_imss_breakdown=True) / self.get_traditional_scheme_biweekly_total()
         return self.get_amount() / self.get_traditional_scheme_biweekly_total()
 
     # ------------------------------------------------------ CALCULO DE ESQUEMA TRADICIONAL MENSUAL ------------------------------------------------------
@@ -112,3 +128,24 @@ class Saving:
     # Calcular el incremento en porcentaje ------- Columna ARnumero
     def get_increment_percentage(self):
         return self.get_increment() / self.get_current_perception()
+
+    def calculate_breakdown_values_for_dsi(self):
+        """
+        Calcula y almacena los valores desglosados usando el esquema DSI.
+        """
+        print("Ejecutando calculate_breakdown_values_for_dsi con wage_and_salary_dsi de:", self.wage_and_salary_dsi)
+
+        if self.imss is None:
+            raise ValueError("IMSS instance is not set. Use set_imss() method first.")
+
+        # Invocar la función get_dsi_scheme_biweekly_total con use_imss_breakdown=True
+        dsi_total = self.get_dsi_scheme_biweekly_total(use_imss_breakdown=True)
+        print("Total DSI calculado:", dsi_total)
+        
+        saving_amount = self.get_amount(use_imss_breakdown=True)
+        
+        saving_percentage = self.get_percentage(use_imss_breakdown=True)
+
+        # Aquí puedes almacenar el resultado en una variable si es necesario
+        self.dsi_total_with_breakdown = dsi_total
+        return { 'dsi_total': dsi_total, 'saving_amount': saving_amount, 'saving_percentage': saving_percentage }

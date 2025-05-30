@@ -20,23 +20,43 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
     
     # Calcular el salario mínimo para el período de pago
     smg_for_period = Parameters.SMG * payment_period
-    print("EL MISMO PERO DESDE FOKIN DENTRO SMG FOR PERIOD: ", smg_for_period)
     
     # Determinar los umbrales para ISR e IMSS basados en count_minimum_salary
     isr_threshold_salary = smg_for_period * count_minimum_salary if count_minimum_salary > 1 else 0
-    print("ISR THRESHOLD SALARY: ", isr_threshold_salary)
     imss_threshold_salary = smg_for_period * count_minimum_salary
-    print("IMSS THRESHOLD SALARY: ", imss_threshold_salary)
-    
-    print("IMSS SALARY: ", salary, " DAILY SALARY: ", daily_salary)
     
     # IMSS calculations
     imss = IMSS(imss_salary=salary, daily_salary=daily_salary, payment_period=payment_period, integration_factor=integration_factor,
                 risk_class=risk_class, minimum_threshold_salary=imss_threshold_salary, use_increment_percentage=use_increment_percentage, imss_breakdown=imss_breakdown)
     
     # Calcular los valores de breakdown si es necesario
+    # IMSS calculations
+    imss_breakdown_result = None
     if imss_breakdown:
-        imss.calculate_breakdown_values()
+        imss_breakdown_result = imss.calculate_breakdown_values()
+    
+    # Store the breakdown values in the imss instance
+    if imss_breakdown_result is not None:
+        imss.integrated_direct = imss_breakdown_result['integrated_direct']
+        imss.quota_employer_with_daily_salary = imss_breakdown_result['quota_employer_with_daily_salary']
+        imss.total_rcv_employer_with_daily_salary = imss_breakdown_result['total_rcv_employer_with_daily_salary']
+        imss.infonavit_employer_with_daily_salary = imss_breakdown_result['infonavit_employer_with_daily_salary']
+        imss.tax_payroll_with_daily_salary = imss_breakdown_result['tax_payroll_with_daily_salary']
+        imss.total_tax_cost_breakdown = imss_breakdown_result['total_tax_cost_breakdown']
+        
+        
+        print("DAILY SALARY: ", daily_salary)
+        print("IMSS.INTEGRATED_DIRECT: ", imss.integrated_direct)
+         
+        
+        print("RESULTADOD DESGLOSADO IMSS.QUOTA_EMPLOYER_WITH_DAILY_SALARY: ", imss.quota_employer_with_daily_salary)
+        print("RESULTADOD DESGLOSADO IMSS.TOTAL_RCV_EMPLOYER_WITH_DAILY_SALARY: ", imss.total_rcv_employer_with_daily_salary)
+        print("RESULTADOD DESGLOSADO IMSS.INFOVIT_EMPLOYER_WITH_DAILY_SALARY: ", imss.infonavit_employer_with_daily_salary)
+        print("RESULTADOD DESGLOSADO IMSS.TAX_PAYROLL_WITH_DAILY_SALARY: ", imss.tax_payroll_with_daily_salary)
+        
+        
+        print("RESULTADOD NORMAL IMSS.GET TOTAL EMPLOYER: ", imss.get_total_employer())
+        print("================ TOTAL ================", imss.total_tax_cost_breakdown)
     
     # ISR calculations
     isr = ISR(monthly_salary=salary, payment_period=payment_period, periodicity=periodicity,
@@ -53,6 +73,18 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         minimum_threshold_salary=imss_threshold_salary,
         productivity=productivity
     )
+    
+    print("GET_TRADITIONAL_SCHEME_BIWEEKLY_TOTAL: ", saving.get_traditional_scheme_biweekly_total())    
+    saving_breakdown_result = None
+    if imss_breakdown:
+        # Store the breakdown values in the saving instance
+        saving_breakdown_result = saving.calculate_breakdown_values_for_dsi()
+        saving.dsi_total_with_breakdown = saving_breakdown_result['dsi_total']
+        saving.saving_amount = saving_breakdown_result['saving_amount']
+        saving.saving_percentage = saving_breakdown_result['saving_percentage']
+        print("SAVING DSI TOTAL WITH BREAKDOWN: ", saving.dsi_total_with_breakdown)
+        
+        print("SAVING SAVING AMOUNT: ", saving.saving_amount)
 
     return imss, isr, saving, wage_and_salary_dsi
 
@@ -96,7 +128,6 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
         
         # Calcular el salario mínimo para este período de pago específico
         smg_for_payment_period = Parameters.SMG * payment_period
-        print("SMG FOR PAYMENT PERIOD: ", smg_for_payment_period)
         
         if i % 10 == 0 or i == total_salaries - 1:
             print(f"Processing salary {i+1}/{total_salaries}...")
@@ -117,7 +148,7 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
             productivity, imss_breakdown
         )
         
-        print("IMSS: ", imss)
+        # print("IMSS: ", imss)
 
         # Create a combined dictionary for the current salary with column references
         combined_result = {
@@ -157,9 +188,9 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
             "traditional_scheme_biweekly": saving.get_traditional_scheme_biweekly_total(), # Col. K - Esquema Tradicional Quincenal
             "dsi_scheme_biweekly": saving.get_dsi_scheme_biweekly_total(), # Col. R - Esquema DSI Quincenal
             "traditional_scheme_monthly": saving.get_traditional_scheme_biweekly_total() * 2, # Col. S - Esquema Tradicional Mensual
-            "dsi_scheme_monthly": saving.get_dsi_scheme_biweekly_total() * 2, # Col. T - Esquema DSI Mensual
-            "saving_amount": saving.get_amount(), # Col. U - Ahorro
-            "saving_percentage": saving.get_percentage() * 100,  # Col. W - Porcentaje de Ahorro
+            "dsi_scheme_monthly": saving.get_dsi_scheme_biweekly_total() * 2, # Col. R - Esquema DSI Mensual
+            "saving_amount": saving.get_amount() if saving.saving_amount is None else saving.saving_amount, # Col. T - Ahorro
+            "saving_percentage": saving.get_percentage() * 100 if saving.saving_percentage is None else saving.saving_percentage * 100,  # Col. U - Porcentaje de Ahorro
             "current_perception": saving.get_current_perception(),  # Col. AF - Percepción Actual
             "dsi_perception": saving.get_current_perception_dsi(),  # Col. AO - Percepción DSI
             "increment": saving.get_increment(),  # Col. AQ - Incremento

@@ -21,10 +21,8 @@ class IMSS:
     # Método auxiliar para inicializar parámetros base
     def _init_base_parameters(self, imss_salary, daily_salary, integration_factor, risk_class, payment_period, minimum_threshold_salary=None, use_increment_percentage=None, imss_breakdown=None):
         self.salary = imss_salary
-        print("SELF SALARY: ", self.salary, " ---------- IMSS SALARY: ", imss_salary)
         self.daily_salary = daily_salary
         self.payment_period = payment_period
-        print("PAYMENT PERIOD: ", self.payment_period, " ---------- PAYMENT PERIOD: ", payment_period)
         self.risk_class = risk_class
         self.parameters = Parameters()
         self.employee = Employee(imss_salary, payment_period)
@@ -81,10 +79,8 @@ class IMSS:
     # SALARIO DIARIO INTEGRADO, después de aplicar el factor de integración ------- Columna Enumero
     def get_integrated_daily_wage(self, use_direct_daily_salary=False):
         if use_direct_daily_salary:
-            print("ENTRA AL IF DE USE DIRECT EN GET INTEGRATED_DAILY_WAGE CON SALARIO DIARIO: ", self.daily_salary, " CON FACTOR DE INTEGRACIÓN DE: ", self.integration_factor)
             return self.daily_salary * self.integration_factor
         daily_salary_integrated = self.employee.calculate_salary_dialy()
-        # print("DAILY SALARY INTEGRATED: ", daily_salary_integrated, " espero sea 200 CON FACTOR DE INTEGRACIÓN DE: ", self.integration_factor)
         return daily_salary_integrated * self.integration_factor
 
     # ENFERMEDADES Y MATERNIDAD CUOTA DEL PATRÓN ------- Columna Hnumero
@@ -127,10 +123,6 @@ class IMSS:
 
     # RIESGOS DEL TRABAJO PATRÓN ------- Columna Onumero
     def get_occupational_risks_employer(self):
-        print("SELF.DAYS: ", self.days)
-        print("SELF.SALARY: ", self.salary)
-        print("SELF.SALARY CAP 25 SMG: ", self.get_salary_cap_25_smg())
-        print("SELF.RISK PERCENTAGE: ", self.risk_percentage)
         return self.days * self.get_salary_cap_25_smg() * self.risk_percentage
 
     # TOPE DE SALARIO 25 SMG DF CON TC2 ------- Columna Qnumero
@@ -155,19 +147,11 @@ class IMSS:
         # Guardar el método original
         original_method = self.get_integrated_daily_wage
         if use_direct_daily_salary:
-            print("ENTRA AL IF DE USE DIRECT")
             # Override que usa daily_salary directo (captura original_method)
             def get_integrated_daily_wage_override():
                 return original_method(True)
             self.get_integrated_daily_wage = get_integrated_daily_wage_override
         try:
-            print("self.get_diseases_and_maternity_employer_quota(): ", self.get_diseases_and_maternity_employer_quota())
-            print("self.get_diseases_and_maternity_employer_surplus(): ", self.get_diseases_and_maternity_employer_surplus())
-            print("self.get_employer_cash_benefits(): ", self.get_employer_cash_benefits())
-            print("self.get_benefits_in_kind_medical_expenses_employer(): ", self.get_benefits_in_kind_medical_expenses_employer())
-            print("self.get_occupational_risks_employer(): ", self.get_occupational_risks_employer())
-            print("self.get_invalidity_and_retirement_employer(): ", self.get_invalidity_and_retirement_employer())
-            print("self.get_childcare_employer(): ", self.get_childcare_employer())
             quotas = [
                 self.get_diseases_and_maternity_employer_quota(),
                 self.get_diseases_and_maternity_employer_surplus(),
@@ -234,11 +218,10 @@ class IMSS:
     def _get_rcv(self, use_direct_daily_salary=False):
         caller_frame = inspect.currentframe().f_back
         info = inspect.getframeinfo(caller_frame)
-        print(f"_get_rcv invocada desde {info.filename}, función {info.function}, línea {info.lineno}")
+        # print(f"_get_rcv invocada desde {info.filename}, función {info.function}, línea {info.lineno}")
         # Siempre crear una nueva instancia con el valor actual del salario diario integrado
         result_rcv = self.get_integrated_daily_wage(use_direct_daily_salary)
         self.rcv = RCV(result_rcv, self.payment_period)
-        print("RCV: ", result_rcv) if use_direct_daily_salary else print("RCV SINEL USE DIRECT: ", result_rcv)
         return self.rcv
 
     # CESANTIA Y VEJEZ PATRÓN ------- Columna AAnumero
@@ -380,7 +363,7 @@ class IMSS:
         Calcula y almacena los valores desglosados usando salario diario directo.
         """
         print("SE VA A EJECUTAR EL CALCULATE BREAKDOWN VALUES CON DAILY SALARY DE:", self.daily_salary)
-        
+
         if not self.imss_breakdown:
             return
 
@@ -400,8 +383,26 @@ class IMSS:
 
         # 7) INFONAVIT y Nómina también con salario directo
         self.infonavit_employer_with_daily_salary = self.get_infonavit_employer(use_direct_daily_salary=True)
-        self.tax_payroll_with_daily_salary     = self.get_tax_payroll(use_direct_daily_salary=True)
-    
+        self.tax_payroll_with_daily_salary = self.get_tax_payroll(use_direct_daily_salary=True)
+        
+        totals = [
+            self.quota_employer_with_daily_salary,
+            self.total_rcv_employer_with_daily_salary,
+            self.infonavit_employer_with_daily_salary,
+            self.tax_payroll_with_daily_salary,
+        ]
+        total_tax_cost_breakdown = sum(totals)
+
+        # Crear un diccionario con los valores para devolver
+        return {
+            'integrated_direct': integrated_direct,
+            'quota_employer_with_daily_salary': self.quota_employer_with_daily_salary,
+            'total_rcv_employer_with_daily_salary': self.total_rcv_employer_with_daily_salary,
+            'infonavit_employer_with_daily_salary': self.infonavit_employer_with_daily_salary,
+            'tax_payroll_with_daily_salary': self.tax_payroll_with_daily_salary,
+            'total_tax_cost_breakdown': total_tax_cost_breakdown,
+        }
+
     def __str__(self):
         """Método para mostrar información detallada de la instancia IMSS cuando se imprime"""
         # Formatear números para mejor legibilidad
