@@ -122,11 +122,15 @@ class IMSS:
         )
 
     # RIESGOS DEL TRABAJO PATRÓN ------- Columna Onumero
+    # NOTA: En caso de que se lea mal el risk_percentage, puede generar números muy grandes, por ejemplo, si se coloca en la Nómina Ciega 1.25 así se hará
+    # muy grande, por ejemplo, 7 * 278.80 * 1.25 = 2,439.5, mientras que si es 1.25% se hace 7 * 278.80 * 0.0125 = 20.40
     def get_occupational_risks_employer(self):
         return self.days * self.get_salary_cap_25_smg() * self.risk_percentage
 
     # TOPE DE SALARIO 25 SMG DF CON TC2 ------- Columna Qnumero
-    def get_salary_cap_25_smg_2(self):
+    def get_salary_cap_25_smg_2(self, use_direct_daily_salary=False):
+        if use_direct_daily_salary:
+            return min(self.get_integrated_daily_wage(True), self.contribution_ceiling_2)
         return min(self.get_integrated_daily_wage(), self.contribution_ceiling_2)
 
     # INVALIDEZ Y VIDA PATRÓN ------- Columna Rnumero
@@ -152,6 +156,7 @@ class IMSS:
                 return original_method(True)
             self.get_integrated_daily_wage = get_integrated_daily_wage_override
         try:
+            print("self.get_diseases_and_maternity_employer_quota(): ", self.get_diseases_and_maternity_employer_quota(), " self.get_diseases_and_maternity_employer_surplus ", self.get_diseases_and_maternity_employee_surplus(), " self.get_employer_cash_benefits ", self.get_employer_cash_benefits(), " self.get_benefits_in_kind_medical_expenses_employer()" ,self.get_benefits_in_kind_medical_expenses_employer(), " self.get_occupational_risks_employer ", self.get_occupational_risks_employer(), " self.get_invalidity_and_retirement_employer ", self.get_invalidity_and_retirement_employer(), " self.get_childcare_employer ", self.get_childcare_employer())
             quotas = [
                 self.get_diseases_and_maternity_employer_quota(),
                 self.get_diseases_and_maternity_employer_surplus(),
@@ -186,15 +191,27 @@ class IMSS:
         return ((salary_cap_25_smg_2 * self.invalidity_and_retirement_employee) * self.days) if salary_cap_25_smg_2 > self.smg else 0
 
     # CUOTAS IMSS TRABAJADOR ------- Columna Wnumero
-    def get_quota_employee(self):
+    def get_quota_employee(self, use_direct_daily_salary=False):
         # print("Columna J: ", self.get_diseases_and_maternity_employee_surplus(), "Columna L: ", self.get_employee_cash_benefits(), "Columna N: ", self.get_benefits_in_kind_medical_expenses_employee(), "Columna S: ", self.get_invalidity_and_retirement_employee())
-        quotas = [
-            self.get_diseases_and_maternity_employee_surplus(),
-            self.get_employee_cash_benefits(),
-            self.get_benefits_in_kind_medical_expenses_employee(),
-            self.get_invalidity_and_retirement_employee()
-        ]
-        return sum(quotas)
+        
+        # Guardar el método original
+        original_method = self.get_integrated_daily_wage
+        if use_direct_daily_salary:
+            # Override que usa daily_salary directo (captura original_method)
+            def get_integrated_daily_wage_override():
+                return original_method(True)
+            self.get_integrated_daily_wage = get_integrated_daily_wage_override
+        try:
+            quotas = [
+                self.get_diseases_and_maternity_employee_surplus(),
+                self.get_employee_cash_benefits(),
+                self.get_benefits_in_kind_medical_expenses_employee(),
+                self.get_invalidity_and_retirement_employee()
+            ]
+            return sum(quotas)
+        finally:
+            if use_direct_daily_salary:
+                self.get_integrated_daily_wage = original_method
 
     # ------------------------------------------------------ TOTAL IMSS ------------------------------------------------------
 
@@ -280,13 +297,14 @@ class IMSS:
 
     # TOTAL PATRÓN ------- Columna AHnumero
     def get_total_employer(self, use_smg=False, minimum_threshold_salary_override: Optional[float] = None):
+        print("Columna V: ", self.get_quota_employer(), "Columna AC: ", self.get_total_rcv_employer(), "Columna AEnumero: ", self.get_infonavit_employer(), "Columna AFnumero: ", self.get_tax_payroll(use_smg, minimum_threshold_salary_override=minimum_threshold_salary_override))
         return self.get_quota_employer() + self.get_total_rcv_employer() + self.get_infonavit_employer() + self.get_tax_payroll(use_smg, minimum_threshold_salary_override=minimum_threshold_salary_override)
 
     # ------------------------------------------------------ CALCULO DE TOTAL DEL RCV TRABAJADOR ------------------------------------------------------
 
     # CESANTÍA Y VEJEZ TRABAJADOR ------- Columna ABnumero
-    def get_severance_and_old_age_employee(self):
-        return (self.get_salary_cap_25_smg_2() * self.severance_and_old_age_employee) * self.days if self.get_salary_cap_25_smg_2() > self.smg else 0
+    def get_severance_and_old_age_employee(self, use_direct_daily_salary=False):
+        return (self.get_salary_cap_25_smg_2(use_direct_daily_salary) * self.severance_and_old_age_employee) * self.days if self.get_salary_cap_25_smg_2(use_direct_daily_salary) > self.smg else 0
 
     # TOTAL RCV TRABAJADOR ------- Columna ADnumero
     def get_total_rcv_employee(self):
@@ -372,7 +390,7 @@ class IMSS:
         # 2) Crea una única instancia de RCV con ese salario
         rcv_obj = RCV(integrated_direct, self.payment_period)
 
-        # 3) Cuota IMSS Patrón con salario diario
+        # 3) Cuota IMSS Patrón con salario diario - COLUMNA Vnumero
         self.quota_employer_with_daily_salary = self.get_quota_employer(use_direct_daily_salary=True)
         # 4) Cesantía y vejez (solo componente RCV) — reutiliza rcv_obj
         self.severance_and_old_age_employer = rcv_obj.get_quota_employer()
@@ -384,6 +402,11 @@ class IMSS:
         # 7) INFONAVIT y Nómina también con salario directo
         self.infonavit_employer_with_daily_salary = self.get_infonavit_employer(use_direct_daily_salary=True)
         self.tax_payroll_with_daily_salary = self.get_tax_payroll(use_direct_daily_salary=True)
+        
+        self.quota_employe_with_daily_salary = self.get_quota_employee(use_direct_daily_salary=True)
+        
+        # OBTENER RCV PARA EMPLEADO EN RETENCIONES ÚLTIMA TABLA
+        self.quota_employee_rcv_with_daily_salary = self.get_severance_and_old_age_employee(use_direct_daily_salary=True)
         
         totals = [
             self.quota_employer_with_daily_salary,
@@ -401,6 +424,8 @@ class IMSS:
             'infonavit_employer_with_daily_salary': self.infonavit_employer_with_daily_salary,
             'tax_payroll_with_daily_salary': self.tax_payroll_with_daily_salary,
             'total_tax_cost_breakdown': total_tax_cost_breakdown,
+            'quota_employe_with_daily_salary': self.quota_employe_with_daily_salary,
+            'quota_employee_rcv_with_daily_salary': self.quota_employee_rcv_with_daily_salary
         }
 
     def __str__(self):

@@ -44,6 +44,9 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         imss.tax_payroll_with_daily_salary = imss_breakdown_result['tax_payroll_with_daily_salary']
         imss.total_tax_cost_breakdown = imss_breakdown_result['total_tax_cost_breakdown']
         
+        imss.quota_employe_with_daily_salary = imss_breakdown_result['quota_employe_with_daily_salary']
+        imss.quota_employee_rcv_with_daily_salary = imss_breakdown_result['quota_employee_rcv_with_daily_salary']
+        
         
         print("DAILY SALARY: ", daily_salary)
         print("IMSS.INTEGRATED_DIRECT: ", imss.integrated_direct)
@@ -57,10 +60,33 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         
         print("RESULTADOD NORMAL IMSS.GET TOTAL EMPLOYER: ", imss.get_total_employer())
         print("================ TOTAL ================", imss.total_tax_cost_breakdown)
+        print("================ TOTAL QUOTA_EMPLOYE_WITH_DAILY_SALARY ================", imss.quota_employe_with_daily_salary)
+        print("================ TOTAL QUOTA_EMPLOYEE_RCV_WITH_DAILY_SALARY ================", imss.quota_employee_rcv_with_daily_salary)
     
     # ISR calculations
     isr = ISR(monthly_salary=salary, payment_period=payment_period, periodicity=periodicity,
               employee=imss.employee, minimum_threshold_salary=isr_threshold_salary)
+    
+    isr_with_imss_breakdown = None
+    period_salary = daily_salary * payment_period
+    print("PERIOD SALARY: ", period_salary)
+    total_retentions_dsi = 0
+    if imss_breakdown and period_salary > smg_for_period:
+        print("PERIOD SALARY: ", period_salary)
+        # Store the breakdown values in the isr instance
+        isr_with_imss_breakdown = ISR(monthly_salary=period_salary, payment_period=payment_period, periodicity=periodicity,
+              employee=imss.employee, minimum_threshold_salary=isr_threshold_salary)
+        isr.isr_imss_breakdown = isr_with_imss_breakdown
+        
+        # ESTOY SEGURO QUE ESTO SE DEBE DE MOVER, YA QUE SON CALCULOS QUE DEBERÍAN HACERSE EN EL PROPIO SAVING
+        total_retentions_dsi = isr.isr_imss_breakdown.get_tax_payable() + imss.quota_employe_with_daily_salary + imss.quota_employee_rcv_with_daily_salary
+        
+        
+    if not hasattr(isr, 'isr_imss_breakdown'):
+        isr.isr_imss_breakdown = None
+        
+    if isr.isr_imss_breakdown is None:
+        total_retentions_dsi = 0 + imss.quota_employe_with_daily_salary + imss.quota_employee_rcv_with_daily_salary
 
     # Savings calculations
     saving = Saving(
@@ -71,20 +97,42 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         isr_instance=isr,
         count_minimum_salary=count_minimum_salary,
         minimum_threshold_salary=imss_threshold_salary,
-        productivity=productivity
+        productivity=productivity,
     )
     
     print("GET_TRADITIONAL_SCHEME_BIWEEKLY_TOTAL: ", saving.get_traditional_scheme_biweekly_total())    
     saving_breakdown_result = None
+    # En la parte donde se llama a calculate_breakdown_values_for_dsi
     if imss_breakdown:
         # Store the breakdown values in the saving instance
-        saving_breakdown_result = saving.calculate_breakdown_values_for_dsi()
-        saving.dsi_total_with_breakdown = saving_breakdown_result['dsi_total']
+        saving_breakdown_result = saving.calculate_breakdown_values_for_dsi(use_direct_daily_salary=True, period_salary=period_salary)
+        saving.dsi_total_fiscal_cost_with_breakdown = saving_breakdown_result['dsi_total_fiscal_cost']
         saving.saving_amount = saving_breakdown_result['saving_amount']
         saving.saving_percentage = saving_breakdown_result['saving_percentage']
-        print("SAVING DSI TOTAL WITH BREAKDOWN: ", saving.dsi_total_with_breakdown)
+        
+        saving.saving_total_retentions_isr_dsi_chido = saving_breakdown_result['saving_total_retentions_isr_dsi']
+        print("SAVING DSI TOTAL WITH BREAKDOWN: ", saving.dsi_total_fiscal_cost_with_breakdown)
         
         print("SAVING SAVING AMOUNT: ", saving.saving_amount)
+        saving.savint_total_retentions_dsi = total_retentions_dsi
+        
+        saving.saving_total_retentions_dsi = saving_breakdown_result['saving_total_retentions_dsi']
+        saving.saving_total_current_perception_dsi = saving_breakdown_result['saving_total_current_perception_dsi']
+        saving.current_perception = saving_breakdown_result['saving_total_current_perception']
+        saving.saving_get_increment = saving_breakdown_result['saving_get_increment']
+        saving.saving_get_increment_percentage = saving_breakdown_result['saving_get_increment_percentage']
+        
+        saving.saving_wage_and_salary = saving_breakdown_result['saving_wage_and_salary']
+        saving.saving_productivity = saving_breakdown_result['saving_productivity']
+        
+        
+        print("================ TOTAL SAVING.SAVINT_TOTAL_RETENTIONS_DSI ================", saving.savint_total_retentions_dsi)
+        print("================ TOTAL SAVING.SAVING_TOTAL_RETENTIONS_isr_DSI_CHIDO ================", saving.saving_total_retentions_isr_dsi_chido)
+        print("================ TOTAL SAVING_TOTAL_CURRENT_PERCEPTION_DSI ================", saving.saving_total_current_perception_dsi)
+        print("================ TOTAL SAVING_TOTAL_CURRENT_PERCEPTION ================", saving.current_perception)
+        print("================ TOTAL SAVING_TOTAL_RETENTIONS_DSI ================", saving.saving_total_retentions_dsi)
+        print("================ TOTAL SAVING_GET_INCREMENT ================", saving.saving_get_increment)
+        print("================ TOTAL SAVING_GET_INCREMENT_PERCENTAGE ================", saving.saving_get_increment_percentage)
 
     return imss, isr, saving, wage_and_salary_dsi
 
@@ -168,6 +216,8 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
             "suggested_total_social_cost": imss.get_total_social_cost_suggested(), # Col. AP - Costo Social Total Sugerido
             "minimum_salary": imss.smg,  # Col. AP - Costo Social Total Sugerido
             "payment_period": payment_period,  # Período de pago para este salario
+            
+            "total_tax_cost_breakdown": imss.total_tax_cost_breakdown,  # Col. AP - Costo Fiscal Total cuando es desglosado
 
             # ISR results
             "isr_lower_limit": isr.get_lower_limit(),  # Col. E - Límite Inferior ISR
@@ -177,30 +227,47 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
             "isr_fixed_fee": isr.get_fixed_fee(),  # Col. I - Cuota Fija ISR
             "isr_total_tax": isr.get_total_tax(),  # Col. J - Impuesto Total ISR
             "isr": isr.get_isr(),  # Col. L - ISR
+            "isr_range_credit_for_salary": isr.get_range_credit_to_salary(),  # Col. M - ISR
             "salary_credit": isr.get_salary_credit(),  # Col. N - Crédito al Salario
             "isr_tax_payable": isr.get_tax_payable(),  # Col. O - Impuesto a Cargo ISR
             "isr_tax_in_favor": isr.get_tax_in_favor(),  # Col. P - Impuesto a Favor ISR
 
             # Savings results
-            "dsi_salary": wage_and_salary_dsi,  # Col. M - Salario DSI
-            "productivity": saving.get_productivity(),  # Col. N - Productividad
+            "dsi_salary": wage_and_salary_dsi if saving.saving_wage_and_salary is None else saving.saving_wage_and_salary,  # Col. M - Salario DSI
+            "productivity": saving.get_productivity() if saving.saving_productivity is None else saving.saving_productivity,  # Col. N - Productividad
             "dsi_commission": saving.get_commission_dsi(),  # Col. Q - Comisión DSI
             "traditional_scheme_biweekly": saving.get_traditional_scheme_biweekly_total(), # Col. K - Esquema Tradicional Quincenal
-            "dsi_scheme_biweekly": saving.get_dsi_scheme_biweekly_total(), # Col. R - Esquema DSI Quincenal
+            "dsi_scheme_biweekly": saving.get_dsi_scheme_biweekly_total() if saving.dsi_total_fiscal_cost_with_breakdown is None else saving.dsi_total_fiscal_cost_with_breakdown, # Col. R - Esquema DSI Quincenal
             "traditional_scheme_monthly": saving.get_traditional_scheme_biweekly_total() * 2, # Col. S - Esquema Tradicional Mensual
             "dsi_scheme_monthly": saving.get_dsi_scheme_biweekly_total() * 2, # Col. R - Esquema DSI Mensual
             "saving_amount": saving.get_amount() if saving.saving_amount is None else saving.saving_amount, # Col. T - Ahorro
             "saving_percentage": saving.get_percentage() * 100 if saving.saving_percentage is None else saving.saving_percentage * 100,  # Col. U - Porcentaje de Ahorro
-            "current_perception": saving.get_current_perception(),  # Col. AF - Percepción Actual
-            "dsi_perception": saving.get_current_perception_dsi(),  # Col. AO - Percepción DSI
-            "increment": saving.get_increment(),  # Col. AQ - Incremento
-            "increment_percentage": saving.get_increment_percentage() * 100, # Col. AR - Porcentaje de Incremento
+            "total_retentions": saving.get_total_retentions(),  # Col. AE - Retenciones Total de Retenciones - ISR + IMSS + RCV
+            "current_perception": saving.get_current_perception() if saving.current_perception is None else saving.current_perception,  # Col. AF - Percepción Actual
+            "dsi_perception": saving.get_current_perception_dsi() if saving.saving_total_current_perception_dsi is None else saving.saving_total_current_perception_dsi,  # Col. AO - Percepción DSI
+            "increment": saving.get_increment() if saving.saving_get_increment is None else saving.saving_get_increment,  # Col. AQ - Incremento
+            "increment_percentage": (saving.get_increment_percentage() if saving.saving_get_increment_percentage is None else saving.saving_get_increment_percentage) * 100, # Col. AR - Porcentaje de Incremento
             "dsi_scheme_fixed_fee": saving.fixed_fee_dsi, # Col. P - Cuota Fija Esquema DSI
             "salary_total_income": salary, # Col. E - Salario (TOTAL INGRESOS)
 
             "commission_percentage_dsi": commission_percentage_dsi * 100, # Col. Q8 - Comisión DSI
             "isr_retention_dsi": saving.get_total_isr_retention_dsi(), # Col. AK9 - ISR Retención DSI
+            "total_retentions_dsi": saving.savint_total_retentions_dsi, # Col. AR (desglosado) o AN (normal),  - Total Retenciones DSI
         }
+        
+        if imss_breakdown:
+            combined_result["first_quota_employer_imss_dsi"] = imss.quota_employer_with_daily_salary # Col. P - Costo Fiscal IMSS para DSI cuando es desglosado - Hoja de Ahorro
+            combined_result["first_total_rcv_employer_dsi"] = imss.total_rcv_employer_with_daily_salary # Col. Q - Costo Fiscal RCV para DSI cuando es desglosado - Hoja de Ahorro
+            combined_result["first_infonavit_employer_dsi"] = imss.infonavit_employer_with_daily_salary # Col. R - Costo Fiscal Infonavit para DSI cuando es desglosado - Hoja de Ahorro
+            combined_result["first_tax_payroll_employer_dsi"] = imss.tax_payroll_with_daily_salary # Col. S - Costo Fiscal Impuesto Estatal para DSI cuando es desglosado - Hoja de Ahorro
+            
+            combined_result["quota_employe_with_daily_salary"] = imss.quota_employe_with_daily_salary
+            combined_result["quota_employee_rcv_with_daily_salary"] = imss.quota_employee_rcv_with_daily_salary
+            
+            
+            if isr.isr_imss_breakdown is not None:
+                # Add ISR breakdown values to combined_result
+                combined_result["isr_tax_payable_dsi"] = isr.isr_imss_breakdown.get_tax_payable() # Col. O - Impuesto a Cargo ISR para DSI
 
         # Append the combined result to the main list
         individual_results.append(combined_result)

@@ -109,7 +109,7 @@ def get_employee_subsidy_table(payment_period):
             { "lower_limit": 1228.58,"upper_limit": 1433.32, "credit": 67.83 },
             { "lower_limit": 1433.33,"upper_limit": 1638.07, "credit": 58.38 },
             { "lower_limit": 1638.08,"upper_limit": 1699.88, "credit": 50.12 },
-            { "lower_limit": 1699.89,"upper_limit": float("inf"), "credit": 0.00 }
+            { "lower_limit": 1699.89,"upper_limit": float("inf"), "credit": 89.81  }
         ],
         10: [
             { "lower_limit": 0.01,   "upper_limit": 581.90,  "credit": 133.90 },
@@ -148,7 +148,7 @@ def get_employee_subsidy_table(payment_period):
             { "lower_limit": 5335.43,"upper_limit": 6224.67, "credit": 294.63 },
             { "lower_limit": 6224.68,"upper_limit": 7113.90, "credit": 253.54 },
             { "lower_limit": 7113.91,"upper_limit": 7382.33, "credit": 217.61 },
-            { "lower_limit": 7382.34,"upper_limit": float("inf"), "credit": 0.00 }
+            { "lower_limit": 7382.34,"upper_limit": float("inf"), "credit": 192.45 }
         ]
     }
     
