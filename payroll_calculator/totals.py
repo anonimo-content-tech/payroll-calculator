@@ -4,12 +4,14 @@ from .isr import ISR
 from .saving import Saving
 
 
+def safe_get(row, idx, default=0):
+        return row[idx] if len(row) > idx else default
+
 class TotalCalculator:
     """
     Utility class to calculate totals across multiple salary calculations.
     This class aggregates results from multiple IMSS, ISR, and Saving instances.
     """
-
     @staticmethod
     def calculate_traditional_scheme_totals(results: List[List[float]]) -> Dict[str, float]:
         """
@@ -21,15 +23,23 @@ class TotalCalculator:
         Returns:
             Dictionary with total values for the traditional scheme
         """
+        print("=================================================== RESULTS DE LA FUNCION calculate_traditional_scheme_totals =================================================== ", sum(row[3] for row in results))
         totals = {
-            "total_salary": sum(row[0] for row in results),
-            "total_imss_employer": sum(row[3] for row in results),
-            "total_imss_employee": sum(row[4] for row in results),
-            "total_rcv_employer": sum(row[5] for row in results),
-            "total_rcv_employee": sum(row[6] for row in results),
-            "total_infonavit": sum(row[7] for row in results),
-            "total_tax_payroll": sum(row[8] for row in results),
-            "total_social_cost": sum(row[9] for row in results)
+            "total_salary": sum(safe_get(row, 0) for row in results),
+            "total_imss_employer": sum(safe_get(row, 3) for row in results),
+            "total_imss_employee": sum(safe_get(row, 4) for row in results),
+            "total_rcv_employer": sum(safe_get(row, 5) for row in results),
+            "total_rcv_employee": sum(safe_get(row, 6) for row in results),
+            "total_infonavit": sum(safe_get(row, 7) for row in results),
+            "total_tax_payroll": sum(safe_get(row, 8) for row in results),
+            "total_social_cost": sum(safe_get(row, 9) for row in results),
+            
+            "total_imss_employer_dsi": sum(safe_get(row, 10) for row in results),
+            "total_rcv_employer_dsi": sum(safe_get(row, 11) for row in results),
+            "total_infonavit_dsi": sum(safe_get(row, 12) for row in results),
+            "total_tax_payroll_dsi": sum(safe_get(row, 13) for row in results),
+            "total_imss_employee_dsi": sum(safe_get(row, 14) for row in results),
+            "total_rcv_employee_dsi": sum(safe_get(row, 15) for row in results),
         }
         return totals
 
@@ -49,7 +59,11 @@ class TotalCalculator:
             "total_isr": sum(row[7] for row in results),
             "total_salary_credit": sum(row[8] for row in results),
             "total_tax_payable": sum(row[9] for row in results),
-            "total_tax_in_favor": sum(row[10] for row in results)
+            "total_tax_in_favor": sum(row[10] for row in results),
+            
+            
+            "total_tax_payable_dsi": sum(row[11] for row in results),
+            
         }
         return totals
 
@@ -80,7 +94,11 @@ class TotalCalculator:
             "total_increment": sum(row[10] for row in results),
             "total_fixed_fee_dsi": sum(row[12] for row in results),
             "total_income": sum(row[13] for row in results),
-            "total_isr_retention_dsi": sum(row[15] for row in results)
+            "total_isr_retention_dsi": sum(row[15] for row in results),
+            
+            
+            
+            "total_retentions_isr_dsi": sum(safe_get(row, 16) for row in results)
         }
         
         # Calculate average percentages

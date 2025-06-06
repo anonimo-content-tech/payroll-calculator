@@ -93,6 +93,9 @@ class Saving:
         if self.isr is None:
             raise ValueError(
                 "ISR instance is not set. Use set_isr() method first.")
+        isr_tax_payable = self.isr.get_tax_payable(use_smg)
+        isr_tax_in_favor = self.isr.get_tax_in_favor()
+        print(f"ENTRARÍA A GET TAX PAYABLE CON TAX PAYABLE DE: {isr_tax_payable} y TAX IN FAVOR DE: {isr_tax_in_favor}") if isr_tax_payable > isr_tax_in_favor else print(f"ENTRARÍA A GET TAX IN FAVOR CON TAX PAYABLE DE: {isr_tax_payable} y TAX IN FAVOR DE: {isr_tax_in_favor}")
         return self.isr.get_tax_payable(use_smg) if self.isr.get_tax_payable(use_smg) > self.isr.get_tax_in_favor() else (self.isr.get_tax_in_favor() * -1)
 
     # Obtener el total de Retenciones ------- Columna AEnumero
@@ -123,8 +126,13 @@ class Saving:
         return self.wage_and_salary_dsi + self.get_assimilated()
     
     # Calcular Total de Retenciones DSI ------- Columna AKnumero
-    def get_total_isr_retention_dsi(self):
-        return self.get_isr_retention(True) if self.count_minimum_salary > 1 and self.wage_and_salary > self.wage_and_salary_dsi  else 0
+    def get_total_isr_retention_dsi(self, use_imss_breakdown=False):
+        if use_imss_breakdown:
+            print("SELF.GET_ISR_RETENTION(TRUE): ", self.get_isr_retention(True), " SELF.COUNT_MINIMUM_SALARY: ", self.count_minimum_salary, " SELF.WAGE AND SALARY: ", self.wage_and_salary, " SELF.WAGE AND SALARY DSI: ", self.wage_and_salary_dsi)
+            return self.get_isr_retention(True) if self.wage_and_salary > self.wage_and_salary_dsi else 0
+        print("SELF.GET_ISR_RETENTION(TRUE): ", self.get_isr_retention(True), " SELF.COUNT_MINIMUM_SALARY: ", self.count_minimum_salary, " SELF.WAGE AND SALARY: ", self.wage_and_salary, " SELF.WAGE AND SALARY DSI: ", self.wage_and_salary_dsi)
+        return self.get_isr_retention(True) if self.wage_and_salary > self.wage_and_salary_dsi else 0
+        return self.get_isr_retention(True) if self.count_minimum_salary > 1 else 0
 
     # Calcular Percepción Actual DSI ------- Columna AOnumero
     def get_current_perception_dsi(self, original_wage_and_salary=None, use_imss_breakdown=False):
@@ -185,7 +193,8 @@ class Saving:
             saving_total_retentions_isr = self.isr.get_tax_payable()
             
             print("SELF.WAGE AND SALARY: ", self.wage_and_salary)
-            saving_total_retentions_isr_dsi = self.get_total_isr_retention_dsi()
+            saving_total_retentions_isr_dsi = self.get_total_isr_retention_dsi(use_imss_breakdown=True)
+            print("VALOR DE SAVING TOTAL RETENTIONS ISR DSI: ", saving_total_retentions_isr_dsi)
             
             saving_total_retentions_dsi = self.get_total_retentions(use_imss_breakdown=True)
             
