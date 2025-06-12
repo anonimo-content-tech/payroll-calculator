@@ -138,17 +138,17 @@ def get_employee_subsidy_table(payment_period):
             { "lower_limit": 3642.61,"upper_limit": float("inf"), "credit": 0.00 }
         ],
         30: [
-            { "lower_limit": 0.01,   "upper_limit": 1768.96, "credit": 407.02 },
-            { "lower_limit": 1768.97,"upper_limit": 2653.38, "credit": 406.83 },
-            { "lower_limit": 2653.39,"upper_limit": 3472.84, "credit": 406.62 },
-            { "lower_limit": 3472.85,"upper_limit": 3537.87, "credit": 392.77 },
-            { "lower_limit": 3537.88,"upper_limit": 4446.15, "credit": 382.46 },
-            { "lower_limit": 4446.16,"upper_limit": 4717.18, "credit": 354.23 },
-            { "lower_limit": 4717.19,"upper_limit": 5335.42, "credit": 324.87 },
-            { "lower_limit": 5335.43,"upper_limit": 6224.67, "credit": 294.63 },
-            { "lower_limit": 6224.68,"upper_limit": 7113.90, "credit": 253.54 },
-            { "lower_limit": 7113.91,"upper_limit": 7382.33, "credit": 217.61 },
-            { "lower_limit": 7382.34,"upper_limit": float("inf"), "credit": 192.45 }
+            { "lower_limit": 0.01,   "upper_limit": 872.85,    "credit": 200.85 },
+            { "lower_limit": 872.86, "upper_limit": 1309.20,   "credit": 200.70 },
+            { "lower_limit": 1309.21,"upper_limit": 1713.60,   "credit": 200.70 },
+            { "lower_limit": 1713.61,"upper_limit": 1745.70,   "credit": 193.80 },
+            { "lower_limit": 1745.71,"upper_limit": 2193.75,   "credit": 188.70 },
+            { "lower_limit": 2193.76,"upper_limit": 2327.55,   "credit": 174.75 },
+            { "lower_limit": 2327.56,"upper_limit": 2632.65,   "credit": 160.35 },
+            { "lower_limit": 2632.66,"upper_limit": 3071.40,   "credit": 145.35 },
+            { "lower_limit": 3071.41,"upper_limit": 3510.15,   "credit": 125.10 },
+            { "lower_limit": 3510.16,"upper_limit": 3642.60,   "credit": 107.40 },
+            { "lower_limit": 8475.52,"upper_limit": float("inf"),  "credit": 390.03 },
         ]
     }
     

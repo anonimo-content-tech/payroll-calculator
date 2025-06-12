@@ -264,9 +264,9 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
         }
         
         if imss_breakdown:
-            combined_result["total_retentions_dsi"] = saving.saving_total_retentions_dsi, # Col. AR (desglosado) o AN (normal),  - Total Retenciones DSI
+            combined_result["total_retentions_dsi"] = saving.saving_total_retentions_dsi # Col. AR (desglosado) o AN (normal),  - Total Retenciones DSI
             
-            combined_result["total_tax_cost_breakdown"] = imss.total_tax_cost_breakdown,  # Col. AP - Costo Fiscal Total cuando es desglosado
+            combined_result["total_tax_cost_breakdown"] = imss.total_tax_cost_breakdown  # Col. AP - Costo Fiscal Total cuando es desglosado
             
             combined_result["first_quota_employer_imss_dsi"] = imss.quota_employer_with_daily_salary # Col. P - Costo Fiscal IMSS para DSI cuando es desglosado - Hoja de Ahorro
             combined_result["first_total_rcv_employer_dsi"] = imss.total_rcv_employer_with_daily_salary # Col. Q - Costo Fiscal RCV para DSI cuando es desglosado - Hoja de Ahorro
