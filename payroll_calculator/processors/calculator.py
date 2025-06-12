@@ -48,30 +48,30 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         imss.quota_employee_rcv_with_daily_salary = imss_breakdown_result['quota_employee_rcv_with_daily_salary']
         
         
-        print("DAILY SALARY: ", daily_salary)
-        print("IMSS.INTEGRATED_DIRECT: ", imss.integrated_direct)
+        # print("DAILY SALARY: ", daily_salary)
+        # print("IMSS.INTEGRATED_DIRECT: ", imss.integrated_direct)
          
         
-        print("RESULTADOD DESGLOSADO IMSS.QUOTA_EMPLOYER_WITH_DAILY_SALARY: ", imss.quota_employer_with_daily_salary)
-        print("RESULTADOD DESGLOSADO IMSS.TOTAL_RCV_EMPLOYER_WITH_DAILY_SALARY: ", imss.total_rcv_employer_with_daily_salary)
-        print("RESULTADOD DESGLOSADO IMSS.INFOVIT_EMPLOYER_WITH_DAILY_SALARY: ", imss.infonavit_employer_with_daily_salary)
-        print("RESULTADOD DESGLOSADO IMSS.TAX_PAYROLL_WITH_DAILY_SALARY: ", imss.tax_payroll_with_daily_salary)
+        # print("RESULTADOD DESGLOSADO IMSS.QUOTA_EMPLOYER_WITH_DAILY_SALARY: ", imss.quota_employer_with_daily_salary)
+        # print("RESULTADOD DESGLOSADO IMSS.TOTAL_RCV_EMPLOYER_WITH_DAILY_SALARY: ", imss.total_rcv_employer_with_daily_salary)
+        # print("RESULTADOD DESGLOSADO IMSS.INFOVIT_EMPLOYER_WITH_DAILY_SALARY: ", imss.infonavit_employer_with_daily_salary)
+        # print("RESULTADOD DESGLOSADO IMSS.TAX_PAYROLL_WITH_DAILY_SALARY: ", imss.tax_payroll_with_daily_salary)
         
         
-        print("RESULTADOD NORMAL IMSS.GET TOTAL EMPLOYER: ", imss.get_total_employer())
-        print("================ TOTAL ================", imss.total_tax_cost_breakdown)
-        print("================ TOTAL QUOTA_EMPLOYE_WITH_DAILY_SALARY ================", imss.quota_employe_with_daily_salary)
-        print("================ TOTAL QUOTA_EMPLOYEE_RCV_WITH_DAILY_SALARY ================", imss.quota_employee_rcv_with_daily_salary)
+        # print("RESULTADOD NORMAL IMSS.GET TOTAL EMPLOYER: ", imss.get_total_employer())
+        # print("================ TOTAL ================", imss.total_tax_cost_breakdown)
+        # print("================ TOTAL QUOTA_EMPLOYE_WITH_DAILY_SALARY ================", imss.quota_employe_with_daily_salary)
+        # print("================ TOTAL QUOTA_EMPLOYEE_RCV_WITH_DAILY_SALARY ================", imss.quota_employee_rcv_with_daily_salary)
     
     # ISR calculations
     isr = ISR(monthly_salary=salary, payment_period=payment_period, periodicity=periodicity,
               employee=imss.employee, minimum_threshold_salary=isr_threshold_salary)
-    print("PASA ISR")
+    # print("PASA ISR")
     isr_with_imss_breakdown = None
     period_salary = daily_salary * payment_period
-    print("PERIOD SALARY: ", period_salary)
+    # print("PERIOD SALARY: ", period_salary)
     if imss_breakdown is not None and period_salary > smg_for_period:
-        print("PERIOD SALARY DEL IF: ", period_salary)
+        # print("PERIOD SALARY DEL IF: ", period_salary)
         # Store the breakdown values in the isr instance
         isr_with_imss_breakdown = ISR(monthly_salary=period_salary, payment_period=payment_period, periodicity=periodicity,
               employee=imss.employee, minimum_threshold_salary=isr_threshold_salary)
@@ -91,9 +91,9 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         minimum_threshold_salary=imss_threshold_salary,
         productivity=productivity,
     )
-    print("PASA SAVING")
+    # print("PASA SAVING")
     
-    print("GET_TRADITIONAL_SCHEME_BIWEEKLY_TOTAL: ", saving.get_traditional_scheme_biweekly_total())    
+    # print("GET_TRADITIONAL_SCHEME_BIWEEKLY_TOTAL: ", saving.get_traditional_scheme_biweekly_total())    
     saving_breakdown_result = None
     # En la parte donde se llama a calculate_breakdown_values_for_dsi
     if imss_breakdown is not None:
@@ -104,9 +104,9 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         saving.saving_percentage = saving_breakdown_result['saving_percentage']
         
         saving.saving_total_retentions_isr_dsi = saving_breakdown_result['saving_total_retentions_isr_dsi']
-        print("SAVING DSI TOTAL WITH BREAKDOWN: ", saving.dsi_total_fiscal_cost_with_breakdown)
+        # print("SAVING DSI TOTAL WITH BREAKDOWN: ", saving.dsi_total_fiscal_cost_with_breakdown)
         
-        print("SAVING SAVING AMOUNT: ", saving.saving_amount)
+        # print("SAVING SAVING AMOUNT: ", saving.saving_amount)
         
         saving.saving_total_retentions_dsi = saving_breakdown_result['saving_total_retentions_dsi']
         saving.saving_total_current_perception_dsi = saving_breakdown_result['saving_total_current_perception_dsi']
@@ -118,12 +118,12 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         saving.saving_productivity = saving_breakdown_result['saving_productivity']
         
         
-        print("================ TOTAL SAVING.SAVING_TOTAL_RETENTIONS_isr_DSI ================", saving.saving_total_retentions_isr_dsi)
-        print("================ TOTAL SAVING_TOTAL_CURRENT_PERCEPTION_DSI ================", saving.saving_total_current_perception_dsi)
-        print("================ TOTAL SAVING_TOTAL_CURRENT_PERCEPTION ================", saving.current_perception)
-        print("================ TOTAL SAVING_TOTAL_RETENTIONS_DSI ================", saving.saving_total_retentions_dsi)
-        print("================ TOTAL SAVING_GET_INCREMENT ================", saving.saving_get_increment)
-        print("================ TOTAL SAVING_GET_INCREMENT_PERCENTAGE ================", saving.saving_get_increment_percentage)
+        # print("================ TOTAL SAVING.SAVING_TOTAL_RETENTIONS_isr_DSI ================", saving.saving_total_retentions_isr_dsi)
+        # print("================ TOTAL SAVING_TOTAL_CURRENT_PERCEPTION_DSI ================", saving.saving_total_current_perception_dsi)
+        # print("================ TOTAL SAVING_TOTAL_CURRENT_PERCEPTION ================", saving.current_perception)
+        # print("================ TOTAL SAVING_TOTAL_RETENTIONS_DSI ================", saving.saving_total_retentions_dsi)
+        # print("================ TOTAL SAVING_GET_INCREMENT ================", saving.saving_get_increment)
+        # print("================ TOTAL SAVING_GET_INCREMENT_PERCENTAGE ================", saving.saving_get_increment_percentage)
 
     return imss, isr, saving, wage_and_salary_dsi
 
@@ -207,7 +207,6 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
         
         # print("IMSS: ", imss)
         
-        print("COMIENZA A ESTRUCTURAR")
         
         # Create a combined dictionary for the current salary with column references
         combined_result = {

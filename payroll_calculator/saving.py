@@ -47,7 +47,6 @@ class Saving:
     # Calcular la productividad según el Total de Ingresos y Sueldos y Salarios DSI ------- Columna Nnumero
     def get_productivity(self):
         employee_productivity = self.wage_and_salary_dsi - self.wage_and_salary
-        print("WAGE AND SALARY: ", self.wage_and_salary, " SELF.WAGE AND SALARY DSI: ", self.wage_and_salary_dsi, "EMPLOYEE PRODUCTIVITY: ", employee_productivity, " SELF.CURRENT PRODUCTIVITY: ", self.current_productivity)
         return employee_productivity if self.current_productivity is None else employee_productivity + self.current_productivity
 
     # Calcular la Comisión DSI ------- Columna Qnumero
@@ -62,7 +61,6 @@ class Saving:
             
         total_to_use = self.fixed_fee_dsi
         if use_imss_breakdown:
-            print("SELF.WAGE AND SALARY: ", self.wage_and_salary, " SELF.WAGE AND SALARY DSI: ", self.wage_and_salary_dsi , " ORIGINAL WAGE AND SALARY: ", original_wage_and_salary, " TOTAL TO USE: ", self.imss.total_tax_cost_breakdown," COMISSION DSI: ", self.get_commission_dsi())
             # Usar self.wage_and_salary si original_wage_and_salary es None
             wage_to_use = self.wage_and_salary if original_wage_and_salary is None else original_wage_and_salary
             return wage_to_use + self.imss.total_tax_cost_breakdown + self.get_commission_dsi()
@@ -75,9 +73,7 @@ class Saving:
     # Calcular el ahorro ------- Columna Tnumero
     def get_amount(self, use_imss_breakdown=False):
         if use_imss_breakdown:
-            print("==================== DENTRO DEL IF ==================== GET TRADITIONAL SCHEME BIWEEKLY TOTAL: ", self.get_traditional_scheme_biweekly_total(), " GET DSI SCHEME BIWEEKLY TOTAL: ", self.get_dsi_scheme_biweekly_total()," ====================")
             return self.get_traditional_scheme_biweekly_total() - self.get_dsi_scheme_biweekly_total(use_imss_breakdown=True)
-        print("==================== GET TRADITIONAL SCHEME BIWEEKLY TOTAL: ", self.get_traditional_scheme_biweekly_total(), " GET DSI SCHEME BIWEEKLY TOTAL: ", self.get_dsi_scheme_biweekly_total()," ====================")
         return self.get_traditional_scheme_biweekly_total() - self.get_dsi_scheme_biweekly_total()
 
     # Calcular el porcentaje de ahorro ------- Columna Unumero
@@ -93,16 +89,13 @@ class Saving:
         if self.isr is None:
             raise ValueError(
                 "ISR instance is not set. Use set_isr() method first.")
-        isr_tax_payable = self.isr.get_tax_payable(use_smg)
-        isr_tax_in_favor = self.isr.get_tax_in_favor()
-        print(f"ENTRARÍA A GET TAX PAYABLE CON TAX PAYABLE DE: {isr_tax_payable} y TAX IN FAVOR DE: {isr_tax_in_favor}") if isr_tax_payable > isr_tax_in_favor else print(f"ENTRARÍA A GET TAX IN FAVOR CON TAX PAYABLE DE: {isr_tax_payable} y TAX IN FAVOR DE: {isr_tax_in_favor}")
         return self.isr.get_tax_payable(use_smg) if self.isr.get_tax_payable(use_smg) > self.isr.get_tax_in_favor() else (self.isr.get_tax_in_favor() * -1)
 
     # Obtener el total de Retenciones ------- Columna AEnumero
     def get_total_retentions(self, use_imss_breakdown=False):
         if use_imss_breakdown:
             # Columna AB + Columna AC + Columna AD
-            print("self.get_isr_retention(): ", self.get_isr_retention(use_imss_breakdown), " self.imss.get_quota_employee(use_imss_breakdown): ", self.imss.get_quota_employee(use_imss_breakdown), " self.imss.get_severance_and_old_age_employee(use_imss_breakdown): ", self.imss.get_severance_and_old_age_employee(use_imss_breakdown), )
+            # print("self.get_isr_retention(): ", self.get_isr_retention(use_imss_breakdown), " self.imss.get_quota_employee(use_imss_breakdown): ", self.imss.get_quota_employee(use_imss_breakdown), " self.imss.get_severance_and_old_age_employee(use_imss_breakdown): ", self.imss.get_severance_and_old_age_employee(use_imss_breakdown), )
             return self.get_total_isr_retention_dsi() + self.imss.get_quota_employee(use_imss_breakdown) + self.imss.get_severance_and_old_age_employee(use_imss_breakdown)
         # Columna AB + Columna AC + Columna AD
         return self.isr.get_tax_payable() + self.imss.get_quota_employee() + self.imss.get_total_rcv_employee()
@@ -110,7 +103,7 @@ class Saving:
     # Calcular percepción actual ------- Columna AFnumero
     def get_current_perception(self, original_wage_and_salary=None, use_imss_breakdown=False):
         if use_imss_breakdown:
-            print("================================================ ORIGINAL WAGE AND SALARY: ", original_wage_and_salary, " SELF.GET_TOTAL_RETENTIONS: ", self.get_total_retentions(), " SELF.GET_TOTAL_RETENTIONS DS ================================================")
+            # print("================================================ ORIGINAL WAGE AND SALARY: ", original_wage_and_salary, " SELF.GET_TOTAL_RETENTIONS: ", self.get_total_retentions(), " SELF.GET_TOTAL_RETENTIONS DS ================================================")
             return original_wage_and_salary - self.get_total_retentions()
         return self.wage_and_salary - self.get_total_retentions(use_imss_breakdown)
 
@@ -122,22 +115,22 @@ class Saving:
 
     # Calcular Total de Ingresos ------- Columna AJnumero
     def get_total_wage_and_salary_dsi(self):
-        print("================== SELF.WAGE AND SALARY: ", self.wage_and_salary_dsi, " SELF.GET_ASSIMILATED QUE ES LA PRODUCTIVIDAD(): ", self.get_assimilated(), " ==================")
+        # print("================== SELF.WAGE AND SALARY: ", self.wage_and_salary_dsi, " SELF.GET_ASSIMILATED QUE ES LA PRODUCTIVIDAD(): ", self.get_assimilated(), " ==================")
         return self.wage_and_salary_dsi + self.get_assimilated()
     
     # Calcular Total de Retenciones DSI ------- Columna AKnumero
     def get_total_isr_retention_dsi(self, use_imss_breakdown=False):
         if use_imss_breakdown:
-            print("SELF.GET_ISR_RETENTION(TRUE): ", self.get_isr_retention(True), " SELF.COUNT_MINIMUM_SALARY: ", self.count_minimum_salary, " SELF.WAGE AND SALARY: ", self.wage_and_salary, " SELF.WAGE AND SALARY DSI: ", self.wage_and_salary_dsi)
+            # print("SELF.GET_ISR_RETENTION(TRUE): ", self.get_isr_retention(True), " SELF.COUNT_MINIMUM_SALARY: ", self.count_minimum_salary, " SELF.WAGE AND SALARY: ", self.wage_and_salary, " SELF.WAGE AND SALARY DSI: ", self.wage_and_salary_dsi)
             return self.get_isr_retention(True) if self.wage_and_salary > self.wage_and_salary_dsi else 0
-        print("SELF.GET_ISR_RETENTION(TRUE): ", self.get_isr_retention(True), " SELF.COUNT_MINIMUM_SALARY: ", self.count_minimum_salary, " SELF.WAGE AND SALARY: ", self.wage_and_salary, " SELF.WAGE AND SALARY DSI: ", self.wage_and_salary_dsi)
+        # print("SELF.GET_ISR_RETENTION(TRUE): ", self.get_isr_retention(True), " SELF.COUNT_MINIMUM_SALARY: ", self.count_minimum_salary, " SELF.WAGE AND SALARY: ", self.wage_and_salary, " SELF.WAGE AND SALARY DSI: ", self.wage_and_salary_dsi)
         return self.get_isr_retention(True) if self.wage_and_salary > self.wage_and_salary_dsi else 0
         return self.get_isr_retention(True) if self.count_minimum_salary > 1 else 0
 
     # Calcular Percepción Actual DSI ------- Columna AOnumero
     def get_current_perception_dsi(self, original_wage_and_salary=None, use_imss_breakdown=False):
         if use_imss_breakdown:
-            print(" DENTRO DEL IFFFFFFFFF SELF.WAGE AND SALARY DSI: ", self.get_total_wage_and_salary_dsi(), " SELF.GET_TOTAL_ISR_RETENTION_DSI: ", self.get_total_retentions(use_imss_breakdown))
+            # print(" DENTRO DEL IFFFFFFFFF SELF.WAGE AND SALARY DSI: ", self.get_total_wage_and_salary_dsi(), " SELF.GET_TOTAL_ISR_RETENTION_DSI: ", self.get_total_retentions(use_imss_breakdown))
             return original_wage_and_salary - self.get_total_retentions(use_imss_breakdown)
         # Columna AJ - Columna AK - Columna AL - Columna AM - Columna AN
         # return self.get_total_wage_and_salary_dsi() - self.get_total_isr_retention_dsi() - 0 - 0 - 0
@@ -161,7 +154,6 @@ class Saving:
         - use_direct_daily_salary: Si es True, utiliza el salario diario directo para los cálculos
         - period_salary: Salario del período a utilizar cuando use_direct_daily_salary es True
         """
-        print("Ejecutando calculate_breakdown_values_for_dsi con wage_and_salary_dsi de:", self.wage_and_salary_dsi)
         
         if self.imss is None:
             raise ValueError("IMSS instance is not set. Use set_imss() method first.")
@@ -174,43 +166,42 @@ class Saving:
         if use_direct_daily_salary and period_salary is not None:
             # Temporalmente reemplazar wage_and_salary con period_salary
             self.wage_and_salary = period_salary
-            print("Usando period_salary para cálculos:", period_salary)
+            # print("Usando period_salary para cálculos:", period_salary)
             # self.wage_and_salary_dsi = period_salary
         
         try:
             # Invocar la función get_dsi_scheme_biweekly_total con use_imss_breakdown=
-            print("ORIGINAL WAGE AND SALARY: ", original_wage_and_salary)
+            # print("ORIGINAL WAGE AND SALARY: ", original_wage_and_salary)
             dsi_total_fiscal_cost = self.get_dsi_scheme_biweekly_total(original_wage_and_salary, use_imss_breakdown=True)
-            print("Total DSI calculado:", dsi_total_fiscal_cost)
             
             saving_amount = self.get_amount(use_imss_breakdown=True)
             
             saving_percentage = self.get_percentage(use_imss_breakdown=True)
             
             saving_traditional_scheme_total = self.get_traditional_scheme_biweekly_total()
-            print("================================== SAVING TRADITIONAL SCHEME TOTAL: ", saving_traditional_scheme_total, " =========================================")
+            # print("================================== SAVING TRADITIONAL SCHEME TOTAL: ", saving_traditional_scheme_total, " =========================================")
 
             saving_total_retentions_isr = self.isr.get_tax_payable()
             
-            print("SELF.WAGE AND SALARY: ", self.wage_and_salary)
+            # print("SELF.WAGE AND SALARY: ", self.wage_and_salary)
             saving_total_retentions_isr_dsi = self.get_total_isr_retention_dsi(use_imss_breakdown=True)
-            print("VALOR DE SAVING TOTAL RETENTIONS ISR DSI: ", saving_total_retentions_isr_dsi)
+            # print("VALOR DE SAVING TOTAL RETENTIONS ISR DSI: ", saving_total_retentions_isr_dsi)
             
             saving_total_retentions_dsi = self.get_total_retentions(use_imss_breakdown=True)
             
             saving_total_current_perception_dsi = self.get_current_perception_dsi(original_wage_and_salary, use_imss_breakdown=True)
-            print("SAVING TOTAL CURRENT PERCEPTION: ", saving_total_current_perception_dsi)
+            # print("SAVING TOTAL CURRENT PERCEPTION: ", saving_total_current_perception_dsi)
 
             # Guardar temporalmente los valores actuales para calcular el incremento
             current_perception = self.get_current_perception(original_wage_and_salary, use_imss_breakdown=True)
-            print("CURRENT PERCEPTION: ", current_perception, " CON ORIGINAL WAGE AND SALARY: ", original_wage_and_salary)
+            # print("CURRENT PERCEPTION: ", current_perception, " CON ORIGINAL WAGE AND SALARY: ", original_wage_and_salary)
             
             # Calcular el incremento y porcentaje de incremento usando los valores guardados
             saving_get_increment = saving_total_current_perception_dsi - current_perception
             saving_get_increment_percentage = saving_get_increment / current_perception if current_perception != 0 else 0
             
             saving_productivity = self.get_productivity()
-            print("SAVING PRODUCTIVITY: ", saving_productivity)
+            # print("SAVING PRODUCTIVITY: ", saving_productivity)
             
             # Aquí puedes almacenar el resultado en una variable si es necesario
             self.dsi_total_with_breakdown = dsi_total_fiscal_cost

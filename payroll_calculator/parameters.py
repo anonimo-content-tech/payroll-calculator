@@ -3,7 +3,7 @@ class Parameters:
     INTEGRATION_FACTOR = 1.0493
 
     # VALOR SALARIAL DIARIO FISCAL (Probablemente signifique eso, pero es la UMA)
-    VSDF = 113.14
+    VSDF = 108.57
 
     # TOPE CF
     TCF = VSDF * 3

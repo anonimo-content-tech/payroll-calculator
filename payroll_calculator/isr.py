@@ -26,7 +26,6 @@ class ISR:
         isr_table = self.get_isr_table()
         
         user_salary = self.monthly_smg if use_smg else self.monthly_salary
-        
         for row in isr_table:
             if row['lower_limit'] <= user_salary:
                 if applicable_limit is None or row['lower_limit'] > applicable_limit:

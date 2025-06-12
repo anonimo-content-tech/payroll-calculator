@@ -23,7 +23,6 @@ class TotalCalculator:
         Returns:
             Dictionary with total values for the traditional scheme
         """
-        print("=================================================== RESULTS DE LA FUNCION calculate_traditional_scheme_totals =================================================== ", sum(row[3] for row in results))
         totals = {
             "total_salary": sum(safe_get(row, 0) for row in results),
             "total_imss_employer": sum(safe_get(row, 3) for row in results),

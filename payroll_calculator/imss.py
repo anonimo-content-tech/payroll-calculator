@@ -156,7 +156,7 @@ class IMSS:
                 return original_method(True)
             self.get_integrated_daily_wage = get_integrated_daily_wage_override
         try:
-            print("self.get_diseases_and_maternity_employer_quota(): ", self.get_diseases_and_maternity_employer_quota(), " self.get_diseases_and_maternity_employer_surplus ", self.get_diseases_and_maternity_employee_surplus(), " self.get_employer_cash_benefits ", self.get_employer_cash_benefits(), " self.get_benefits_in_kind_medical_expenses_employer()" ,self.get_benefits_in_kind_medical_expenses_employer(), " self.get_occupational_risks_employer ", self.get_occupational_risks_employer(), " self.get_invalidity_and_retirement_employer ", self.get_invalidity_and_retirement_employer(), " self.get_childcare_employer ", self.get_childcare_employer())
+            # print("self.get_diseases_and_maternity_employer_quota(): ", self.get_diseases_and_maternity_employer_quota(), " self.get_diseases_and_maternity_employer_surplus ", self.get_diseases_and_maternity_employee_surplus(), " self.get_employer_cash_benefits ", self.get_employer_cash_benefits(), " self.get_benefits_in_kind_medical_expenses_employer()" ,self.get_benefits_in_kind_medical_expenses_employer(), " self.get_occupational_risks_employer ", self.get_occupational_risks_employer(), " self.get_invalidity_and_retirement_employer ", self.get_invalidity_and_retirement_employer(), " self.get_childcare_employer ", self.get_childcare_employer())
             quotas = [
                 self.get_diseases_and_maternity_employer_quota(),
                 self.get_diseases_and_maternity_employer_surplus(),
@@ -297,7 +297,7 @@ class IMSS:
 
     # TOTAL PATRÓN ------- Columna AHnumero
     def get_total_employer(self, use_smg=False, minimum_threshold_salary_override: Optional[float] = None):
-        print("Columna V: ", self.get_quota_employer(), "Columna AC: ", self.get_total_rcv_employer(), "Columna AEnumero: ", self.get_infonavit_employer(), "Columna AFnumero: ", self.get_tax_payroll(use_smg, minimum_threshold_salary_override=minimum_threshold_salary_override))
+        # print("Columna V: ", self.get_quota_employer(), "Columna AC: ", self.get_total_rcv_employer(), "Columna AEnumero: ", self.get_infonavit_employer(), "Columna AFnumero: ", self.get_tax_payroll(use_smg, minimum_threshold_salary_override=minimum_threshold_salary_override))
         return self.get_quota_employer() + self.get_total_rcv_employer() + self.get_infonavit_employer() + self.get_tax_payroll(use_smg, minimum_threshold_salary_override=minimum_threshold_salary_override)
 
     # ------------------------------------------------------ CALCULO DE TOTAL DEL RCV TRABAJADOR ------------------------------------------------------
@@ -368,7 +368,9 @@ class IMSS:
                 use_smg=True,
                 minimum_threshold_salary_override=minimum_threshold_salary_override
             )
+            # print("TOTAL SOCIAL: ", total_social, "INCREMENT: ", increment)
             return math.ceil(total_social + increment)
+            return math.ceil(self.get_total_social_cost(True, minimum_threshold_salary_override=minimum_threshold_salary_override) + self.get_increment(True, minimum_threshold_salary_override=minimum_threshold_salary_override))
         finally:
             # Restaurar método original
             self.get_integrated_daily_wage = original_method
@@ -380,7 +382,7 @@ class IMSS:
         """
         Calcula y almacena los valores desglosados usando salario diario directo.
         """
-        print("SE VA A EJECUTAR EL CALCULATE BREAKDOWN VALUES CON DAILY SALARY DE:", self.daily_salary)
+        # print("SE VA A EJECUTAR EL CALCULATE BREAKDOWN VALUES CON DAILY SALARY DE:", self.daily_salary)
 
         if not self.imss_breakdown:
             return
