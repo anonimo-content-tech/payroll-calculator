@@ -54,15 +54,15 @@ class Parameters:
 
     # Tabla de Retiro, Cesantía y Vejez
     RETIREMENT_TABLE = [
-        {'lower_limit': 0.01, 'upper_limit': 278.80, 'percentage': 3.150},
-        {'lower_limit': 278.81, 'upper_limit': 169.71, 'percentage': 3.281},
-        {'lower_limit': 170.84, 'upper_limit': 226.28, 'percentage': 3.575},
-        {'lower_limit': 227.41, 'upper_limit': 282.85, 'percentage': 3.751},
-        {'lower_limit': 283.98, 'upper_limit': 339.42, 'percentage': 3.869},
-        {'lower_limit': 340.55, 'upper_limit': 395.99, 'percentage': 3.953},
-        {'lower_limit': 397.12, 'upper_limit': 452.56, 'percentage': 4.016},
-        {'lower_limit': 453.69, 'upper_limit': float(
-            'inf'), 'percentage': 4.241}
+        {'lower_limit': 0.01, 'upper_limit': 278.80, 'percentage': 3.1500},
+        {'lower_limit': 278.81, 'upper_limit': 162.86, 'percentage': 3.2810},
+        {'lower_limit': 163.94, 'upper_limit': 217.14, 'percentage': 3.5750},
+        {'lower_limit': 218.23, 'upper_limit': 271.43, 'percentage': 3.7510},
+        {'lower_limit': 272.51, 'upper_limit': 325.71, 'percentage': 3.8690},
+        {'lower_limit': 326.80, 'upper_limit': 380.00, 'percentage': 3.9530},
+        {'lower_limit': 381.08, 'upper_limit': 434.28, 'percentage': 4.0160},
+        {'lower_limit': 435.37, 'upper_limit': float(
+            'inf'), 'percentage': 4.2410}
     ]
 
     # INFONAVIT del Patrón %
