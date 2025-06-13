@@ -7,19 +7,19 @@ import inspect
 
 
 class IMSS:
-    def __init__(self, imss_salary, daily_salary, payment_period, integration_factor, risk_class='I', minimum_threshold_salary=None, use_increment_percentage=None, imss_breakdown=None):
+    def __init__(self, uma, imss_salary, daily_salary, payment_period, integration_factor, risk_class='I', minimum_threshold_salary=None, use_increment_percentage=None, imss_breakdown=None):
         # Handle the case where payment_period might be a risk class
         if isinstance(payment_period, str):
             risk_class = risk_class
             payment_period = payment_period
 
         # Inicialización de parámetros base
-        self._init_base_parameters(imss_salary, daily_salary, integration_factor, risk_class, payment_period, minimum_threshold_salary, use_increment_percentage, imss_breakdown)
+        self._init_base_parameters(uma, imss_salary, daily_salary, integration_factor, risk_class, payment_period, minimum_threshold_salary, use_increment_percentage, imss_breakdown)
         # Inicialización de parámetros de beneficios
         self._init_benefit_parameters()
 
     # Método auxiliar para inicializar parámetros base
-    def _init_base_parameters(self, imss_salary, daily_salary, integration_factor, risk_class, payment_period, minimum_threshold_salary=None, use_increment_percentage=None, imss_breakdown=None):
+    def _init_base_parameters(self, uma, imss_salary, daily_salary, integration_factor, risk_class, payment_period, minimum_threshold_salary=None, use_increment_percentage=None, imss_breakdown=None):
         self.salary = imss_salary
         self.daily_salary = daily_salary
         self.payment_period = payment_period
@@ -30,12 +30,12 @@ class IMSS:
         self.integration_factor = integration_factor
         self.imss_breakdown = imss_breakdown
         self.fixed_fee = Parameters.FIXED_FEE
-        self.vsdf = Parameters.VSDF
-        self.contribution_ceiling = Parameters.CONTRIBUTION_CEILING
-        self.contribution_ceiling_2 = Parameters.CONTRIBUTION_CEILING_2
+        self.vsdf = uma
+        self.contribution_ceiling = self.vsdf * 25
+        self.contribution_ceiling_2 = self.vsdf * 25
         self.surplus_employer = Parameters.SURPLUS_EMPLOYER
         self.surplus_employee = Parameters.SURPLUS_EMPLOYEE
-        self.tcf = Parameters.TCF
+        self.tcf = self.vsdf * 3
         self.smg = Parameters.SMG
         self.risk_percentage = Parameters.get_risk_percentage(risk_class) if type(risk_class) == str else risk_class
         self.retirement_employer = Parameters.RETIREMENT_EMPLOYER

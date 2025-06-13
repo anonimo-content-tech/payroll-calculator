@@ -7,7 +7,7 @@ from payroll_calculator.parameters import Parameters
 from payroll_calculator.totals import TotalCalculator
 
 # VERIFICAR QUE SMG_MULTIPLIER Y COUNT_MINIMUM_SALARY SEAN LO MISMO, TAL PARECE QUE SÍ
-def process_single_calculation(salary, daily_salary, payment_period, periodicity, integration_factor, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, productivity=None, imss_breakdown=None):
+def process_single_calculation(salary, daily_salary, payment_period, periodicity, integration_factor, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, productivity=None, imss_breakdown=None, uma=113.14):
     """
     Process a single calculation for IMSS, ISR, and Savings
     
@@ -26,7 +26,7 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
     imss_threshold_salary = smg_for_period * count_minimum_salary
     
     # IMSS calculations
-    imss = IMSS(imss_salary=salary, daily_salary=daily_salary, payment_period=payment_period, integration_factor=integration_factor,
+    imss = IMSS(uma=uma,imss_salary=salary, daily_salary=daily_salary, payment_period=payment_period, integration_factor=integration_factor,
                 risk_class=risk_class, minimum_threshold_salary=imss_threshold_salary, use_increment_percentage=use_increment_percentage, imss_breakdown=imss_breakdown)
     
     # Calcular los valores de breakdown si es necesario
@@ -146,7 +146,7 @@ def get_value_or_default(obj, attr_name, default_func=None):
     return value
 
 
-def process_multiple_calculations(salaries, period_salaries, payment_periods, periodicity, integration_factors, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, stricted_mode, productivities=None, imss_breakdown=None):
+def process_multiple_calculations(salaries, period_salaries, payment_periods, periodicity, integration_factors, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, stricted_mode, productivities=None, imss_breakdown=None, uma=113.14):
     """
     Process multiple calculations for IMSS, ISR, and Savings, adding column references to labels.
     This function now only returns the individual results for each salary.
@@ -202,7 +202,7 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
         imss, isr, saving, wage_and_salary_dsi = process_single_calculation(
             salary, daily_salary, payment_period, periodicity, integration_factor, use_increment_percentage, risk_class,
             smg_multiplier, commission_percentage_dsi, count_minimum_salary,
-            productivity, imss_breakdown
+            productivity, imss_breakdown, uma
         )
         
         # print("IMSS: ", imss)
@@ -260,6 +260,7 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
 
             "commission_percentage_dsi": commission_percentage_dsi * 100, # Col. Q8 - Comisión DSI
             "isr_retention_dsi": saving.get_total_isr_retention_dsi(), # Col. AK9 - ISR Retención DSI
+            "uma_used": uma # La que se manda como parámetro
         }
         
         if imss_breakdown:
