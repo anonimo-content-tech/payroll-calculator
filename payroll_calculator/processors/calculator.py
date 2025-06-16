@@ -168,7 +168,9 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
 
     # Process salaries with a progress indicator
     total_salaries = len(salaries)
-    for i, daily_salary in enumerate(salaries):
+    
+    salaries_to_use = salaries if total_salaries > 0 else productivities
+    for i, daily_salary in enumerate(salaries_to_use):
         # Ignorar salarios que sean 0
         if daily_salary == 0:
             print(f"Salary is 0. Skipping salary at index {i}. {daily_salary}")
