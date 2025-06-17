@@ -46,7 +46,9 @@ class Saving:
 
     # Calcular la productividad según el Total de Ingresos y Sueldos y Salarios DSI ------- Columna Nnumero
     def get_productivity(self):
-        employee_productivity = self.wage_and_salary_dsi - self.wage_and_salary
+        # Verificar si la productividad es correcta con el cambio.
+        employee_productivity = self.wage_and_salary - self.wage_and_salary_dsi
+        # print("EMPLOYEE PRODUCTIVITY: ", employee_productivity, " SELF.WAGE AND SALARY DSI: ", self.wage_and_salary_dsi, " SELF.WAGE AND SALARY:", self.wage_and_salary)
         return employee_productivity if self.current_productivity is None else employee_productivity + self.current_productivity
 
     # Calcular la Comisión DSI ------- Columna Qnumero
