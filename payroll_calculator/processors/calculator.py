@@ -81,6 +81,7 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         isr.isr_imss_breakdown = None
         
     # Savings calculations
+    print("SALARY: ", salary)
     saving = Saving(
         wage_and_salary=salary,
         wage_and_salary_dsi=wage_and_salary_dsi,
@@ -246,6 +247,7 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
             "dsi_salary": get_value_or_default(saving, "saving_wage_and_salary", lambda: wage_and_salary_dsi),  # Col. M - Salario DSI
             "productivity": get_value_or_default(saving, "saving_productivity", saving.get_productivity),  # Col. N - Productividad
             "dsi_commission": saving.get_commission_dsi(),  # Col. Q - Comisión DSI
+            "total_traditional_scheme": saving.get_total_traditional_scheme(), # Col. J - Total Esquema Tradicional
             "traditional_scheme_biweekly": saving.get_traditional_scheme_biweekly_total(), # Col. K - Esquema Tradicional Quincenal
             "dsi_scheme_biweekly": get_value_or_default(saving, "dsi_total_fiscal_cost_with_breakdown", saving.get_dsi_scheme_biweekly_total), # Col. R - Esquema DSI Quincenal
             "traditional_scheme_monthly": saving.get_traditional_scheme_biweekly_total() * 2, # Col. S - Esquema Tradicional Mensual
