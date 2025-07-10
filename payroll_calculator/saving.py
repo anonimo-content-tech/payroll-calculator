@@ -7,11 +7,12 @@ class Saving:
     # ------------------------------------------------------ INICIALIZACIÓN DE CLASE ------------------------------------------------------
 
     # Remove fixed_fee_dsi from parameters, make imss_instance non-optional
-    def __init__(self, wage_and_salary, wage_and_salary_dsi, commission_percentage_dsi, count_minimum_salary, imss_instance: IMSS, isr_instance: Optional[ISR] = None, minimum_threshold_salary: Optional[float] = None, productivity: Optional[float] = None):
+    def __init__(self, wage_and_salary, wage_and_salary_dsi, commission_percentage_dsi, count_minimum_salary, imss_instance: IMSS, isr_instance: Optional[ISR] = None, minimum_threshold_salary: Optional[float] = None, productivity: Optional[float] = None, other_perception: Optional[float] = None):
         self.wage_and_salary = wage_and_salary
         self.original_wage_and_salary = wage_and_salary  # Guardar el valor original
         self.imss: IMSS = imss_instance # Now non-optional
         self.isr: Optional[ISR] = isr_instance
+        self.other_perception = other_perception
         self.wage_and_salary_dsi = wage_and_salary_dsi
         self.minimum_threshold_salary = minimum_threshold_salary # Store the new parameter
         # Calculate fixed_fee_dsi using the IMSS instance method and pass minimum_threshold_salary
@@ -35,6 +36,10 @@ class Saving:
 
     # ------------------------------------------------------ CALCULO DE ESQUEMA TRADICIONAL QUINCENAL ------------------------------------------------------
 
+    # Obtener el total de ingresos esquema tradicional ------- Columna Enumero
+    def get_total_income_traditional_scheme(self):
+        return self.wage_and_salary + self.other_perception
+
     # Obtener el total de esquema tradicional ------- Columna Jnumero
     def get_total_traditional_scheme(self):
         return self.imss.get_total_employer()
@@ -45,7 +50,7 @@ class Saving:
         if self.imss is None:
             raise ValueError(
                 "IMSS instance is not set. Use set_imss() method first.")
-        return self.wage_and_salary + self.imss.get_total_employer()
+        return self.get_total_income_traditional_scheme() + self.imss.get_total_employer()
 
     # ------------------------------------------------------ CALCULO DE ESQUEMA DSI QUINCENAL ------------------------------------------------------
 
@@ -53,9 +58,19 @@ class Saving:
     def get_productivity(self, use_original_wage=False):
         # Usar el valor original si se especifica o si wage_and_salary ha sido modificado
         wage_to_use = self.original_wage_and_salary if use_original_wage else self.wage_and_salary
-        employee_productivity = wage_to_use - self.wage_and_salary_dsi
-        print("EMPLOYEE PRODUCTIVITY: ", employee_productivity, " WAGE_TO_USE: ", wage_to_use, " SELF.WAGE AND SALARY DSI: ", self.wage_and_salary_dsi)
-        return employee_productivity if self.current_productivity is None else employee_productivity + self.current_productivity
+        # if self.original_wage_and_salary != self.wage_and_salary:
+        #     print("VALOR ORIGINAL: ", self.original_wage_and_salary, " VALOR ACTUAL: ", self.wage_and_salary, " SELF WAGE AND SALARY DSI: ", self.wage_and_salary_dsi, " SELF.CURRENT PRODUCTIVITY: ", self.current_productivity)
+        remaining_total = self.wage_and_salary if self.original_wage_and_salary != self.wage_and_salary else self.wage_and_salary_dsi
+        employee_productivity = wage_to_use - remaining_total
+        
+        # Calcular la productividad base
+        base_productivity = employee_productivity if self.current_productivity is None else self.current_productivity
+        
+        # Agregar other_perception si tiene un valor
+        if self.other_perception is not None:
+            base_productivity += self.other_perception
+        
+        return base_productivity
 
     # Calcular la Comisión DSI ------- Columna Qnumero
     def get_commission_dsi(self):
@@ -92,6 +107,11 @@ class Saving:
 
     # ------------------------------------------------------ CALCULO DE ESQUEMA TRADICIONAL MENSUAL ------------------------------------------------------
 
+    # Obtener el total de Ingresos Esquema Tradicional - Segunda Tabla ------- Columna AAnumero
+    def get_total_income_traditional_scheme_second_table(self, original_wage_and_salary=None, use_imss_breakdown=False):
+        salary_to_use = original_wage_and_salary if use_imss_breakdown else self.wage_and_salary
+        return salary_to_use + self.other_perception
+
     # Obtener el ISR de Retenciones ------- Columna ABnumero
     def get_isr_retention(self, use_smg=False):
         if self.isr is None:
@@ -103,7 +123,7 @@ class Saving:
     def get_total_retentions(self, use_imss_breakdown=False):
         if use_imss_breakdown:
             # Columna AB + Columna AC + Columna AD
-            print("self.get_total_isr_retention_dsi(): ", self.get_total_isr_retention_dsi(), " self.imss.get_quota_employee(use_imss_breakdown): ", self.imss.get_quota_employee(use_imss_breakdown), " self.imss.get_severance_and_old_age_employee(use_imss_breakdown): ", self.imss.get_severance_and_old_age_employee(use_imss_breakdown), )
+            # print("self.get_total_isr_retention_dsi(): ", self.get_total_isr_retention_dsi(), " self.imss.get_quota_employee(use_imss_breakdown): ", self.imss.get_quota_employee(use_imss_breakdown), " self.imss.get_severance_and_old_age_employee(use_imss_breakdown): ", self.imss.get_severance_and_old_age_employee(use_imss_breakdown), )
             isr_employee_dsi = self.isr.isr_imss_breakdown.get_tax_payable() if self.isr.isr_imss_breakdown is not None else 0
             return isr_employee_dsi + self.imss.get_quota_employee(use_imss_breakdown) + self.imss.get_severance_and_old_age_employee(use_imss_breakdown)
         # Columna AB + Columna AC + Columna AD
@@ -113,8 +133,8 @@ class Saving:
     def get_current_perception(self, original_wage_and_salary=None, use_imss_breakdown=False):
         if use_imss_breakdown:
             # print("================================================ ORIGINAL WAGE AND SALARY: ", original_wage_and_salary, " SELF.GET_TOTAL_RETENTIONS: ", self.get_total_retentions(), " SELF.GET_TOTAL_RETENTIONS DS ================================================")
-            return original_wage_and_salary - self.get_total_retentions()
-        return self.wage_and_salary - self.get_total_retentions(use_imss_breakdown)
+            return self.get_total_income_traditional_scheme_second_table(original_wage_and_salary, use_imss_breakdown) - self.get_total_retentions()
+        return self.get_total_income_traditional_scheme_second_table() - self.get_total_retentions(use_imss_breakdown)
 
     # ------------------------------------------------------ CALCULO DE ESQUEMA DSI MENSUAL ------------------------------------------------------
 
@@ -207,7 +227,6 @@ class Saving:
             saving_get_increment_percentage = saving_get_increment / current_perception if current_perception != 0 else 0
             
             saving_productivity = self.get_productivity(use_original_wage=True)
-            print("SAVING PRODUCTIVITY: ", saving_productivity)
             
             # Aquí puedes almacenar el resultado en una variable si es necesario
             self.dsi_total_with_breakdown = dsi_total_fiscal_cost

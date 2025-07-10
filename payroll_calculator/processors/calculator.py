@@ -7,7 +7,7 @@ from payroll_calculator.parameters import Parameters
 from payroll_calculator.totals import TotalCalculator
 
 # VERIFICAR QUE SMG_MULTIPLIER Y COUNT_MINIMUM_SALARY SEAN LO MISMO, TAL PARECE QUE SÍ
-def process_single_calculation(salary, daily_salary, payment_period, periodicity, integration_factor, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, productivity=None, imss_breakdown=None, uma=113.14):
+def process_single_calculation(salary, daily_salary, payment_period, periodicity, integration_factor, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, productivity=None, imss_breakdown=None, uma=113.14, other_perception=None):
     """
     Process a single calculation for IMSS, ISR, and Savings
     
@@ -81,7 +81,6 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         isr.isr_imss_breakdown = None
         
     # Savings calculations
-    print("SALARY: ", salary)
     saving = Saving(
         wage_and_salary=salary,
         wage_and_salary_dsi=wage_and_salary_dsi,
@@ -91,6 +90,7 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         count_minimum_salary=count_minimum_salary,
         minimum_threshold_salary=imss_threshold_salary,
         productivity=productivity,
+        other_perception=other_perception
     )
     # print("PASA SAVING")
     
@@ -147,7 +147,7 @@ def get_value_or_default(obj, attr_name, default_func=None):
     return value
 
 
-def process_multiple_calculations(salaries, period_salaries, payment_periods, periodicity, integration_factors, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, stricted_mode, productivities=None, imss_breakdown=None, uma=113.14):
+def process_multiple_calculations(salaries, period_salaries, payment_periods, periodicity, integration_factors, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, stricted_mode, productivities=None, imss_breakdown=None, uma=113.14, other_perceptions=None):
     """
     Process multiple calculations for IMSS, ISR, and Savings, adding column references to labels.
     This function now only returns the individual results for each salary.
@@ -186,6 +186,10 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
         if productivities is not None and i < len(productivities):
             productivity = productivities[i]
         
+        other_perception = None
+        if other_perceptions is not None and i < len(other_perceptions):
+            other_perception = other_perceptions[i]
+        
         # Calcular el salario mínimo para este período de pago específico
         smg_for_payment_period = Parameters.SMG * payment_period
         
@@ -205,10 +209,8 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
         imss, isr, saving, wage_and_salary_dsi = process_single_calculation(
             salary, daily_salary, payment_period, periodicity, integration_factor, use_increment_percentage, risk_class,
             smg_multiplier, commission_percentage_dsi, count_minimum_salary,
-            productivity, imss_breakdown, uma
+            productivity, imss_breakdown, uma, other_perception
         )
-        
-        # print("IMSS: ", imss)
         
         
         # Create a combined dictionary for the current salary with column references
@@ -260,7 +262,8 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
             "increment": get_value_or_default(saving, "saving_get_increment", saving.get_increment),  # Col. AQ - Incremento
             "increment_percentage": get_value_or_default(saving, "saving_get_increment_percentage", lambda: saving.get_increment_percentage() * 100),  # Col. AR - Porcentaje de Incremento
             "dsi_scheme_fixed_fee": saving.fixed_fee_dsi, # Col. P - Cuota Fija Esquema DSI
-            "salary_total_income": salary, # Col. E - Salario (TOTAL INGRESOS)
+            "salary_total_income": salary + other_perception, # Col. E - Salario (TOTAL INGRESOS)
+            "other_perception": other_perception, # Col. E Cuando se ocupe el template de Otras Percepciones
 
             "commission_percentage_dsi": commission_percentage_dsi * 100, # Col. Q8 - Comisión DSI
             "isr_retention_dsi": saving.get_total_isr_retention_dsi(), # Col. AK9 - ISR Retención DSI
