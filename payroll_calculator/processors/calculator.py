@@ -7,26 +7,28 @@ from payroll_calculator.parameters import Parameters
 from payroll_calculator.totals import TotalCalculator
 
 # VERIFICAR QUE SMG_MULTIPLIER Y COUNT_MINIMUM_SALARY SEAN LO MISMO, TAL PARECE QUE SÍ
-def process_single_calculation(salary, daily_salary, payment_period, periodicity, integration_factor, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, productivity=None, imss_breakdown=None, uma=113.14, other_perception=None):
+def process_single_calculation(salary, daily_salary, payment_period, periodicity, integration_factor, use_increment_percentage, 
+                               risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, productivity=None, 
+                               imss_breakdown=None, uma=113.14, other_perception=None):
     """
     Process a single calculation for IMSS, ISR, and Savings
     
     Parameters:
     - productivity: Valor opcional de productividad para este cálculo
-    """
+    """    
     # Calculate wage_and_salary_dsi based on SMG multiplier
     wage_and_salary_dsi = Parameters.calculate_wage_and_salary_dsi(
-        smg_multiplier, payment_period)
+        smg_multiplier, payment_period) if count_minimum_salary > 0 else salary
     
     # Calcular el salario mínimo para el período de pago
     smg_for_period = Parameters.SMG * payment_period
     
     # Determinar los umbrales para ISR e IMSS basados en count_minimum_salary
-    isr_threshold_salary = smg_for_period * count_minimum_salary if count_minimum_salary > 1 else 0
-    imss_threshold_salary = smg_for_period * count_minimum_salary
+    isr_threshold_salary = (smg_for_period * count_minimum_salary if count_minimum_salary > 1 else 0) if count_minimum_salary > 0 else 0
+    imss_threshold_salary = smg_for_period * count_minimum_salary if count_minimum_salary > 0 else salary
     
     # IMSS calculations
-    imss = IMSS(uma=uma,imss_salary=salary, daily_salary=daily_salary, payment_period=payment_period, integration_factor=integration_factor,
+    imss = IMSS(uma=uma, imss_salary=salary, daily_salary=daily_salary, payment_period=payment_period, integration_factor=integration_factor,
                 risk_class=risk_class, minimum_threshold_salary=imss_threshold_salary, use_increment_percentage=use_increment_percentage, imss_breakdown=imss_breakdown)
     
     # Calcular los valores de breakdown si es necesario
@@ -147,7 +149,10 @@ def get_value_or_default(obj, attr_name, default_func=None):
     return value
 
 
-def process_multiple_calculations(salaries, period_salaries, payment_periods, periodicity, integration_factors, use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, stricted_mode, productivities=None, imss_breakdown=None, uma=113.14, other_perceptions=None):
+def process_multiple_calculations(salaries, period_salaries, payment_periods, periodicity, integration_factors, 
+                                  use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, 
+                                  count_minimum_salary, stricted_mode, productivities=None, imss_breakdown=None, 
+                                  uma=113.14, other_perceptions=None):
     """
     Process multiple calculations for IMSS, ISR, and Savings, adding column references to labels.
     This function now only returns the individual results for each salary.
