@@ -260,7 +260,7 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
             "traditional_scheme_monthly": saving.get_traditional_scheme_biweekly_total() * 2, # Col. S - Esquema Tradicional Mensual
             "dsi_scheme_monthly": saving.get_dsi_scheme_biweekly_total() * 2, # Col. R - Esquema DSI Mensual
             "saving_amount": get_value_or_default(saving, "saving_amount", saving.get_amount), # Col. T - Ahorro
-            "saving_percentage": get_value_or_default(saving, "saving_percentage", lambda: saving.get_percentage() * 100) * 100,  # Col. U - Porcentaje de Ahorro
+            "saving_percentage": get_value_or_default(saving, "saving_percentage", lambda: saving.get_percentage() * 100),  # Col. U - Porcentaje de Ahorro
             "total_retentions": saving.get_total_retentions(),  # Col. AE - Retenciones Total de Retenciones - ISR + IMSS + RCV
             "current_perception": get_value_or_default(saving, "current_perception", saving.get_current_perception),  # Col. AF - Percepción Actual
             "dsi_perception": get_value_or_default(saving, "saving_total_current_perception_dsi", saving.get_current_perception_dsi),  # Col. AO - Percepción DSI

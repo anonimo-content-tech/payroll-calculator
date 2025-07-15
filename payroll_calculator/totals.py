@@ -71,11 +71,13 @@ class TotalCalculator:
             'total_increment': sum(row.get('increment', 0) for row in saving_data),
             'total_fixed_fee_dsi': sum(row.get('dsi_scheme_fixed_fee', 0) for row in saving_data),
             'total_income': sum(row.get('salary_total_income', 0) for row in saving_data),
-        }
+        }        
         
         # Calcular promedios
         if saving_data:
-            totals['avg_saving_percentage'] = sum(row.get('saving_percentage', 0) for row in saving_data) / len(saving_data)
+            totals['avg_saving_percentage'] = sum(row.get('saving_percentage', 0) for row in saving_data) / totals["total_traditional_scheme"]
+            totals['avg_dsi_saving_percentage'] = totals["total_increment"] / totals["total_current_perception"]
+
         
         # Agregar campos condicionales
         if saving_data and 'saving_total_retentions_isr_dsi' in saving_data[0]:
