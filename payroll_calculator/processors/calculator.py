@@ -9,7 +9,7 @@ from payroll_calculator.totals import TotalCalculator
 # VERIFICAR QUE SMG_MULTIPLIER Y COUNT_MINIMUM_SALARY SEAN LO MISMO, TAL PARECE QUE SÍ
 def process_single_calculation(salary, daily_salary, payment_period, periodicity, integration_factor, use_increment_percentage, 
                                risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, productivity=None, 
-                               imss_breakdown=None, uma=113.14, other_perception=None):
+                               imss_breakdown=None, uma=113.14, other_perception=None, is_without_salary_mode=False):
     """
     Process a single calculation for IMSS, ISR, and Savings
     
@@ -92,7 +92,8 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         count_minimum_salary=count_minimum_salary,
         minimum_threshold_salary=imss_threshold_salary,
         productivity=productivity,
-        other_perception=other_perception
+        other_perception=other_perception,
+        is_without_salary_mode=is_without_salary_mode
     )
     # print("PASA SAVING")
     
@@ -176,6 +177,7 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
     total_salaries = len(salaries)
     
     salaries_to_use = salaries if total_salaries > 0 else productivities
+    is_without_salary_mode = total_salaries == 0
     for i, daily_salary in enumerate(salaries_to_use):
         # Ignorar salarios que sean 0
         if daily_salary == 0:
@@ -214,7 +216,7 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
         imss, isr, saving, wage_and_salary_dsi = process_single_calculation(
             salary, daily_salary, payment_period, periodicity, integration_factor, use_increment_percentage, risk_class,
             smg_multiplier, commission_percentage_dsi, count_minimum_salary,
-            productivity, imss_breakdown, uma, other_perception
+            productivity, imss_breakdown, uma, other_perception, is_without_salary_mode
         )
         
         

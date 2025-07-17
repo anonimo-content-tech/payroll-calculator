@@ -7,7 +7,7 @@ class Saving:
     # ------------------------------------------------------ INICIALIZACIÓN DE CLASE ------------------------------------------------------
 
     # Remove fixed_fee_dsi from parameters, make imss_instance non-optional
-    def __init__(self, wage_and_salary, wage_and_salary_dsi, commission_percentage_dsi, count_minimum_salary, imss_instance: IMSS, isr_instance: Optional[ISR] = None, minimum_threshold_salary: Optional[float] = None, productivity: Optional[float] = None, other_perception: Optional[float] = None):
+    def __init__(self, wage_and_salary, wage_and_salary_dsi, commission_percentage_dsi, count_minimum_salary, imss_instance: IMSS, isr_instance: Optional[ISR] = None, minimum_threshold_salary: Optional[float] = None, productivity: Optional[float] = None, other_perception: Optional[float] = None, is_without_salary_mode: bool = False):
         self.wage_and_salary = wage_and_salary
         self.original_wage_and_salary = wage_and_salary  # Guardar el valor original
         self.imss: IMSS = imss_instance # Now non-optional
@@ -20,7 +20,7 @@ class Saving:
         self.commission_percentage_dsi = commission_percentage_dsi
         self.count_minimum_salary = count_minimum_salary
         self.current_productivity = productivity
-        
+        self.is_without_salary_mode = is_without_salary_mode
         self.dsi_total_with_breakdown = None
 
     # set_imss might be less necessary if IMSS is required at init, but keep for flexibility
@@ -37,8 +37,9 @@ class Saving:
     # ------------------------------------------------------ CALCULO DE ESQUEMA TRADICIONAL QUINCENAL ------------------------------------------------------
 
     # Obtener el total de ingresos esquema tradicional ------- Columna Enumero
-    def get_total_income_traditional_scheme(self):
-        return self.wage_and_salary + self.other_perception
+    def get_total_income_traditional_scheme(self, original_wage_and_salary=None):
+        salary_to_use = original_wage_and_salary if original_wage_and_salary else self.wage_and_salary
+        return salary_to_use + self.other_perception
 
     # Obtener el total de esquema tradicional ------- Columna Jnumero
     def get_total_traditional_scheme(self):
@@ -50,7 +51,7 @@ class Saving:
         if self.imss is None:
             raise ValueError(
                 "IMSS instance is not set. Use set_imss() method first.")
-        return self.get_total_income_traditional_scheme() + self.imss.get_total_employer()
+        return self.get_total_income_traditional_scheme() if self.is_without_salary_mode else self.get_total_income_traditional_scheme() + self.imss.get_total_employer()
 
     # ------------------------------------------------------ CALCULO DE ESQUEMA DSI QUINCENAL ------------------------------------------------------
 
@@ -82,14 +83,15 @@ class Saving:
             raise ValueError(
                 "IMSS instance is not set. Use set_imss() method first.")
             
-        total_to_use = self.fixed_fee_dsi
+        # Validación para calculo Sin Salario
+        fixed_fee_to_use = 0 if self.is_without_salary_mode else self.fixed_fee_dsi
         if use_imss_breakdown:
             # Usar self.wage_and_salary si original_wage_and_salary es None
-            wage_to_use = self.wage_and_salary if original_wage_and_salary is None else original_wage_and_salary
+            wage_to_use = self.get_total_income_traditional_scheme() if original_wage_and_salary is None else self.get_total_income_traditional_scheme(original_wage_and_salary)
             return wage_to_use + self.imss.total_tax_cost_breakdown + self.get_commission_dsi()
-            total_to_use = self.fixed_fee_dsi if self.imss.total_tax_cost_breakdown <= 0 else self.imss.total_tax_cost_breakdown
+            fixed_fee_to_use = self.fixed_fee_dsi if self.imss.total_tax_cost_breakdown <= 0 else self.imss.total_tax_cost_breakdown
         # This method now correctly uses the internally calculated self.fixed_fee_dsi
-        return self.wage_and_salary + self.fixed_fee_dsi + self.get_commission_dsi()
+        return self.get_total_income_traditional_scheme() + fixed_fee_to_use + self.get_commission_dsi()
 
     # ------------------------------------------------------ CALCULO DE AHORRO ------------------------------------------------------
 
