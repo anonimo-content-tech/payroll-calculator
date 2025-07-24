@@ -156,7 +156,16 @@ class IMSS:
                 return original_method(True)
             self.get_integrated_daily_wage = get_integrated_daily_wage_override
         try:
-            # print("self.get_diseases_and_maternity_employer_quota(): ", self.get_diseases_and_maternity_employer_quota(), " self.get_diseases_and_maternity_employer_surplus ", self.get_diseases_and_maternity_employee_surplus(), " self.get_employer_cash_benefits ", self.get_employer_cash_benefits(), " self.get_benefits_in_kind_medical_expenses_employer()" ,self.get_benefits_in_kind_medical_expenses_employer(), " self.get_occupational_risks_employer ", self.get_occupational_risks_employer(), " self.get_invalidity_and_retirement_employer ", self.get_invalidity_and_retirement_employer(), " self.get_childcare_employer ", self.get_childcare_employer())
+            # Formatear el print de manera legible
+            # print("\n=== DESGLOSE DE CUOTAS IMSS PATRÓN ===")
+            # print(f"Enfermedades y Maternidad (Cuota): {self.get_diseases_and_maternity_employer_quota():.4f}")
+            # print(f"Enfermedades y Maternidad (Excedente): {self.get_diseases_and_maternity_employee_surplus():.4f}")
+            # print(f"Prestaciones en Dinero: {self.get_employer_cash_benefits():.4f}")
+            # print(f"Prestaciones en Especie (Gastos Médicos): {self.get_benefits_in_kind_medical_expenses_employer():.4f}")
+            # print(f"Riesgos del Trabajo: {self.get_occupational_risks_employer():.4f}")
+            # print(f"Invalidez y Vida: {self.get_invalidity_and_retirement_employer():.4f}")
+            # print(f"Guarderías y PS: {self.get_childcare_employer():.4f}")
+            
             quotas = [
                 self.get_diseases_and_maternity_employer_quota(),
                 self.get_diseases_and_maternity_employer_surplus(),
@@ -166,7 +175,12 @@ class IMSS:
                 self.get_invalidity_and_retirement_employer(),
                 self.get_childcare_employer()
             ]
-            return sum(quotas)
+            
+            total = sum(quotas)
+            # print(f"TOTAL CUOTAS IMSS PATRÓN: {total:.4f}")
+            # print("=" * 45)
+            
+            return total
         finally:
             if use_direct_daily_salary:
                 self.get_integrated_daily_wage = original_method
