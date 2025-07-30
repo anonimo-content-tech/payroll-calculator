@@ -71,7 +71,8 @@ class TotalCalculator:
             'total_increment': sum(row.get('increment', 0) for row in saving_data),
             'total_fixed_fee_dsi': sum(row.get('dsi_scheme_fixed_fee', 0) for row in saving_data),
             'total_income': sum(row.get('salary_total_income', 0) for row in saving_data),
-            'total_retention': sum(row.get('total_traditional_scheme', 0) for row in saving_data)
+            'total_retention': sum(row.get('total_traditional_scheme', 0) for row in saving_data),
+            'total_employer_contributions': sum(row.get('total_employer_contributions', 0) for row in saving_data)
         }        
         
         # Calcular promedios

@@ -27,9 +27,12 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
     isr_threshold_salary = (smg_for_period * count_minimum_salary if count_minimum_salary > 1 else 0) if count_minimum_salary > 0 else 0
     imss_threshold_salary = smg_for_period * count_minimum_salary if count_minimum_salary > 0 else salary
     
+    period_salary = daily_salary * payment_period
+    is_salary_bigger_than_smg = period_salary > smg_for_period
     # IMSS calculations
     imss = IMSS(uma=uma, imss_salary=salary, daily_salary=daily_salary, payment_period=payment_period, integration_factor=integration_factor,
-                risk_class=risk_class, minimum_threshold_salary=imss_threshold_salary, use_increment_percentage=use_increment_percentage, imss_breakdown=imss_breakdown)
+                risk_class=risk_class, minimum_threshold_salary=imss_threshold_salary, use_increment_percentage=use_increment_percentage, imss_breakdown=imss_breakdown, 
+                is_salary_bigger_than_smg=is_salary_bigger_than_smg)
     
     # Calcular los valores de breakdown si es necesario
     # IMSS calculations
@@ -67,12 +70,11 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
     
     # ISR calculations
     isr = ISR(monthly_salary=salary, payment_period=payment_period, periodicity=periodicity,
-              employee=imss.employee, minimum_threshold_salary=isr_threshold_salary)
+              employee=imss.employee, minimum_threshold_salary=isr_threshold_salary, is_salary_bigger_than_smg=is_salary_bigger_than_smg)
     # print("PASA ISR")
     isr_with_imss_breakdown = None
-    period_salary = daily_salary * payment_period
     # print("PERIOD SALARY: ", period_salary)
-    if imss_breakdown is not None and period_salary > smg_for_period:
+    if imss_breakdown is not None and is_salary_bigger_than_smg:
         # print("PERIOD SALARY DEL IF: ", period_salary)
         # Store the breakdown values in the isr instance
         isr_with_imss_breakdown = ISR(monthly_salary=period_salary, payment_period=payment_period, periodicity=periodicity,
@@ -93,7 +95,8 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         minimum_threshold_salary=imss_threshold_salary,
         productivity=productivity,
         other_perception=other_perception,
-        is_without_salary_mode=is_without_salary_mode
+        is_without_salary_mode=is_without_salary_mode,
+        is_salary_bigger_than_smg=is_salary_bigger_than_smg
     )
     # print("PASA SAVING")
     
@@ -120,6 +123,9 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         
         saving.saving_wage_and_salary = saving_breakdown_result['saving_wage_and_salary']
         saving.saving_productivity = saving_breakdown_result['saving_productivity']
+        
+    if is_salary_bigger_than_smg is False:
+        saving.employer_contributions = saving.get_employer_contributions_imss_rcv_traditional_scheme()
         
         
         # print("================ TOTAL SAVING.SAVING_TOTAL_RETENTIONS_isr_DSI ================", saving.saving_total_retentions_isr_dsi)
@@ -229,10 +235,10 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
             "integration_factor": integration_factor, # Col. D - Factor de Integración
             "integrated_daily_wage": imss.get_integrated_daily_wage(), # Col. E - Salario Diario Integrado
             "imss_employer_fee": imss.get_quota_employer(),  # Col. V - Cuota Patrón IMSS
-            "imss_employee_fee": imss.get_quota_employee(),  # Col. W - Cuota Trabajador IMSS
+            "imss_employee_fee": imss.get_quota_employee() if not hasattr(saving, 'employer_contributions') else 0,  # Col. W - Cuota Trabajador IMSS
             "rcv_employer_table": imss.get_severance_and_old_age_employer(),  # Col. AA - CESANTIA Y VEJEZ PATRÓN
             "rcv_employer": imss.get_total_rcv_employer(),  # Col. AC - RCV Patrón
-            "rcv_employee": imss.get_total_rcv_employee(),  # Col. AD - RCV Trabajador
+            "rcv_employee": imss.get_total_rcv_employee() if not hasattr(saving, 'employer_contributions') else 0,  # Col. AD - RCV Trabajador
             "infonavit_employer": imss.get_infonavit_employer(),  # Col. AE - INFONAVIT Patrón
             "payroll_tax": imss.get_tax_payroll(),  # Col. AF - Impuesto Sobre Nómina
             "suggested_total_social_cost": imss.get_total_social_cost_suggested(), # Col. AP - Costo Social Total Sugerido
@@ -297,6 +303,10 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
             if isr.isr_imss_breakdown is not None:
                 # Add ISR breakdown values to combined_result
                 combined_result["isr_tax_payable_dsi"] = isr.isr_imss_breakdown.get_tax_payable() # Col. O - Impuesto a Cargo ISR para DSI
+
+        # Añadir employee_contributions si existe en el objeto saving
+        if hasattr(saving, 'employer_contributions'):
+            combined_result["employer_contributions"] = saving.employer_contributions
 
         # Append the combined result to the main list
         individual_results.append(combined_result)

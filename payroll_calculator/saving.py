@@ -7,7 +7,7 @@ class Saving:
     # ------------------------------------------------------ INICIALIZACIÓN DE CLASE ------------------------------------------------------
 
     # Remove fixed_fee_dsi from parameters, make imss_instance non-optional
-    def __init__(self, wage_and_salary, wage_and_salary_dsi, commission_percentage_dsi, count_minimum_salary, imss_instance: IMSS, isr_instance: Optional[ISR] = None, minimum_threshold_salary: Optional[float] = None, productivity: Optional[float] = None, other_perception: Optional[float] = None, is_without_salary_mode: bool = False):
+    def __init__(self, wage_and_salary, wage_and_salary_dsi, commission_percentage_dsi, count_minimum_salary, imss_instance: IMSS, isr_instance: Optional[ISR] = None, minimum_threshold_salary: Optional[float] = None, productivity: Optional[float] = None, other_perception: Optional[float] = None, is_without_salary_mode: bool = False, is_salary_bigger_than_smg = False):
         self.wage_and_salary = wage_and_salary
         self.original_wage_and_salary = wage_and_salary  # Guardar el valor original
         self.imss: IMSS = imss_instance # Now non-optional
@@ -22,6 +22,7 @@ class Saving:
         self.current_productivity = productivity
         self.is_without_salary_mode = is_without_salary_mode
         self.dsi_total_with_breakdown = None
+        self.is_salary_bigger_than_smg = is_salary_bigger_than_smg
 
     # set_imss might be less necessary if IMSS is required at init, but keep for flexibility
     def set_imss(self, imss_instance: IMSS) -> None:
@@ -40,9 +41,29 @@ class Saving:
     def get_total_income_traditional_scheme(self, original_wage_and_salary=None):
         salary_to_use = original_wage_and_salary if original_wage_and_salary else self.wage_and_salary
         return salary_to_use + self.other_perception
+    
+    # Ajuste de IMSS y RCV para el esquema tradicional si el salario es menor o igual al mínimo ------- Columna Jnumero -> SOLO ESTE CASO
+    def get_employer_contributions_imss_rcv_traditional_scheme(self, use_imss_breakdown=False):
+        if self.imss is None:
+            raise ValueError("IMSS instance is not set. Use set_imss() method first.")
+            
+        # Obtener las retenciones de IMSS del trabajador
+        imss_employee = self.imss.get_quota_employee(use_imss_breakdown)
+        
+        # Obtener las retenciones de RCV del trabajador según el parámetro use_imss_breakdown
+        if use_imss_breakdown:
+            rcv_employee = self.imss.get_severance_and_old_age_employee(use_imss_breakdown)
+        else:
+            rcv_employee = self.imss.get_total_rcv_employee()
+        # Sumar las retenciones de IMSS y RCV (excluyendo ISR)
+        return imss_employee + rcv_employee
+
 
     # Obtener el total de esquema tradicional ------- Columna Jnumero
     def get_total_traditional_scheme(self):
+        # Si el salario es menor al salario mínimo, sumar el ajuste de IMSS y RCV
+        if not self.is_salary_bigger_than_smg:
+            return self.imss.get_total_employer() + self.get_employer_contributions_imss_rcv_traditional_scheme()
         return self.imss.get_total_employer()
 
     # Obtener el esquema tradicional de ahorro ------- Columna Knumero
@@ -51,7 +72,7 @@ class Saving:
         if self.imss is None:
             raise ValueError(
                 "IMSS instance is not set. Use set_imss() method first.")
-        return self.get_total_income_traditional_scheme() if self.is_without_salary_mode else self.get_total_income_traditional_scheme() + self.imss.get_total_employer()
+        return self.get_total_income_traditional_scheme() if self.is_without_salary_mode else self.get_total_income_traditional_scheme() + self.get_total_traditional_scheme()
 
     # ------------------------------------------------------ CALCULO DE ESQUEMA DSI QUINCENAL ------------------------------------------------------
 
@@ -119,13 +140,23 @@ class Saving:
         if self.isr is None:
             raise ValueError(
                 "ISR instance is not set. Use set_isr() method first.")
+        if self.is_salary_bigger_than_smg is False:
+            return 0
         return self.isr.get_tax_payable(use_smg) if self.isr.get_tax_payable(use_smg) > self.isr.get_tax_in_favor() else (self.isr.get_tax_in_favor() * -1)
 
     # Obtener el total de Retenciones ------- Columna AEnumero
     def get_total_retentions(self, use_imss_breakdown=False):
+        # Si el salario es menor al salario mínimo, solo incluir ISR (que ya está validado en get_isr_retention)
+        if not self.is_salary_bigger_than_smg:
+            if use_imss_breakdown:
+                isr_employee_dsi = self.isr.isr_imss_breakdown.get_tax_payable() if self.isr.isr_imss_breakdown is not None else 0
+                return isr_employee_dsi
+            return self.isr.get_tax_payable()
+        
+        # Comportamiento normal cuando el salario es mayor al salario mínimo
         if use_imss_breakdown:
-            # Columna AB + Columna AC + Columna AD
             # print("self.get_total_isr_retention_dsi(): ", self.get_total_isr_retention_dsi(), " self.imss.get_quota_employee(use_imss_breakdown): ", self.imss.get_quota_employee(use_imss_breakdown), " self.imss.get_severance_and_old_age_employee(use_imss_breakdown): ", self.imss.get_severance_and_old_age_employee(use_imss_breakdown), )
+            # Columna AB + Columna AC + Columna AD
             isr_employee_dsi = self.isr.isr_imss_breakdown.get_tax_payable() if self.isr.isr_imss_breakdown is not None else 0
             return isr_employee_dsi + self.imss.get_quota_employee(use_imss_breakdown) + self.imss.get_severance_and_old_age_employee(use_imss_breakdown)
         # Columna AB + Columna AC + Columna AD

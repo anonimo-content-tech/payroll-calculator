@@ -3,7 +3,7 @@ from .parameters import Parameters
 
 
 class ISR:
-    def __init__(self, monthly_salary, payment_period, periodicity, employee: Employee, minimum_threshold_salary=None):
+    def __init__(self, monthly_salary, payment_period, periodicity, employee: Employee, minimum_threshold_salary=None, is_salary_bigger_than_smg=False):
         self.employee = employee
         self.parameters = Parameters()
         self.monthly_salary = monthly_salary
@@ -12,6 +12,7 @@ class ISR:
         self.SALARY_CREDIT_TABLE = Parameters.get_employee_subsidy_table(self.periodicity)
         self.smg = Parameters.SMG
         self.monthly_smg = minimum_threshold_salary
+        self.is_salary_bigger_than_smg = is_salary_bigger_than_smg
 
     # ------------------------------------------------------ CALCULO DEL IMPUESTO ------------------------------------------------------
 
@@ -102,7 +103,9 @@ class ISR:
 
     # Calculo del Impuesto a Cargo ------- Columna Onumero
     def get_tax_payable(self, use_smg=False):
-        return self.get_isr(use_smg) - self.get_salary_credit() if self.get_isr(use_smg) > self.get_salary_credit() else 0
+        if self.is_salary_bigger_than_smg:
+            return self.get_isr(use_smg) - self.get_salary_credit() if self.get_isr(use_smg) > self.get_salary_credit() else 0
+        return 0
     
     # Calculo del Impuesto a Favor ------- Columna Pnumero
     def get_tax_in_favor(self):

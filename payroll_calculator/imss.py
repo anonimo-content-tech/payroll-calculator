@@ -7,19 +7,19 @@ import inspect
 
 
 class IMSS:
-    def __init__(self, uma, imss_salary, daily_salary, payment_period, integration_factor, risk_class='I', minimum_threshold_salary=None, use_increment_percentage=None, imss_breakdown=None):
+    def __init__(self, uma, imss_salary, daily_salary, payment_period, integration_factor, risk_class='I', minimum_threshold_salary=None, use_increment_percentage=None, imss_breakdown=None, is_salary_bigger_than_smg=False):
         # Handle the case where payment_period might be a risk class
         if isinstance(payment_period, str):
             risk_class = risk_class
             payment_period = payment_period
 
         # Inicialización de parámetros base
-        self._init_base_parameters(uma, imss_salary, daily_salary, integration_factor, risk_class, payment_period, minimum_threshold_salary, use_increment_percentage, imss_breakdown)
+        self._init_base_parameters(uma, imss_salary, daily_salary, integration_factor, risk_class, payment_period, minimum_threshold_salary, use_increment_percentage, imss_breakdown, is_salary_bigger_than_smg)
         # Inicialización de parámetros de beneficios
         self._init_benefit_parameters()
 
     # Método auxiliar para inicializar parámetros base
-    def _init_base_parameters(self, uma, imss_salary, daily_salary, integration_factor, risk_class, payment_period, minimum_threshold_salary=None, use_increment_percentage=None, imss_breakdown=None):
+    def _init_base_parameters(self, uma, imss_salary, daily_salary, integration_factor, risk_class, payment_period, minimum_threshold_salary=None, use_increment_percentage=None, imss_breakdown=None, is_salary_bigger_than_smg=False):
         self.salary = imss_salary
         self.daily_salary = daily_salary
         self.payment_period = payment_period
@@ -55,6 +55,7 @@ class IMSS:
         self.total_rcv_employer_with_daily_salary = None
         self.infonavit_employer_with_daily_salary = None
         self.tax_payroll_with_daily_salary = None
+        self.is_salary_bigger_than_smg = is_salary_bigger_than_smg
 
     # Método auxiliar para inicializar parámetros de beneficios
 
