@@ -286,15 +286,18 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
         if imss_breakdown:
             combined_result["total_retentions_dsi"] = saving.saving_total_retentions_dsi # Col. AR (desglosado) o AN (normal),  - Total Retenciones DSI
             
-            combined_result["total_tax_cost_breakdown"] = imss.total_tax_cost_breakdown  # Col. AP - Costo Fiscal Total cuando es desglosado
+            employer_contributions = (imss.quota_employe_with_daily_salary + imss.quota_employee_rcv_with_daily_salary) if hasattr(saving, 'employer_contributions') else 0
+            print("EMPLOYER CONTRIBUTIONS: ", employer_contributions)
+            
+            combined_result["total_tax_cost_breakdown"] = imss.total_tax_cost_breakdown + employer_contributions  # Col. AP - Costo Fiscal Total cuando es desglosado
             
             combined_result["first_quota_employer_imss_dsi"] = imss.quota_employer_with_daily_salary # Col. P - Costo Fiscal IMSS para DSI cuando es desglosado - Hoja de Ahorro
             combined_result["first_total_rcv_employer_dsi"] = imss.total_rcv_employer_with_daily_salary # Col. Q - Costo Fiscal RCV para DSI cuando es desglosado - Hoja de Ahorro
             combined_result["first_infonavit_employer_dsi"] = imss.infonavit_employer_with_daily_salary # Col. R - Costo Fiscal Infonavit para DSI cuando es desglosado - Hoja de Ahorro
             combined_result["first_tax_payroll_employer_dsi"] = imss.tax_payroll_with_daily_salary # Col. S - Costo Fiscal Impuesto Estatal para DSI cuando es desglosado - Hoja de Ahorro
             
-            combined_result["quota_employe_with_daily_salary"] = imss.quota_employe_with_daily_salary
-            combined_result["quota_employee_rcv_with_daily_salary"] = imss.quota_employee_rcv_with_daily_salary
+            combined_result["quota_employe_with_daily_salary"] = imss.quota_employe_with_daily_salary if not hasattr(saving, 'employer_contributions') else 0
+            combined_result["quota_employee_rcv_with_daily_salary"] = imss.quota_employee_rcv_with_daily_salary if not hasattr(saving, 'employer_contributions') else 0
             
             
             combined_result["saving_total_retentions_isr_dsi"] = saving.saving_total_retentions_isr_dsi

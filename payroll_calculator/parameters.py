@@ -132,11 +132,15 @@ class Parameters:
         Returns:
             float: Porcentaje aplicable
         """
-        for range_data in Parameters.RETIREMENT_TABLE:
+        # Obtener la tabla RCV del año actual
+        rcv_table = Parameters.get_rcv_table_by_year()
+        
+        for range_data in rcv_table:
             if range_data['lower_limit'] <= salary_daily_wage <= range_data['upper_limit']:
-                return range_data['percentage'] / 100  # Convertir a decimal
+                return range_data['percentage']
+        
         # Último rango por defecto
-        return Parameters.RETIREMENT_TABLE[-1]['percentage'] / 100
+        return rcv_table[-1]['percentage']
 
     @staticmethod
     def calculate_wage_and_salary_dsi(smg_multiplier, payment_period=None):
@@ -161,3 +165,11 @@ class Parameters:
         
         # Si el salario es menor que el valor calculado, usar el salario
         return period_smg_value
+    
+    @staticmethod
+    def get_rcv_table_by_year():
+        from datetime import datetime
+        from .rcv_tables import get_rcv_table_by_year
+        
+        current_year = str(datetime.now().year)
+        return get_rcv_table_by_year(current_year)

@@ -424,7 +424,7 @@ class IMSS:
         
         # OBTENER RCV PARA EMPLEADO EN RETENCIONES ÚLTIMA TABLA
         self.quota_employee_rcv_with_daily_salary = self.get_severance_and_old_age_employee(use_direct_daily_salary=True)
-        
+                
         totals = [
             self.quota_employer_with_daily_salary,
             self.total_rcv_employer_with_daily_salary,
