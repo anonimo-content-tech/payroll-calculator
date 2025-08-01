@@ -159,7 +159,7 @@ def get_value_or_default(obj, attr_name, default_func=None):
 def process_multiple_calculations(salaries, period_salaries, payment_periods, periodicity, integration_factors, 
                                   use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, 
                                   count_minimum_salary, stricted_mode, productivities=None, imss_breakdown=None, 
-                                  uma=113.14, other_perceptions=None):
+                                  uma=113.14, other_perceptions=None, productivity_to_zero=None):
     """
     Process multiple calculations for IMSS, ISR, and Savings, adding column references to labels.
     This function now only returns the individual results for each salary.
@@ -260,7 +260,7 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
 
             # Savings results
             "dsi_salary": get_value_or_default(saving, "saving_wage_and_salary", lambda: wage_and_salary_dsi),  # Col. M - Salario DSI
-            "productivity": get_value_or_default(saving, "saving_productivity", saving.get_productivity),  # Col. N - Productividad
+            "productivity": get_value_or_default(saving, "saving_productivity", saving.get_productivity) if not productivity_to_zero else 0,  # Col. N - Productividad
             "dsi_commission": saving.get_commission_dsi(),  # Col. Q - Comisión DSI
             "total_traditional_scheme": saving.get_total_traditional_scheme(), # Col. J - Total Esquema Tradicional
             "traditional_scheme_biweekly": saving.get_traditional_scheme_biweekly_total(), # Col. K - Esquema Tradicional Quincenal
@@ -286,10 +286,10 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
         if imss_breakdown:
             combined_result["total_retentions_dsi"] = saving.saving_total_retentions_dsi # Col. AR (desglosado) o AN (normal),  - Total Retenciones DSI
             
-            employer_contributions = (imss.quota_employe_with_daily_salary + imss.quota_employee_rcv_with_daily_salary) if hasattr(saving, 'employer_contributions') else 0
-            print("EMPLOYER CONTRIBUTIONS: ", employer_contributions)
+            employer_contributions_dsi = (imss.quota_employe_with_daily_salary + imss.quota_employee_rcv_with_daily_salary) if hasattr(saving, 'employer_contributions') else 0
             
-            combined_result["total_tax_cost_breakdown"] = imss.total_tax_cost_breakdown + employer_contributions  # Col. AP - Costo Fiscal Total cuando es desglosado
+            combined_result["total_tax_cost_breakdown"] = imss.total_tax_cost_breakdown + employer_contributions_dsi  # Col. AP - Costo Fiscal Total cuando es desglosado
+            combined_result["employer_contributions_dsi"] = employer_contributions_dsi # Col. U - Cuotas Patronales
             
             combined_result["first_quota_employer_imss_dsi"] = imss.quota_employer_with_daily_salary # Col. P - Costo Fiscal IMSS para DSI cuando es desglosado - Hoja de Ahorro
             combined_result["first_total_rcv_employer_dsi"] = imss.total_rcv_employer_with_daily_salary # Col. Q - Costo Fiscal RCV para DSI cuando es desglosado - Hoja de Ahorro
