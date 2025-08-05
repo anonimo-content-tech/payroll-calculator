@@ -78,7 +78,7 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         # print("PERIOD SALARY DEL IF: ", period_salary)
         # Store the breakdown values in the isr instance
         isr_with_imss_breakdown = ISR(monthly_salary=period_salary, payment_period=payment_period, periodicity=periodicity,
-              employee=imss.employee, minimum_threshold_salary=isr_threshold_salary)
+              employee=imss.employee, minimum_threshold_salary=isr_threshold_salary, is_salary_bigger_than_smg=is_salary_bigger_than_smg)
         isr.isr_imss_breakdown = isr_with_imss_breakdown
         
     if not hasattr(isr, 'isr_imss_breakdown'):
@@ -259,7 +259,7 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
             "isr_tax_in_favor": isr.get_tax_in_favor(),  # Col. P - Impuesto a Favor ISR
 
             # Savings results
-            "dsi_salary": get_value_or_default(saving, "saving_wage_and_salary", lambda: wage_and_salary_dsi),  # Col. M - Salario DSI
+            "dsi_salary": get_value_or_default(saving, "saving_wage_and_salary_dsi", lambda: wage_and_salary_dsi),  # Col. M - Salario DSI
             "productivity": get_value_or_default(saving, "saving_productivity", saving.get_productivity) if not productivity_to_zero else 0,  # Col. N - Productividad
             "dsi_commission": saving.get_commission_dsi(),  # Col. Q - Comisión DSI
             "total_traditional_scheme": saving.get_total_traditional_scheme(), # Col. J - Total Esquema Tradicional

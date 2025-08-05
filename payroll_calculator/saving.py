@@ -275,7 +275,8 @@ class Saving:
                 'saving_get_increment_percentage': saving_get_increment_percentage,
                 'saving_wage_and_salary': self.wage_and_salary,
                 'saving_productivity': saving_productivity,
-                'use_direct_daily_salary': use_direct_daily_salary  # Agregar este valor al resultado
+                'use_direct_daily_salary': use_direct_daily_salary,  # Agregar este valor al resultado
+                'saving_wage_and_salary_dsi': self.wage_and_salary_dsi,
             }
         finally:
             # Restaurar el valor original de wage_and_salary
