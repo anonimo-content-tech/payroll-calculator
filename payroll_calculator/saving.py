@@ -86,7 +86,7 @@ class Saving:
         employee_productivity = wage_to_use - remaining_total
         
         # Calcular la productividad base
-        base_productivity = employee_productivity if self.current_productivity is None else self.current_productivity
+        base_productivity = employee_productivity if not self.current_productivity else self.current_productivity
         
         # Agregar other_perception si tiene un valor
         if self.other_perception is not None:
