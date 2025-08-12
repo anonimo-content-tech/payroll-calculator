@@ -9,7 +9,7 @@ from payroll_calculator.totals import TotalCalculator
 # VERIFICAR QUE SMG_MULTIPLIER Y COUNT_MINIMUM_SALARY SEAN LO MISMO, TAL PARECE QUE SÍ
 def process_single_calculation(salary, daily_salary, payment_period, periodicity, integration_factor, use_increment_percentage, 
                                risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, productivity=None, 
-                               imss_breakdown=None, uma=113.14, other_perception=None, is_without_salary_mode=False):
+                               imss_breakdown=None, uma=113.14, other_perception=None, is_without_salary_mode=False, is_pure_mode=False):
     """
     Process a single calculation for IMSS, ISR, and Savings
     
@@ -96,7 +96,8 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         productivity=productivity,
         other_perception=other_perception,
         is_without_salary_mode=is_without_salary_mode,
-        is_salary_bigger_than_smg=is_salary_bigger_than_smg
+        is_salary_bigger_than_smg=is_salary_bigger_than_smg,
+        is_pure_mode=is_pure_mode,
     )
     # print("PASA SAVING")
     
@@ -159,7 +160,7 @@ def get_value_or_default(obj, attr_name, default_func=None):
 def process_multiple_calculations(salaries, period_salaries, payment_periods, periodicity, integration_factors, 
                                   use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, 
                                   count_minimum_salary, stricted_mode, productivities=None, imss_breakdown=None, 
-                                  uma=113.14, other_perceptions=None, productivity_to_zero=None):
+                                  uma=113.14, other_perceptions=None, productivity_to_zero=None, is_pure_mode=None):
     """
     Process multiple calculations for IMSS, ISR, and Savings, adding column references to labels.
     This function now only returns the individual results for each salary.
@@ -222,7 +223,7 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
         imss, isr, saving, wage_and_salary_dsi = process_single_calculation(
             salary, daily_salary, payment_period, periodicity, integration_factor, use_increment_percentage, risk_class,
             smg_multiplier, commission_percentage_dsi, count_minimum_salary,
-            productivity, imss_breakdown, uma, other_perception, is_without_salary_mode
+            productivity, imss_breakdown, uma, other_perception, is_without_salary_mode, is_pure_mode
         )
         
         

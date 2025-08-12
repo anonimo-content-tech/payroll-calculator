@@ -7,7 +7,7 @@ class Saving:
     # ------------------------------------------------------ INICIALIZACIÓN DE CLASE ------------------------------------------------------
 
     # Remove fixed_fee_dsi from parameters, make imss_instance non-optional
-    def __init__(self, wage_and_salary, wage_and_salary_dsi, commission_percentage_dsi, count_minimum_salary, imss_instance: IMSS, isr_instance: Optional[ISR] = None, minimum_threshold_salary: Optional[float] = None, productivity: Optional[float] = None, other_perception: Optional[float] = None, is_without_salary_mode: bool = False, is_salary_bigger_than_smg = False):
+    def __init__(self, wage_and_salary, wage_and_salary_dsi, commission_percentage_dsi, count_minimum_salary, imss_instance: IMSS, isr_instance: Optional[ISR] = None, minimum_threshold_salary: Optional[float] = None, productivity: Optional[float] = None, other_perception: Optional[float] = None, is_without_salary_mode: bool = False, is_salary_bigger_than_smg = False, is_pure_mode=False):
         self.wage_and_salary = wage_and_salary
         self.original_wage_and_salary = wage_and_salary  # Guardar el valor original
         self.imss: IMSS = imss_instance # Now non-optional
@@ -23,6 +23,7 @@ class Saving:
         self.is_without_salary_mode = is_without_salary_mode
         self.dsi_total_with_breakdown = None
         self.is_salary_bigger_than_smg = is_salary_bigger_than_smg
+        self.is_pure_mode = is_pure_mode
 
     # set_imss might be less necessary if IMSS is required at init, but keep for flexibility
     def set_imss(self, imss_instance: IMSS) -> None:
@@ -72,7 +73,10 @@ class Saving:
         if self.imss is None:
             raise ValueError(
                 "IMSS instance is not set. Use set_imss() method first.")
-        return self.get_total_income_traditional_scheme() if self.is_without_salary_mode else self.get_total_income_traditional_scheme() + self.get_total_traditional_scheme()
+        biweekly_total = self.get_total_income_traditional_scheme() if self.is_without_salary_mode else self.get_total_income_traditional_scheme() + self.get_total_traditional_scheme()
+        if self.is_pure_mode:
+            biweekly_total = biweekly_total + self.get_commission_dsi()
+        return biweekly_total
 
     # ------------------------------------------------------ CALCULO DE ESQUEMA DSI QUINCENAL ------------------------------------------------------
 
