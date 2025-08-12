@@ -59,7 +59,7 @@ def get_isr_table(payment_period: int):
             {'lower_limit': 61838.11, 'upper_limit': 185514.30, 'fixed_fee': 16130.55, 'percentage': 0.3400},
             {'lower_limit': 185514.31, 'upper_limit': float('inf'), 'fixed_fee': 58180.35, 'percentage': 0.3500}
         ],
-        30.4: [
+        30: [
             {'lower_limit': 0.01, 'upper_limit': 746.04, 'fixed_fee': 0.00, 'percentage': 0.0192},
             {'lower_limit': 746.05, 'upper_limit': 6332.05, 'fixed_fee': 14.32, 'percentage': 0.0640},
             {'lower_limit': 6332.06, 'upper_limit': 11128.01, 'fixed_fee': 371.83, 'percentage': 0.1088},
@@ -137,7 +137,7 @@ def get_employee_subsidy_table(payment_period):
             { "lower_limit": 3510.16,"upper_limit": 3642.60, "credit": 107.40 },
             { "lower_limit": 3642.61,"upper_limit": float("inf"), "credit": 0.00 }
         ],
-        30.4: [
+        30: [
             { "lower_limit": 0.01,   "upper_limit": 872.85,    "credit": 200.85 },
             { "lower_limit": 872.86, "upper_limit": 1309.20,   "credit": 200.70 },
             { "lower_limit": 1309.21,"upper_limit": 1713.60,   "credit": 200.70 },

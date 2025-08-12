@@ -9,7 +9,7 @@ from payroll_calculator.totals import TotalCalculator
 # VERIFICAR QUE SMG_MULTIPLIER Y COUNT_MINIMUM_SALARY SEAN LO MISMO, TAL PARECE QUE SÍ
 def process_single_calculation(salary, daily_salary, payment_period, periodicity, integration_factor, use_increment_percentage, 
                                risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, productivity=None, 
-                               imss_breakdown=None, uma=113.14, other_perception=None, is_without_salary_mode=False, is_pure_mode=False):
+                               imss_breakdown=None, uma=113.14, other_perception=None, is_without_salary_mode=False, is_pure_mode=False, is_percentage_mode=False):
     """
     Process a single calculation for IMSS, ISR, and Savings
     
@@ -20,6 +20,8 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
     wage_and_salary_dsi = Parameters.calculate_wage_and_salary_dsi(
         smg_multiplier, payment_period) if count_minimum_salary > 0 else salary
     
+    if is_percentage_mode:
+        wage_and_salary_dsi = daily_salary * payment_period    
     # Calcular el salario mínimo para el período de pago
     smg_for_period = Parameters.SMG * payment_period
     
@@ -185,6 +187,9 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
     
     salaries_to_use = salaries if total_salaries > 0 else productivities
     is_without_salary_mode = total_salaries == 0
+    
+    is_percentage_mode = len(salaries) > 0 and productivities is not None and len(productivities) > 0
+    
     for i, daily_salary in enumerate(salaries_to_use):
         # Ignorar salarios que sean 0
         if daily_salary == 0:
@@ -223,7 +228,7 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
         imss, isr, saving, wage_and_salary_dsi = process_single_calculation(
             salary, daily_salary, payment_period, periodicity, integration_factor, use_increment_percentage, risk_class,
             smg_multiplier, commission_percentage_dsi, count_minimum_salary,
-            productivity, imss_breakdown, uma, other_perception, is_without_salary_mode, is_pure_mode
+            productivity, imss_breakdown, uma, other_perception, is_without_salary_mode, is_pure_mode, is_percentage_mode
         )
         
         
