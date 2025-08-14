@@ -264,7 +264,7 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
             "isr_tax_in_favor": isr.get_tax_in_favor(),  # Col. P - Impuesto a Favor ISR
 
             # Savings results
-            "dsi_salary": get_value_or_default(saving, "saving_wage_and_salary_dsi", lambda: wage_and_salary_dsi),  # Col. M - Salario DSI
+            "dsi_salary": get_value_or_default(saving, "saving_wage_and_salary_dsi", lambda: wage_and_salary_dsi if wage_and_salary_dsi != 0 else salary),  # Col. M - Salario DSI
             "productivity": get_value_or_default(saving, "saving_productivity", saving.get_productivity) if not productivity_to_zero else 0,  # Col. N - Productividad
             "dsi_commission": saving.get_commission_dsi(),  # Col. Q - Comisión DSI
             "total_traditional_scheme": saving.get_total_traditional_scheme(), # Col. J - Total Esquema Tradicional
