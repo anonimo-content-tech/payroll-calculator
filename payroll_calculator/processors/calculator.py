@@ -212,8 +212,8 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
         # Calcular el salario mínimo para este período de pago específico
         smg_for_payment_period = Parameters.SMG * payment_period
         
-        if i % 10 == 0 or i == total_salaries - 1:
-            print(f"Processing salary {i+1}/{total_salaries}...")
+        if i % 10 == 0 or i == len(salaries_to_use) - 1:
+            print(f"Processing salary {i+1}/{len(salaries_to_use)}...")
             
         salary = period_salaries[i] if period_salaries else daily_salary * payment_periods[i]
 
@@ -230,7 +230,6 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
             smg_multiplier, commission_percentage_dsi, count_minimum_salary,
             productivity, imss_breakdown, uma, other_perception, is_without_salary_mode, is_pure_mode, is_percentage_mode
         )
-        
         
         # Create a combined dictionary for the current salary with column references
         combined_result = {

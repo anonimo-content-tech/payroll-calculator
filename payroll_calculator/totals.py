@@ -28,15 +28,15 @@ class TotalCalculator:
         }
         
         # Agregar totales DSI si existen
-        if imss_data and 'first_quota_employer_imss_dsi' in imss_data[0]:
-            totals.update({
-                'total_imss_employer_dsi': sum(row.get('first_quota_employer_imss_dsi', 0) for row in imss_data),
-                'total_rcv_employer_dsi': sum(row.get('first_total_rcv_employer_dsi', 0) for row in imss_data),
-                'total_infonavit_dsi': sum(row.get('first_infonavit_employer_dsi', 0) for row in imss_data),
-                'total_tax_payroll_dsi': sum(row.get('first_tax_payroll_employer_dsi', 0) for row in imss_data),
-                'total_imss_employee_dsi': sum(row.get('quota_employe_with_daily_salary', 0) for row in imss_data),
-                'total_rcv_employee_dsi': sum(row.get('quota_employee_rcv_with_daily_salary', 0) for row in imss_data),
-            })
+        
+        totals.update({
+            'total_imss_employer_dsi': sum(row.get('first_quota_employer_imss_dsi', 0) for row in imss_data),
+            'total_rcv_employer_dsi': sum(row.get('first_total_rcv_employer_dsi', 0) for row in imss_data),
+            'total_infonavit_dsi': sum(row.get('first_infonavit_employer_dsi', 0) for row in imss_data),
+            'total_tax_payroll_dsi': sum(row.get('first_tax_payroll_employer_dsi', 0) for row in imss_data),
+            'total_imss_employee_dsi': sum(row.get('quota_employe_with_daily_salary', 0) for row in imss_data),
+            'total_rcv_employee_dsi': sum(row.get('quota_employee_rcv_with_daily_salary', 0) for row in imss_data),
+        })
         
         return totals
 
@@ -48,6 +48,7 @@ class TotalCalculator:
             'total_salary_credit': sum(row.get('salary_credit', 0) for row in isr_data),
             'total_tax_payable': sum(row.get('isr_tax_payable', 0) for row in isr_data),
             'total_tax_in_favor': sum(row.get('isr_tax_in_favor', 0) for row in isr_data),
+            'total_isr_tax_payable_dsi': sum(row.get('isr_tax_payable_dsi', 0) for row in isr_data),
         }
         
         if isr_data and 'first_tax_payroll_employer_dsi' in isr_data[0]:
