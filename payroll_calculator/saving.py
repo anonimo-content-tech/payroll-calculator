@@ -7,7 +7,7 @@ class Saving:
     # ------------------------------------------------------ INICIALIZACIÓN DE CLASE ------------------------------------------------------
 
     # Remove fixed_fee_dsi from parameters, make imss_instance non-optional
-    def __init__(self, wage_and_salary, wage_and_salary_dsi, commission_percentage_dsi, count_minimum_salary, imss_instance: IMSS, isr_instance: Optional[ISR] = None, minimum_threshold_salary: Optional[float] = None, productivity: Optional[float] = None, other_perception: Optional[float] = None, is_without_salary_mode: bool = False, is_salary_bigger_than_smg = False, is_pure_mode=False):
+    def __init__(self, wage_and_salary, wage_and_salary_dsi, commission_percentage_dsi, count_minimum_salary, imss_instance: IMSS, isr_instance: Optional[ISR] = None, minimum_threshold_salary: Optional[float] = None, productivity: Optional[float] = None, other_perception: Optional[float] = None, is_without_salary_mode: bool = False, is_salary_bigger_than_smg = False, is_pure_mode=False, is_percentage_mode=False):
         self.wage_and_salary = wage_and_salary
         self.original_wage_and_salary = wage_and_salary  # Guardar el valor original
         self.imss: IMSS = imss_instance # Now non-optional
@@ -24,6 +24,7 @@ class Saving:
         self.dsi_total_with_breakdown = None
         self.is_salary_bigger_than_smg = is_salary_bigger_than_smg
         self.is_pure_mode = is_pure_mode
+        self.is_percentage_mode = is_percentage_mode
 
     # set_imss might be less necessary if IMSS is required at init, but keep for flexibility
     def set_imss(self, imss_instance: IMSS) -> None:
@@ -110,7 +111,7 @@ class Saving:
             
         # Validación para calculo Sin Salario
         fixed_fee_to_use = 0 if self.is_without_salary_mode else self.fixed_fee_dsi
-        if use_imss_breakdown:
+        if self.is_percentage_mode is True:
             # Usar self.wage_and_salary si original_wage_and_salary es None
             wage_to_use = self.get_total_income_traditional_scheme() if original_wage_and_salary is None else self.get_total_income_traditional_scheme(original_wage_and_salary)
             return wage_to_use + self.imss.total_tax_cost_breakdown + self.get_commission_dsi()

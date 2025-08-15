@@ -100,6 +100,7 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         is_without_salary_mode=is_without_salary_mode,
         is_salary_bigger_than_smg=is_salary_bigger_than_smg,
         is_pure_mode=is_pure_mode,
+        is_percentage_mode=is_percentage_mode
     )
     # print("PASA SAVING")
     
