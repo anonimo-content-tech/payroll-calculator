@@ -79,7 +79,7 @@ class TotalCalculator:
         
         # Calcular promedios
         if saving_data:
-            totals['avg_saving_percentage'] = sum(row.get('saving_percentage', 0) for row in saving_data) / totals["total_traditional_scheme"]
+            totals['avg_saving_percentage'] = (totals["total_saving_amount"] / totals["total_traditional_scheme"]) / 100
             totals['avg_dsi_saving_percentage'] = totals["total_increment"] / totals["total_current_perception"]
 
         
