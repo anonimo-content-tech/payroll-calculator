@@ -7,7 +7,7 @@ class Saving:
     # ------------------------------------------------------ INICIALIZACIÓN DE CLASE ------------------------------------------------------
 
     # Remove fixed_fee_dsi from parameters, make imss_instance non-optional
-    def __init__(self, wage_and_salary, wage_and_salary_dsi, commission_percentage_dsi, count_minimum_salary, imss_instance: IMSS, isr_instance: Optional[ISR] = None, minimum_threshold_salary: Optional[float] = None, productivity: Optional[float] = None, other_perception: Optional[float] = None, is_without_salary_mode: bool = False, is_salary_bigger_than_smg = False, is_pure_mode=False, is_percentage_mode=False):
+    def __init__(self, wage_and_salary, wage_and_salary_dsi, commission_percentage_dsi, count_minimum_salary, imss_instance: IMSS, isr_instance: Optional[ISR] = None, minimum_threshold_salary: Optional[float] = None, productivity: Optional[float] = None, other_perception: Optional[float] = None, is_without_salary_mode: bool = False, is_salary_bigger_than_smg = False, is_pure_mode=False, is_percentage_mode=False, is_keep_declared_salary=False):
         self.wage_and_salary = wage_and_salary
         self.original_wage_and_salary = wage_and_salary  # Guardar el valor original
         self.imss: IMSS = imss_instance # Now non-optional
@@ -25,6 +25,7 @@ class Saving:
         self.is_salary_bigger_than_smg = is_salary_bigger_than_smg
         self.is_pure_mode = is_pure_mode
         self.is_percentage_mode = is_percentage_mode
+        self.is_keep_declared_salary_mode = is_keep_declared_salary
 
     # set_imss might be less necessary if IMSS is required at init, but keep for flexibility
     def set_imss(self, imss_instance: IMSS) -> None:
@@ -96,6 +97,10 @@ class Saving:
         # Agregar other_perception si tiene un valor
         if self.other_perception is not None:
             base_productivity += self.other_perception
+            
+        if self.is_keep_declared_salary_mode:
+            base_productivity = self.other_perception
+            
         
         return base_productivity
 
