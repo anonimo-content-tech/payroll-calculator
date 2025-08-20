@@ -7,11 +7,15 @@ class Saving:
     # ------------------------------------------------------ INICIALIZACIÓN DE CLASE ------------------------------------------------------
 
     # Remove fixed_fee_dsi from parameters, make imss_instance non-optional
-    def __init__(self, wage_and_salary, wage_and_salary_dsi, commission_percentage_dsi, count_minimum_salary, imss_instance: IMSS, isr_instance: Optional[ISR] = None, minimum_threshold_salary: Optional[float] = None, productivity: Optional[float] = None, other_perception: Optional[float] = None, is_without_salary_mode: bool = False, is_salary_bigger_than_smg = False, is_pure_mode=False, is_percentage_mode=False, is_keep_declared_salary=False):
+    def __init__(self, wage_and_salary, wage_and_salary_dsi, commission_percentage_dsi, count_minimum_salary, imss_instance: IMSS, isr_instance: Optional[ISR] = None, 
+                 minimum_threshold_salary: Optional[float] = None, productivity: Optional[float] = None, applied_commission_to: str = 'salary', 
+                 net_salary: Optional[float] = None, other_perception: Optional[float] = None, is_without_salary_mode: bool = False, is_salary_bigger_than_smg = False, 
+                 is_pure_mode=False, is_percentage_mode=False, is_keep_declared_salary=False, is_pure_special_mode: bool = False,):
         self.wage_and_salary = wage_and_salary
         self.original_wage_and_salary = wage_and_salary  # Guardar el valor original
         self.imss: IMSS = imss_instance # Now non-optional
         self.isr: Optional[ISR] = isr_instance
+        self.net_salary = net_salary
         self.other_perception = other_perception
         self.wage_and_salary_dsi = wage_and_salary_dsi
         self.minimum_threshold_salary = minimum_threshold_salary # Store the new parameter
@@ -20,12 +24,14 @@ class Saving:
         self.commission_percentage_dsi = commission_percentage_dsi
         self.count_minimum_salary = count_minimum_salary
         self.current_productivity = productivity
+        self.applied_commission_to = applied_commission_to
         self.is_without_salary_mode = is_without_salary_mode
         self.dsi_total_with_breakdown = None
         self.is_salary_bigger_than_smg = is_salary_bigger_than_smg
         self.is_pure_mode = is_pure_mode
         self.is_percentage_mode = is_percentage_mode
         self.is_keep_declared_salary_mode = is_keep_declared_salary
+        self.is_pure_special_mode = is_pure_special_mode
 
     # set_imss might be less necessary if IMSS is required at init, but keep for flexibility
     def set_imss(self, imss_instance: IMSS) -> None:
@@ -43,7 +49,8 @@ class Saving:
     # Obtener el total de ingresos esquema tradicional ------- Columna Enumero
     def get_total_income_traditional_scheme(self, original_wage_and_salary=None):
         salary_to_use = original_wage_and_salary if original_wage_and_salary else self.wage_and_salary
-        return salary_to_use + self.other_perception
+        net_salary = self.net_salary if self.is_pure_special_mode else 0
+        return salary_to_use + self.other_perception + net_salary
     
     # Ajuste de IMSS y RCV para el esquema tradicional si el salario es menor o igual al mínimo ------- Columna Jnumero -> SOLO ESTE CASO
     def get_employer_contributions_imss_rcv_traditional_scheme(self, use_imss_breakdown=False):
@@ -93,6 +100,7 @@ class Saving:
         
         # Calcular la productividad base
         base_productivity = employee_productivity if not self.current_productivity else self.current_productivity
+        print(f"BASE PRODUCTIVITY: {base_productivity}")
         
         # Agregar other_perception si tiene un valor
         if self.other_perception is not None:
@@ -106,7 +114,28 @@ class Saving:
 
     # Calcular la Comisión DSI ------- Columna Qnumero
     def get_commission_dsi(self):
-        return self.wage_and_salary * self.commission_percentage_dsi
+        """
+        Calculate DSI commission based on the applied commission mode.
+        
+        Returns:
+            float: The calculated commission amount
+        """
+        commission_base_calculators = {
+            'salary': lambda: self.wage_and_salary,
+            'schema': lambda: self.net_salary if self.net_salary is not None else self.get_productivity(use_original_wage=True),
+            'total_income': lambda: self.get_total_income_traditional_scheme()
+        }
+        
+        print("APPLIED COMMISSION TO: ", self.applied_commission_to)
+        
+        # Get the base amount for commission calculation
+        base_calculator = commission_base_calculators.get(
+            self.applied_commission_to,
+            lambda: self.wage_and_salary_dsi  # Default case
+        )
+        
+        base_amount = base_calculator()
+        return base_amount * self.commission_percentage_dsi
 
     # Calcular el Costo Total DSI ------- Columna Rnumero
     def get_dsi_scheme_biweekly_total(self, original_wage_and_salary=None, use_imss_breakdown=False):
