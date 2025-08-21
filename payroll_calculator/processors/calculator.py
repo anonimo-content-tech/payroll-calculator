@@ -325,6 +325,12 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
         # Añadir employee_contributions si existe en el objeto saving
         if hasattr(saving, 'employer_contributions'):
             combined_result["employer_contributions"] = saving.employer_contributions
+            
+        if net_salary is not None:
+            combined_result["net_salary"] = net_salary
+            combined_result["total_income_pure_special"] = saving.get_total_income_pure_special()
+            combined_result["total_cost_client"] = saving.get_total_cost_client()
+            combined_result["total_cost_surplus"] = saving.get_total_cost_surplus()
 
         # Append the combined result to the main list
         individual_results.append(combined_result)

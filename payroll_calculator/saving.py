@@ -49,8 +49,11 @@ class Saving:
     # Obtener el total de ingresos esquema tradicional ------- Columna Enumero
     def get_total_income_traditional_scheme(self, original_wage_and_salary=None):
         salary_to_use = original_wage_and_salary if original_wage_and_salary else self.wage_and_salary
-        net_salary = self.net_salary if self.is_pure_special_mode else 0
-        return salary_to_use + self.other_perception + net_salary
+        return salary_to_use + self.other_perception
+    
+    # Obtener el total de ingresos para el modo Puro Especial ------- Columna Fnumero
+    def get_total_income_pure_special(self):
+        return self.get_total_income_traditional_scheme() + self.net_salary
     
     # Ajuste de IMSS y RCV para el esquema tradicional si el salario es menor o igual al mínimo ------- Columna Jnumero -> SOLO ESTE CASO
     def get_employer_contributions_imss_rcv_traditional_scheme(self, use_imss_breakdown=False):
@@ -86,6 +89,14 @@ class Saving:
         if self.is_pure_mode:
             biweekly_total = biweekly_total + self.get_commission_dsi()
         return biweekly_total
+    
+    # Obtener el total del cliente ------- Columna Mnumero para modo Puro Especial
+    def get_total_cost_client(self):
+        return self.get_total_income_traditional_scheme() + self.get_total_traditional_scheme()
+    
+    # Obtener el total del excedente ------- Columna Nnumero para modo Puro Especial
+    def get_total_cost_surplus(self):
+        return self.net_salary + self.get_commission_dsi()
 
     # ------------------------------------------------------ CALCULO DE ESQUEMA DSI QUINCENAL ------------------------------------------------------
 
@@ -100,7 +111,6 @@ class Saving:
         
         # Calcular la productividad base
         base_productivity = employee_productivity if not self.current_productivity else self.current_productivity
-        print(f"BASE PRODUCTIVITY: {base_productivity}")
         
         # Agregar other_perception si tiene un valor
         if self.other_perception is not None:
@@ -126,7 +136,6 @@ class Saving:
             'total_income': lambda: self.get_total_income_traditional_scheme()
         }
         
-        print("APPLIED COMMISSION TO: ", self.applied_commission_to)
         
         # Get the base amount for commission calculation
         base_calculator = commission_base_calculators.get(
@@ -203,10 +212,11 @@ class Saving:
 
     # Calcular percepción actual ------- Columna AFnumero
     def get_current_perception(self, original_wage_and_salary=None, use_imss_breakdown=False):
+        net_salary = self.net_salary if self.is_pure_special_mode else 0
         if use_imss_breakdown:
             # print("================================================ ORIGINAL WAGE AND SALARY: ", original_wage_and_salary, " SELF.GET_TOTAL_RETENTIONS: ", self.get_total_retentions(), " SELF.GET_TOTAL_RETENTIONS DS ================================================")
-            return self.get_total_income_traditional_scheme_second_table(original_wage_and_salary, use_imss_breakdown) - self.get_total_retentions()
-        return self.get_total_income_traditional_scheme_second_table() - self.get_total_retentions(use_imss_breakdown)
+            return self.get_total_income_traditional_scheme_second_table(original_wage_and_salary, use_imss_breakdown) - self.get_total_retentions() + net_salary
+        return self.get_total_income_traditional_scheme_second_table() - self.get_total_retentions(use_imss_breakdown) + net_salary
 
     # ------------------------------------------------------ CALCULO DE ESQUEMA DSI MENSUAL ------------------------------------------------------
 

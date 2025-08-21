@@ -135,7 +135,7 @@ def get_employee_subsidy_table(payment_period):
             { "lower_limit": 2632.66,"upper_limit": 3071.40, "credit": 145.35 },
             { "lower_limit": 3071.41,"upper_limit": 3510.15, "credit": 125.10 },
             { "lower_limit": 3510.16,"upper_limit": 3642.60, "credit": 107.40 },
-            { "lower_limit": 3642.61,"upper_limit": float("inf"), "credit": 0.00 }
+            { "lower_limit": 3642.61,"upper_limit": float("inf"), "credit": 195.02 }
         ],
         30: [
             { "lower_limit": 0.01,   "upper_limit": 872.85,    "credit": 200.85 },
