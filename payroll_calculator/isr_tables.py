@@ -122,7 +122,8 @@ def get_employee_subsidy_table(payment_period):
             { "lower_limit": 1755.11,"upper_limit": 2047.60, "credit": 96.90  },
             { "lower_limit": 2047.61,"upper_limit": 2340.10, "credit": 83.40  },
             { "lower_limit": 2340.11,"upper_limit": 2428.40, "credit": 71.60  },
-            { "lower_limit": 2428.41,"upper_limit": float("inf"), "credit": 0.00 }
+            # { "lower_limit": 2428.41,"upper_limit": float("inf"), "credit": 0.00 }
+            { "lower_limit": 2428.41,"upper_limit": float("inf"), "credit": 89.81 }
         ],
         15: [
             { "lower_limit": 0.01,   "upper_limit": 872.85,  "credit": 200.85 },
@@ -135,7 +136,8 @@ def get_employee_subsidy_table(payment_period):
             { "lower_limit": 2632.66,"upper_limit": 3071.40, "credit": 145.35 },
             { "lower_limit": 3071.41,"upper_limit": 3510.15, "credit": 125.10 },
             { "lower_limit": 3510.16,"upper_limit": 3642.60, "credit": 107.40 },
-            { "lower_limit": 3642.61,"upper_limit": float("inf"), "credit": 195.02 }
+            # { "lower_limit": 3642.61,"upper_limit": float("inf"), "credit": 195.02 }
+            { "lower_limit": 3642.61,"upper_limit": float("inf"), "credit": 192.45 }
         ],
         30: [
             { "lower_limit": 0.01,   "upper_limit": 872.85,    "credit": 200.85 },
@@ -148,7 +150,10 @@ def get_employee_subsidy_table(payment_period):
             { "lower_limit": 2632.66,"upper_limit": 3071.40,   "credit": 145.35 },
             { "lower_limit": 3071.41,"upper_limit": 3510.15,   "credit": 125.10 },
             { "lower_limit": 3510.16,"upper_limit": 3642.60,   "credit": 107.40 },
-            { "lower_limit": 8475.52,"upper_limit": float("inf"),  "credit": 390.03 },
+            # 22 De agosto, se realizó el cambio del crédito debido a que el período que usábamos era de 30.4
+            # Y se pasa a 30 días, verificar los demás
+            # { "lower_limit": 8475.52,"upper_limit": float("inf"),  "credit": 390.03 },
+            { "lower_limit": 8475.52,"upper_limit": float("inf"),  "credit": 384.93 },
         ]
     }
     
