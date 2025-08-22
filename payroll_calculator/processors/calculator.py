@@ -30,12 +30,22 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
     isr_threshold_salary = (smg_for_period * count_minimum_salary if count_minimum_salary > 1 else 0) if count_minimum_salary > 0 else 0
     imss_threshold_salary = smg_for_period * count_minimum_salary if count_minimum_salary > 0 else salary
     
+    print(f"WAGE AND SALARY DSI: {wage_and_salary_dsi} SALARY: {salary}")
+    
     period_salary = daily_salary * payment_period
-    is_salary_bigger_than_smg = period_salary > smg_for_period
-    # IMSS calculations
+    salary_to_compare = wage_and_salary_dsi if wage_and_salary_dsi > 0 else salary
+    
+    # SEPARAR LAS DOS COMPARACIONES
+    # Primera comparación: para cálculos tradicionales (ISR, IMSS employee, RCV employee)
+    is_period_salary_bigger_than_smg = period_salary > smg_for_period
+    
+    # Segunda comparación: para cálculos DSI (ISR DSI, quotas con daily salary)
+    is_salary_to_compare_bigger_than_smg = salary_to_compare > smg_for_period
+    
+    # IMSS calculations - usar la segunda comparación para DSI
     imss = IMSS(uma=uma, imss_salary=salary, daily_salary=daily_salary, payment_period=payment_period, integration_factor=integration_factor,
                 risk_class=risk_class, minimum_threshold_salary=imss_threshold_salary, use_increment_percentage=use_increment_percentage, imss_breakdown=imss_breakdown, 
-                is_salary_bigger_than_smg=is_salary_bigger_than_smg)
+                is_salary_bigger_than_smg=is_salary_to_compare_bigger_than_smg)
     
     # Calcular los valores de breakdown si es necesario
     # IMSS calculations
@@ -71,23 +81,21 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         # print("================ TOTAL QUOTA_EMPLOYE_WITH_DAILY_SALARY ================", imss.quota_employe_with_daily_salary)
         # print("================ TOTAL QUOTA_EMPLOYEE_RCV_WITH_DAILY_SALARY ================", imss.quota_employee_rcv_with_daily_salary)
     
-    # ISR calculations
+    # ISR calculations - usar la primera comparación para cálculos tradicionales
     isr = ISR(monthly_salary=salary, payment_period=payment_period, periodicity=periodicity,
-              employee=imss.employee, minimum_threshold_salary=isr_threshold_salary, is_salary_bigger_than_smg=is_salary_bigger_than_smg)
-    # print("PASA ISR")
+              employee=imss.employee, minimum_threshold_salary=isr_threshold_salary, is_salary_bigger_than_smg=is_period_salary_bigger_than_smg)
+    
     isr_with_imss_breakdown = None
-    # print("PERIOD SALARY: ", period_salary)
-    if imss_breakdown is not None and is_salary_bigger_than_smg:
-        # print("PERIOD SALARY DEL IF: ", period_salary)
-        # Store the breakdown values in the isr instance
+    # Para el breakdown DSI, usar la segunda comparación
+    if imss_breakdown is not None and is_salary_to_compare_bigger_than_smg:
         isr_with_imss_breakdown = ISR(monthly_salary=period_salary, payment_period=payment_period, periodicity=periodicity,
-              employee=imss.employee, minimum_threshold_salary=isr_threshold_salary, is_salary_bigger_than_smg=is_salary_bigger_than_smg)
+              employee=imss.employee, minimum_threshold_salary=isr_threshold_salary, is_salary_bigger_than_smg=is_salary_to_compare_bigger_than_smg)
         isr.isr_imss_breakdown = isr_with_imss_breakdown
         
     if not hasattr(isr, 'isr_imss_breakdown'):
         isr.isr_imss_breakdown = None
         
-    # Savings calculations
+    # Savings calculations - usar la primera comparación para cálculos tradicionales
     saving = Saving(
         wage_and_salary=salary,
         wage_and_salary_dsi=wage_and_salary_dsi,
@@ -101,12 +109,13 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         net_salary=net_salary,
         other_perception=other_perception,
         is_without_salary_mode=is_without_salary_mode,
-        is_salary_bigger_than_smg=is_salary_bigger_than_smg,
+        is_salary_bigger_than_smg=is_period_salary_bigger_than_smg,
         is_pure_mode=is_pure_mode,
         is_percentage_mode=is_percentage_mode,
         is_keep_declared_salary=is_keep_declared_salary,
         is_pure_special_mode=is_pure_special_mode
     )
+    
     # print("PASA SAVING")
     
     # print("GET_TRADITIONAL_SCHEME_BIWEEKLY_TOTAL: ", saving.get_traditional_scheme_biweekly_total())    
@@ -133,7 +142,7 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         saving.saving_wage_and_salary = saving_breakdown_result['saving_wage_and_salary']
         saving.saving_productivity = saving_breakdown_result['saving_productivity']
         
-    if is_salary_bigger_than_smg is False:
+    if is_period_salary_bigger_than_smg is False:
         saving.employer_contributions = saving.get_employer_contributions_imss_rcv_traditional_scheme()
         
         
