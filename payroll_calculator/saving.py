@@ -48,7 +48,30 @@ class Saving:
 
     # Obtener el total de ingresos esquema tradicional ------- Columna Enumero
     def get_total_income_traditional_scheme(self, original_wage_and_salary=None):
+        # import inspect
+        
+        # # Obtener información del stack de llamadas
+        # frame = inspect.currentframe()
+        # caller_frame = frame.f_back
+        # caller_info = inspect.getframeinfo(caller_frame)
+        
+        # # Obtener el nombre del método/función que llama
+        # caller_function = caller_frame.f_code.co_name
+        # caller_filename = caller_info.filename.split('/')[-1]  # Solo el nombre del archivo
+        # caller_line = caller_info.lineno
+        
         salary_to_use = original_wage_and_salary if original_wage_and_salary else self.wage_and_salary
+        
+        # print("=" * 80)
+        # print(f"🔍 MÉTODO LLAMADO: get_total_income_traditional_scheme")
+        # print(f"📞 LLAMADO DESDE: {caller_function}() en {caller_filename}:{caller_line}")
+        # print(f"💰 Salario a usar: {salary_to_use}")
+        # print(f"📊 Original wage and salary: {original_wage_and_salary}")
+        # print(f"💼 Wage and salary (self): {self.wage_and_salary}")
+        # print(f"➕ Other perception: {self.other_perception}")
+        # print(f"🧮 Resultado: {salary_to_use + self.other_perception}")
+        # print("=" * 80)
+        
         return salary_to_use + self.other_perception
     
     # Obtener el total de ingresos para el modo Puro Especial ------- Columna Fnumero
@@ -123,7 +146,7 @@ class Saving:
         return base_productivity
 
     # Calcular la Comisión DSI ------- Columna Qnumero
-    def get_commission_dsi(self):
+    def get_commission_dsi(self, use_original_wage=False):
         """
         Calculate DSI commission based on the applied commission mode.
         
@@ -133,14 +156,14 @@ class Saving:
         commission_base_calculators = {
             'salary': lambda: self.wage_and_salary,
             'schema': lambda: self.net_salary if self.net_salary is not None else self.get_productivity(use_original_wage=True),
-            'total_income': lambda: self.get_total_income_traditional_scheme()
+            'total_income': lambda: self.get_total_income_traditional_scheme(use_original_wage)
         }
         
         
         # Get the base amount for commission calculation
         base_calculator = commission_base_calculators.get(
             self.applied_commission_to,
-            lambda: self.wage_and_salary_dsi  # Default case
+            lambda: self.wage_and_salary  # Default case
         )
         
         base_amount = base_calculator()
@@ -157,9 +180,8 @@ class Saving:
         if self.is_percentage_mode is True:
             # Usar self.wage_and_salary si original_wage_and_salary es None
             wage_to_use = self.get_total_income_traditional_scheme() if original_wage_and_salary is None else self.get_total_income_traditional_scheme(original_wage_and_salary)
-            return wage_to_use + self.imss.total_tax_cost_breakdown + self.get_commission_dsi()
-            fixed_fee_to_use = self.fixed_fee_dsi if self.imss.total_tax_cost_breakdown <= 0 else self.imss.total_tax_cost_breakdown
-        # This method now correctly uses the internally calculated self.fixed_fee_dsi
+            commission_to_use = self.get_commission_dsi() if original_wage_and_salary is None else self.get_commission_dsi(original_wage_and_salary)
+            return wage_to_use + self.imss.total_tax_cost_breakdown + commission_to_use
         return self.get_total_income_traditional_scheme() + fixed_fee_to_use + self.get_commission_dsi()
 
     # ------------------------------------------------------ CALCULO DE AHORRO ------------------------------------------------------

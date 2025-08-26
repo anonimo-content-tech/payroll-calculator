@@ -424,13 +424,19 @@ class IMSS:
         
         # OBTENER RCV PARA EMPLEADO EN RETENCIONES ÚLTIMA TABLA
         self.quota_employee_rcv_with_daily_salary = self.get_severance_and_old_age_employee(use_direct_daily_salary=True)
+        
+        # Calcular las contribuciones del empleador (retenciones del empleado)
+        employer_contributions = self.quota_employe_with_daily_salary + self.quota_employee_rcv_with_daily_salary
                 
         totals = [
             self.quota_employer_with_daily_salary,
             self.total_rcv_employer_with_daily_salary,
             self.infonavit_employer_with_daily_salary,
             self.tax_payroll_with_daily_salary,
+            employer_contributions,  # Agregar las contribuciones del empleador
         ]
+        
+        
         total_tax_cost_breakdown = sum(totals)
 
         # Crear un diccionario con los valores para devolver
@@ -442,7 +448,8 @@ class IMSS:
             'tax_payroll_with_daily_salary': self.tax_payroll_with_daily_salary,
             'total_tax_cost_breakdown': total_tax_cost_breakdown,
             'quota_employe_with_daily_salary': self.quota_employe_with_daily_salary,
-            'quota_employee_rcv_with_daily_salary': self.quota_employee_rcv_with_daily_salary
+            'quota_employee_rcv_with_daily_salary': self.quota_employee_rcv_with_daily_salary,
+            'employer_contributions': employer_contributions,  # Incluir en el retorno
         }
 
     def __str__(self):
