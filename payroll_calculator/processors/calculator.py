@@ -35,17 +35,14 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
     period_salary = daily_salary * payment_period
     salary_to_compare = wage_and_salary_dsi if wage_and_salary_dsi > 0 else salary
     
-    # SEPARAR LAS DOS COMPARACIONES
-    # Primera comparación: para cálculos tradicionales (ISR, IMSS employee, RCV employee)
-    is_period_salary_bigger_than_smg = period_salary > smg_for_period
+    # Validar si el salario (ya sea el manejado o el de Nómina Ciega es mayor al Salario Mínimo)
     
-    # Segunda comparación: para cálculos DSI (ISR DSI, quotas con daily salary)
-    is_salary_to_compare_bigger_than_smg = salary_to_compare > smg_for_period
+    is_salary_bigger_than_smg = salary_to_compare > smg_for_period
     
     # IMSS calculations - usar la segunda comparación para DSI
     imss = IMSS(uma=uma, imss_salary=salary, daily_salary=daily_salary, payment_period=payment_period, integration_factor=integration_factor,
                 risk_class=risk_class, minimum_threshold_salary=imss_threshold_salary, use_increment_percentage=use_increment_percentage, imss_breakdown=imss_breakdown, 
-                is_salary_bigger_than_smg=is_salary_to_compare_bigger_than_smg)
+                is_salary_bigger_than_smg=is_salary_bigger_than_smg)
     
     # Calcular los valores de breakdown si es necesario
     # IMSS calculations
@@ -83,13 +80,13 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
     
     # ISR calculations - usar la primera comparación para cálculos tradicionales
     isr = ISR(monthly_salary=salary, payment_period=payment_period, periodicity=periodicity,
-              employee=imss.employee, minimum_threshold_salary=isr_threshold_salary, is_salary_bigger_than_smg=is_period_salary_bigger_than_smg)
+              employee=imss.employee, minimum_threshold_salary=isr_threshold_salary, is_salary_bigger_than_smg=is_salary_bigger_than_smg)
     
     isr_with_imss_breakdown = None
     # Para el breakdown DSI, usar la segunda comparación
-    if imss_breakdown is not None and is_salary_to_compare_bigger_than_smg:
+    if imss_breakdown is not None and is_salary_bigger_than_smg:
         isr_with_imss_breakdown = ISR(monthly_salary=period_salary, payment_period=payment_period, periodicity=periodicity,
-              employee=imss.employee, minimum_threshold_salary=isr_threshold_salary, is_salary_bigger_than_smg=is_salary_to_compare_bigger_than_smg)
+              employee=imss.employee, minimum_threshold_salary=isr_threshold_salary, is_salary_bigger_than_smg=is_salary_bigger_than_smg)
         isr.isr_imss_breakdown = isr_with_imss_breakdown
         
     if not hasattr(isr, 'isr_imss_breakdown'):
@@ -109,7 +106,7 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         net_salary=net_salary,
         other_perception=other_perception,
         is_without_salary_mode=is_without_salary_mode,
-        is_salary_bigger_than_smg=is_period_salary_bigger_than_smg,
+        is_salary_bigger_than_smg=is_salary_bigger_than_smg,
         is_pure_mode=is_pure_mode,
         is_percentage_mode=is_percentage_mode,
         is_keep_declared_salary=is_keep_declared_salary,
@@ -142,7 +139,7 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         saving.saving_wage_and_salary = saving_breakdown_result['saving_wage_and_salary']
         saving.saving_productivity = saving_breakdown_result['saving_productivity']
         
-    if is_period_salary_bigger_than_smg is False:
+    if is_salary_bigger_than_smg is False:
         saving.employer_contributions = saving.get_employer_contributions_imss_rcv_traditional_scheme()
         
         
@@ -313,7 +310,7 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
             
             employer_contributions_dsi = (imss.quota_employe_with_daily_salary + imss.quota_employee_rcv_with_daily_salary) if hasattr(saving, 'employer_contributions') else 0
             
-            combined_result["total_tax_cost_breakdown"] = imss.total_tax_cost_breakdown + employer_contributions_dsi  # Col. AP - Costo Fiscal Total cuando es desglosado
+            combined_result["total_tax_cost_breakdown"] = imss.total_tax_cost_breakdown  # Col. AP - Costo Fiscal Total cuando es desglosado
             combined_result["employer_contributions_dsi"] = employer_contributions_dsi # Col. U - Cuotas Patronales
             
             combined_result["first_quota_employer_imss_dsi"] = imss.quota_employer_with_daily_salary # Col. P - Costo Fiscal IMSS para DSI cuando es desglosado - Hoja de Ahorro
