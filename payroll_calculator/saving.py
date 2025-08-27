@@ -177,7 +177,7 @@ class Saving:
             
         # Validación para calculo Sin Salario
         fixed_fee_to_use = 0 if self.is_without_salary_mode else self.fixed_fee_dsi
-        if self.is_percentage_mode is True:
+        if self.is_percentage_mode is True or self.is_keep_declared_salary_mode:
             # Usar self.wage_and_salary si original_wage_and_salary es None
             wage_to_use = self.get_total_income_traditional_scheme() if original_wage_and_salary is None else self.get_total_income_traditional_scheme(original_wage_and_salary)
             commission_to_use = self.get_commission_dsi() if original_wage_and_salary is None else self.get_commission_dsi(original_wage_and_salary)
