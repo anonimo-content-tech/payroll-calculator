@@ -426,7 +426,7 @@ class IMSS:
         self.quota_employee_rcv_with_daily_salary = self.get_severance_and_old_age_employee(use_direct_daily_salary=True)
         
         # Calcular las contribuciones del empleador (retenciones del empleado)
-        employer_contributions = self.quota_employe_with_daily_salary + self.quota_employee_rcv_with_daily_salary
+        employer_contributions = self.quota_employe_with_daily_salary + self.quota_employee_rcv_with_daily_salary if not self.is_salary_bigger_than_smg else 0
                 
         totals = [
             self.quota_employer_with_daily_salary,
