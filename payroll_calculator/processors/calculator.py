@@ -137,7 +137,7 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         # Validar que funcione con todos los casos, se quita debido a que se está calculando con un salario equivocado para el total después de Retenciones
         # para el modo de Porcentaje
         # saving.current_perception = saving_breakdown_result['saving_total_current_perception']
-        saving.saving_get_increment = saving_breakdown_result['saving_get_increment']
+        # saving.saving_get_increment = saving_breakdown_result['saving_get_increment']
         saving.saving_get_increment_percentage = saving_breakdown_result['saving_get_increment_percentage']
         
         saving.saving_wage_and_salary = saving_breakdown_result['saving_wage_and_salary']

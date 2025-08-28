@@ -241,7 +241,7 @@ class Saving:
         if use_imss_breakdown:
             # print("================================================ ORIGINAL WAGE AND SALARY: ", original_wage_and_salary, " SELF.GET_TOTAL_RETENTIONS: ", self.get_total_retentions(), " SELF.GET_TOTAL_RETENTIONS DS ================================================")
             return self.get_total_income_traditional_scheme_second_table(original_wage_and_salary, use_imss_breakdown) - self.get_total_retentions() + net_salary
-        return self.get_total_income_traditional_scheme_second_table() - self.get_total_retentions(use_imss_breakdown=use_imss_breakdown) + net_salary
+        return self.get_total_income_traditional_scheme_second_table() - self.get_total_retentions(traditional_schema=True, use_imss_breakdown=use_imss_breakdown) + net_salary
 
     # ------------------------------------------------------ CALCULO DE ESQUEMA DSI MENSUAL ------------------------------------------------------
 
