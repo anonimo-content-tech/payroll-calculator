@@ -9,8 +9,8 @@ class Saving:
     # Remove fixed_fee_dsi from parameters, make imss_instance non-optional
     def __init__(self, wage_and_salary, wage_and_salary_dsi, commission_percentage_dsi, count_minimum_salary, imss_instance: IMSS, isr_instance: Optional[ISR] = None, 
                  minimum_threshold_salary: Optional[float] = None, productivity: Optional[float] = None, applied_commission_to: str = 'salary', 
-                 net_salary: Optional[float] = None, other_perception: Optional[float] = None, is_without_salary_mode: bool = False, is_salary_bigger_than_smg = False, 
-                 is_pure_mode=False, is_percentage_mode=False, is_keep_declared_salary=False, is_pure_special_mode: bool = False,):
+                 net_salary: Optional[float] = None, other_perception: Optional[float] = None, is_without_salary_mode: bool = False, is_salary_bigger_than_smg = False,
+                 is_salary_completed_bigger_than_smg = False, is_pure_mode=False, is_percentage_mode=False, is_keep_declared_salary=False, is_pure_special_mode: bool = False,):
         self.wage_and_salary = wage_and_salary
         self.original_wage_and_salary = wage_and_salary  # Guardar el valor original
         self.imss: IMSS = imss_instance # Now non-optional
@@ -28,6 +28,7 @@ class Saving:
         self.is_without_salary_mode = is_without_salary_mode
         self.dsi_total_with_breakdown = None
         self.is_salary_bigger_than_smg = is_salary_bigger_than_smg
+        self.is_salary_completed_bigger_than_smg = is_salary_completed_bigger_than_smg
         self.is_pure_mode = is_pure_mode
         self.is_percentage_mode = is_percentage_mode
         self.is_keep_declared_salary_mode = is_keep_declared_salary
@@ -98,7 +99,7 @@ class Saving:
     # Obtener el total de esquema tradicional ------- Columna Jnumero
     def get_total_traditional_scheme(self):
         # Si el salario es menor al salario mínimo, sumar el ajuste de IMSS y RCV
-        if not self.is_salary_bigger_than_smg:
+        if not self.is_salary_completed_bigger_than_smg:
             return self.imss.get_total_employer() + self.get_employer_contributions_imss_rcv_traditional_scheme()
         return self.imss.get_total_employer()
 
@@ -215,9 +216,11 @@ class Saving:
         return self.isr.get_tax_payable(use_smg) if self.isr.get_tax_payable(use_smg) > self.isr.get_tax_in_favor() else (self.isr.get_tax_in_favor() * -1)
 
     # Obtener el total de Retenciones ------- Columna AEnumero
-    def get_total_retentions(self, use_imss_breakdown=False):
+    def get_total_retentions(self, traditional_schema=False, use_imss_breakdown=False):
+        # Si se usa el esquema tradicional calcular con el salario completo, si no, con el ya procesado
+        salary_bigger_than_smg = self.is_salary_completed_bigger_than_smg if traditional_schema else self.is_salary_bigger_than_smg
         # Si el salario es menor al salario mínimo, solo incluir ISR (que ya está validado en get_isr_retention)
-        if not self.is_salary_bigger_than_smg:
+        if not salary_bigger_than_smg:
             if use_imss_breakdown:
                 isr_employee_dsi = self.isr.isr_imss_breakdown.get_tax_payable() if self.isr.isr_imss_breakdown is not None else 0
                 return isr_employee_dsi
@@ -238,7 +241,7 @@ class Saving:
         if use_imss_breakdown:
             # print("================================================ ORIGINAL WAGE AND SALARY: ", original_wage_and_salary, " SELF.GET_TOTAL_RETENTIONS: ", self.get_total_retentions(), " SELF.GET_TOTAL_RETENTIONS DS ================================================")
             return self.get_total_income_traditional_scheme_second_table(original_wage_and_salary, use_imss_breakdown) - self.get_total_retentions() + net_salary
-        return self.get_total_income_traditional_scheme_second_table() - self.get_total_retentions(use_imss_breakdown) + net_salary
+        return self.get_total_income_traditional_scheme_second_table() - self.get_total_retentions(use_imss_breakdown=use_imss_breakdown) + net_salary
 
     # ------------------------------------------------------ CALCULO DE ESQUEMA DSI MENSUAL ------------------------------------------------------
 
@@ -264,7 +267,7 @@ class Saving:
     def get_current_perception_dsi(self, original_wage_and_salary=None, use_imss_breakdown=False):
         if use_imss_breakdown:
             # print(" DENTRO DEL IFFFFFFFFF SELF.WAGE AND SALARY DSI: ", self.get_total_wage_and_salary_dsi(), " SELF.GET_TOTAL_ISR_RETENTION_DSI: ", self.get_total_retentions(use_imss_breakdown))
-            return original_wage_and_salary - self.get_total_retentions(use_imss_breakdown)
+            return original_wage_and_salary - self.get_total_retentions(use_imss_breakdown=use_imss_breakdown)
         # Columna AJ - Columna AK - Columna AL - Columna AM - Columna AN
         # return self.get_total_wage_and_salary_dsi() - self.get_total_isr_retention_dsi() - 0 - 0 - 0
         return self.get_total_wage_and_salary_dsi() - self.get_total_isr_retention_dsi()

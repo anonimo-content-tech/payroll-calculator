@@ -37,12 +37,13 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
     
     # Validar si el salario (ya sea el manejado o el de Nómina Ciega es mayor al Salario Mínimo)
     
-    is_salary_bigger_than_smg = salary_to_compare > smg_for_period
+    is_salary_processed_bigger_than_smg = salary_to_compare > smg_for_period
+    is_salary_completed_bigger_than_smg = salary > smg_for_period
     
     # IMSS calculations - usar la segunda comparación para DSI
     imss = IMSS(uma=uma, imss_salary=salary, daily_salary=daily_salary, payment_period=payment_period, integration_factor=integration_factor,
                 risk_class=risk_class, minimum_threshold_salary=imss_threshold_salary, use_increment_percentage=use_increment_percentage, imss_breakdown=imss_breakdown, 
-                is_salary_bigger_than_smg=is_salary_bigger_than_smg)
+                is_salary_bigger_than_smg=is_salary_processed_bigger_than_smg)
     
     # Calcular los valores de breakdown si es necesario
     # IMSS calculations
@@ -80,13 +81,13 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
     
     # ISR calculations - usar la primera comparación para cálculos tradicionales
     isr = ISR(monthly_salary=salary, payment_period=payment_period, periodicity=periodicity,
-              employee=imss.employee, minimum_threshold_salary=isr_threshold_salary, is_salary_bigger_than_smg=is_salary_bigger_than_smg)
+              employee=imss.employee, minimum_threshold_salary=isr_threshold_salary, is_salary_bigger_than_smg=is_salary_completed_bigger_than_smg)
     
     isr_with_imss_breakdown = None
     # Para el breakdown DSI, usar la segunda comparación
-    if imss_breakdown is not None and is_salary_bigger_than_smg:
+    if imss_breakdown is not None and is_salary_processed_bigger_than_smg:
         isr_with_imss_breakdown = ISR(monthly_salary=period_salary, payment_period=payment_period, periodicity=periodicity,
-              employee=imss.employee, minimum_threshold_salary=isr_threshold_salary, is_salary_bigger_than_smg=is_salary_bigger_than_smg)
+              employee=imss.employee, minimum_threshold_salary=isr_threshold_salary, is_salary_bigger_than_smg=is_salary_processed_bigger_than_smg)
         isr.isr_imss_breakdown = isr_with_imss_breakdown
         
     if not hasattr(isr, 'isr_imss_breakdown'):
@@ -106,7 +107,8 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         net_salary=net_salary,
         other_perception=other_perception,
         is_without_salary_mode=is_without_salary_mode,
-        is_salary_bigger_than_smg=is_salary_bigger_than_smg,
+        is_salary_bigger_than_smg=is_salary_processed_bigger_than_smg,
+        is_salary_completed_bigger_than_smg=is_salary_completed_bigger_than_smg,
         is_pure_mode=is_pure_mode,
         is_percentage_mode=is_percentage_mode,
         is_keep_declared_salary=is_keep_declared_salary,
@@ -139,7 +141,7 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         saving.saving_wage_and_salary = saving_breakdown_result['saving_wage_and_salary']
         saving.saving_productivity = saving_breakdown_result['saving_productivity']
         
-    if is_salary_bigger_than_smg is False:
+    if not is_salary_completed_bigger_than_smg:
         saving.employer_contributions = saving.get_employer_contributions_imss_rcv_traditional_scheme()
         
         
@@ -150,7 +152,7 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         # print("================ TOTAL SAVING_GET_INCREMENT ================", saving.saving_get_increment)
         # print("================ TOTAL SAVING_GET_INCREMENT_PERCENTAGE ================", saving.saving_get_increment_percentage)
 
-    return imss, isr, saving, wage_and_salary_dsi
+    return imss, isr, saving, wage_and_salary_dsi, is_salary_processed_bigger_than_smg
 
 
 def get_value_or_default(obj, attr_name, default_func=None):
@@ -240,7 +242,7 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
         net_salary = net_salaries[i] if net_salaries is not None and i < len(net_salaries) else None
 
         # Get calculation instances
-        imss, isr, saving, wage_and_salary_dsi = process_single_calculation(
+        imss, isr, saving, wage_and_salary_dsi, is_salary_processed_bigger_than_smg = process_single_calculation(
             salary, daily_salary, payment_period, periodicity, integration_factor, use_increment_percentage, risk_class,
             smg_multiplier, commission_percentage_dsi, count_minimum_salary,
             productivity, imss_breakdown, uma, applied_commission_to, net_salary, other_perception, is_without_salary_mode, 
@@ -291,7 +293,7 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
             "dsi_scheme_monthly": saving.get_dsi_scheme_biweekly_total() * 2, # Col. R - Esquema DSI Mensual
             "saving_amount": get_value_or_default(saving, "saving_amount", saving.get_amount), # Col. T - Ahorro
             "saving_percentage": get_value_or_default(saving, "saving_percentage", lambda: saving.get_percentage() * 100),  # Col. U - Porcentaje de Ahorro
-            "total_retentions": saving.get_total_retentions(),  # Col. AE - Retenciones Total de Retenciones - ISR + IMSS + RCV
+            "total_retentions": saving.get_total_retentions(traditional_schema=True),  # Col. AE - Retenciones Total de Retenciones - ISR + IMSS + RCV
             "current_perception": get_value_or_default(saving, "current_perception", saving.get_current_perception),  # Col. AF - Percepción Actual
             "dsi_perception": get_value_or_default(saving, "saving_total_current_perception_dsi", saving.get_current_perception_dsi),  # Col. AO - Percepción DSI
             "increment": get_value_or_default(saving, "saving_get_increment", saving.get_increment),  # Col. AQ - Incremento
@@ -308,7 +310,7 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
         if imss_breakdown:
             combined_result["total_retentions_dsi"] = saving.saving_total_retentions_dsi # Col. AR (desglosado) o AN (normal),  - Total Retenciones DSI
             
-            employer_contributions_dsi = (imss.quota_employe_with_daily_salary + imss.quota_employee_rcv_with_daily_salary) if hasattr(saving, 'employer_contributions') else 0
+            employer_contributions_dsi = (imss.quota_employe_with_daily_salary + imss.quota_employee_rcv_with_daily_salary) if not is_salary_processed_bigger_than_smg else 0
             
             combined_result["total_tax_cost_breakdown"] = imss.total_tax_cost_breakdown  # Col. AP - Costo Fiscal Total cuando es desglosado
             combined_result["employer_contributions_dsi"] = employer_contributions_dsi # Col. U - Cuotas Patronales
@@ -318,8 +320,8 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
             combined_result["first_infonavit_employer_dsi"] = imss.infonavit_employer_with_daily_salary # Col. R - Costo Fiscal Infonavit para DSI cuando es desglosado - Hoja de Ahorro
             combined_result["first_tax_payroll_employer_dsi"] = imss.tax_payroll_with_daily_salary # Col. S - Costo Fiscal Impuesto Estatal para DSI cuando es desglosado - Hoja de Ahorro
             
-            combined_result["quota_employe_with_daily_salary"] = imss.quota_employe_with_daily_salary if not hasattr(saving, 'employer_contributions') else 0
-            combined_result["quota_employee_rcv_with_daily_salary"] = imss.quota_employee_rcv_with_daily_salary if not hasattr(saving, 'employer_contributions') else 0
+            combined_result["quota_employe_with_daily_salary"] = imss.quota_employe_with_daily_salary if is_salary_processed_bigger_than_smg else 0
+            combined_result["quota_employee_rcv_with_daily_salary"] = imss.quota_employee_rcv_with_daily_salary if is_salary_processed_bigger_than_smg else 0
             
             
             combined_result["saving_total_retentions_isr_dsi"] = saving.saving_total_retentions_isr_dsi
