@@ -86,7 +86,6 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
     isr_with_imss_breakdown = None
     # Para el breakdown DSI, usar la segunda comparación
     if imss_breakdown is not None and is_salary_processed_bigger_than_smg:
-        print("PRIMERAMENTE SÍ ENTRA CON PERIOD SALARY DE: ", period_salary)
         isr_with_imss_breakdown = ISR(monthly_salary=period_salary, payment_period=payment_period, periodicity=periodicity,
               employee=imss.employee, minimum_threshold_salary=isr_threshold_salary, is_salary_bigger_than_smg=is_salary_processed_bigger_than_smg)
         isr.isr_imss_breakdown = isr_with_imss_breakdown
@@ -346,11 +345,20 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
         if hasattr(saving, 'employer_contributions'):
             combined_result["employer_contributions"] = saving.employer_contributions
             
-        if net_salary is not None:
+        if is_pure_special_mode is not None:
             combined_result["net_salary"] = net_salary
             combined_result["total_income_pure_special"] = saving.get_total_income_pure_special()
+            
+        # Agregar propiedad específica para modo puro especial
+        if is_pure_special_mode:
+            combined_result["salary_minus_retentions"] = salary - saving.get_total_retentions(traditional_schema=True)
             combined_result["total_cost_client"] = saving.get_total_cost_client()
             combined_result["total_cost_surplus"] = saving.get_total_cost_surplus()
+            
+            # Actualizar productividad restando salario neto y salary_minus_retentions
+            if is_pure_special_mode is not None:
+                updated_productivity = net_salary - combined_result["salary_minus_retentions"]
+                combined_result["productivity"] = updated_productivity
 
         # Append the combined result to the main list
         individual_results.append(combined_result)
