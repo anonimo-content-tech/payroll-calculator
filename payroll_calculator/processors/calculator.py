@@ -10,7 +10,7 @@ from payroll_calculator.totals import TotalCalculator
 def process_single_calculation(salary, daily_salary, payment_period, periodicity, integration_factor, use_increment_percentage, 
                                risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, productivity=None, 
                                imss_breakdown=None, uma=113.14, applied_commission_to='salary', net_salary=None, other_perception=None, is_without_salary_mode=False, 
-                               is_pure_mode=False, is_percentage_mode=False, is_keep_declared_salary=False, is_pure_special_mode=False):
+                               is_pure_mode=False, is_percentage_mode=False, is_keep_declared_salary=False, is_pure_special_mode=False, is_standard_mode=False, is_staggered_mode=False):
     """
     Process a single calculation for IMSS, ISR, and Savings
     
@@ -86,6 +86,7 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
     isr_with_imss_breakdown = None
     # Para el breakdown DSI, usar la segunda comparación
     if imss_breakdown is not None and is_salary_processed_bigger_than_smg:
+        print("PRIMERAMENTE SÍ ENTRA CON PERIOD SALARY DE: ", period_salary)
         isr_with_imss_breakdown = ISR(monthly_salary=period_salary, payment_period=payment_period, periodicity=periodicity,
               employee=imss.employee, minimum_threshold_salary=isr_threshold_salary, is_salary_bigger_than_smg=is_salary_processed_bigger_than_smg)
         isr.isr_imss_breakdown = isr_with_imss_breakdown
@@ -112,7 +113,9 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         is_pure_mode=is_pure_mode,
         is_percentage_mode=is_percentage_mode,
         is_keep_declared_salary=is_keep_declared_salary,
-        is_pure_special_mode=is_pure_special_mode
+        is_pure_special_mode=is_pure_special_mode,
+        is_standard_mode=is_standard_mode,
+        is_staggered_mode=is_staggered_mode
     )
     
     # print("PASA SAVING")
@@ -137,7 +140,7 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         # Validar que funcione con todos los casos, se quita debido a que se está calculando con un salario equivocado para el total después de Retenciones
         # para el modo de Porcentaje
         # saving.current_perception = saving_breakdown_result['saving_total_current_perception']
-        # saving.saving_get_increment = saving_breakdown_result['saving_get_increment']
+        saving.saving_get_increment = saving_breakdown_result['saving_get_increment']
         saving.saving_get_increment_percentage = saving_breakdown_result['saving_get_increment_percentage']
         
         saving.saving_wage_and_salary = saving_breakdown_result['saving_wage_and_salary']
@@ -179,7 +182,7 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
                                   use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, 
                                   count_minimum_salary, stricted_mode, productivities=None, imss_breakdown=None, 
                                   uma=113.14, applied_commission_to='salary', net_salaries=None, other_perceptions=None, productivity_to_zero=None, is_pure_mode=None, 
-                                  is_keep_declared_salary=None, is_pure_special_mode=None):
+                                  is_keep_declared_salary=None, is_pure_special_mode=None, is_standard_mode=None, is_staggered_mode=None):
     """
     Process multiple calculations for IMSS, ISR, and Savings, adding column references to labels.
     This function now only returns the individual results for each salary.
@@ -248,7 +251,7 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
             salary, daily_salary, payment_period, periodicity, integration_factor, use_increment_percentage, risk_class,
             smg_multiplier, commission_percentage_dsi, count_minimum_salary,
             productivity, imss_breakdown, uma, applied_commission_to, net_salary, other_perception, is_without_salary_mode, 
-            is_pure_mode, is_percentage_mode, is_keep_declared_salary, is_pure_special_mode
+            is_pure_mode, is_percentage_mode, is_keep_declared_salary, is_pure_special_mode, is_standard_mode, is_staggered_mode
         )
         
         # Create a combined dictionary for the current salary with column references
@@ -330,8 +333,14 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
             
             
             if isr.isr_imss_breakdown is not None:
+                # print("=" * 92, "EMPIEZA EL BREAKDOWN", "=" * 92)
                 # Add ISR breakdown values to combined_result
-                combined_result["isr_tax_payable_dsi"] = isr.isr_imss_breakdown.get_tax_payable() # Col. O - Impuesto a Cargo ISR para DSI
+                # Validación limpia: pasar True solo si is_keep_declared_salary o is_standard_mode son verdaderos
+                should_pass_true = is_staggered_mode or is_standard_mode
+                combined_result["isr_tax_payable_dsi"] = (
+                    isr.isr_imss_breakdown.get_tax_payable(True) if should_pass_true 
+                    else isr.isr_imss_breakdown.get_tax_payable()
+                )  # Col. O - Impuesto a Cargo ISR para DSI
 
         # Añadir employee_contributions si existe en el objeto saving
         if hasattr(saving, 'employer_contributions'):
