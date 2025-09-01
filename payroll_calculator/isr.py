@@ -3,7 +3,7 @@ from .parameters import Parameters
 
 
 class ISR:
-    def __init__(self, monthly_salary, payment_period, periodicity, employee: Employee, minimum_threshold_salary=None, is_salary_bigger_than_smg=False):
+    def __init__(self, monthly_salary, payment_period, periodicity, employee: Employee, minimum_threshold_salary=None, is_salary_bigger_than_smg=False, commission_and_bonus_for_isr=None):
         self.employee = employee
         self.parameters = Parameters()
         self.monthly_salary = monthly_salary
@@ -13,6 +13,7 @@ class ISR:
         self.smg = Parameters.SMG
         self.monthly_smg = minimum_threshold_salary
         self.is_salary_bigger_than_smg = is_salary_bigger_than_smg
+        self.commission_and_bonus_for_isr = commission_and_bonus_for_isr
 
     # ------------------------------------------------------ CALCULO DEL IMPUESTO ------------------------------------------------------
 
@@ -27,6 +28,10 @@ class ISR:
         isr_table = self.get_isr_table()
         
         user_salary = self.monthly_smg if use_smg else self.monthly_salary
+        
+        if self.commission_and_bonus_for_isr is not None:
+            user_salary +=  self.commission_and_bonus_for_isr
+            
         for row in isr_table:
             if row['lower_limit'] <= user_salary:
                 if applicable_limit is None or row['lower_limit'] > applicable_limit:
@@ -39,6 +44,10 @@ class ISR:
         if lower_limit is None:
             return 0
         salary = self.monthly_smg if use_smg else self.monthly_salary
+        
+        # Agregar comisiones y bonos al salario si existen
+        if self.commission_and_bonus_for_isr is not None:
+            salary += self.commission_and_bonus_for_isr
         return salary - lower_limit
 
     # Calcular el Porcentaje a aplicar en el excedente ------- Columna Gnumero
@@ -84,8 +93,14 @@ class ISR:
     def get_range_credit_to_salary(self):
         # Encuentra el mayor valor en lower_limit que sea menor o igual al salario mensual
         applicable_limit = None
+        salary_with_commission = self.monthly_salary
+        
+        # Agregar comisiones y bonos al salario si existen
+        if self.commission_and_bonus_for_isr is not None:
+            salary_with_commission += self.commission_and_bonus_for_isr
+            
         for row in self.SALARY_CREDIT_TABLE:
-            if row['lower_limit'] <= self.monthly_salary:
+            if row['lower_limit'] <= salary_with_commission:
                 if applicable_limit is None or row['lower_limit'] > applicable_limit:
                     applicable_limit = row['lower_limit']
         return applicable_limit

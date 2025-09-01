@@ -10,7 +10,7 @@ from payroll_calculator.totals import TotalCalculator
 def process_single_calculation(salary, daily_salary, payment_period, periodicity, integration_factor, use_increment_percentage, 
                                risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, productivity=None, 
                                imss_breakdown=None, uma=113.14, applied_commission_to='salary', net_salary=None, other_perception=None, is_without_salary_mode=False, 
-                               is_pure_mode=False, is_percentage_mode=False, is_keep_declared_salary=False, is_pure_special_mode=False, is_standard_mode=False, is_staggered_mode=False):
+                               is_pure_mode=False, is_percentage_mode=False, is_keep_declared_salary=False, is_pure_special_mode=False, is_standard_mode=False, is_staggered_mode=False, commission_and_bonus_for_isr=None):
     """
     Process a single calculation for IMSS, ISR, and Savings
     
@@ -81,13 +81,15 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
     
     # ISR calculations - usar la primera comparación para cálculos tradicionales
     isr = ISR(monthly_salary=salary, payment_period=payment_period, periodicity=periodicity,
-              employee=imss.employee, minimum_threshold_salary=isr_threshold_salary, is_salary_bigger_than_smg=is_salary_completed_bigger_than_smg)
+              employee=imss.employee, minimum_threshold_salary=isr_threshold_salary, is_salary_bigger_than_smg=is_salary_completed_bigger_than_smg,
+              commission_and_bonus_for_isr=commission_and_bonus_for_isr)
     
     isr_with_imss_breakdown = None
     # Para el breakdown DSI, usar la segunda comparación
     if imss_breakdown is not None and is_salary_processed_bigger_than_smg:
         isr_with_imss_breakdown = ISR(monthly_salary=period_salary, payment_period=payment_period, periodicity=periodicity,
-              employee=imss.employee, minimum_threshold_salary=isr_threshold_salary, is_salary_bigger_than_smg=is_salary_processed_bigger_than_smg)
+              employee=imss.employee, minimum_threshold_salary=isr_threshold_salary, is_salary_bigger_than_smg=is_salary_processed_bigger_than_smg,
+              commission_and_bonus_for_isr=commission_and_bonus_for_isr)
         isr.isr_imss_breakdown = isr_with_imss_breakdown
         
     if not hasattr(isr, 'isr_imss_breakdown'):
@@ -181,7 +183,7 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
                                   use_increment_percentage, risk_class, smg_multiplier, commission_percentage_dsi, 
                                   count_minimum_salary, stricted_mode, productivities=None, imss_breakdown=None, 
                                   uma=113.14, applied_commission_to='salary', net_salaries=None, other_perceptions=None, productivity_to_zero=None, is_pure_mode=None, 
-                                  is_keep_declared_salary=None, is_pure_special_mode=None, is_standard_mode=None, is_staggered_mode=None):
+                                  is_keep_declared_salary=None, is_pure_special_mode=None, is_standard_mode=None, is_staggered_mode=None, commissions_and_bonus_for_isr=None):
     """
     Process multiple calculations for IMSS, ISR, and Savings, adding column references to labels.
     This function now only returns the individual results for each salary.
@@ -244,13 +246,15 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
                     f"SMG for {payment_period} days is higher than salary. Skipping salary {salary}.")
                 
         net_salary = net_salaries[i] if net_salaries is not None and i < len(net_salaries) else None
+        
+        commission_and_bonus_for_isr = commissions_and_bonus_for_isr[i] if commissions_and_bonus_for_isr is not None and i < len(commissions_and_bonus_for_isr) else None
 
         # Get calculation instances
         imss, isr, saving, wage_and_salary_dsi, is_salary_processed_bigger_than_smg = process_single_calculation(
             salary, daily_salary, payment_period, periodicity, integration_factor, use_increment_percentage, risk_class,
             smg_multiplier, commission_percentage_dsi, count_minimum_salary,
             productivity, imss_breakdown, uma, applied_commission_to, net_salary, other_perception, is_without_salary_mode, 
-            is_pure_mode, is_percentage_mode, is_keep_declared_salary, is_pure_special_mode, is_standard_mode, is_staggered_mode
+            is_pure_mode, is_percentage_mode, is_keep_declared_salary, is_pure_special_mode, is_standard_mode, is_staggered_mode, commission_and_bonus_for_isr,
         )
         
         # Create a combined dictionary for the current salary with column references
