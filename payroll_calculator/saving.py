@@ -132,7 +132,7 @@ class Saving:
         # Usar el valor original si se especifica o si wage_and_salary ha sido modificado
         wage_to_use = self.original_wage_and_salary if use_original_wage else self.wage_and_salary
                 
-        if self.is_pure_special_mode:
+        if self.is_pure_special_mode and self.net_salary > 0:
             return self.net_salary - (wage_to_use - self.get_total_retentions(traditional_schema=True))
         
         # if self.original_wage_and_salary != self.wage_and_salary:
@@ -248,7 +248,7 @@ class Saving:
     # Calcular percepción actual ------- Columna AFnumero
     def get_current_perception(self, original_wage_and_salary=None, use_imss_breakdown=False):
         
-        if self.is_pure_special_mode:
+        if self.is_pure_special_mode and self.net_salary > 0:
             return self.get_total_income_pure_special() - self.get_total_retentions(traditional_schema=True)
         
         if use_imss_breakdown:

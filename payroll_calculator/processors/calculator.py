@@ -246,14 +246,16 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
                     f"SMG for {payment_period} days is higher than salary. Skipping salary {salary}.")
                 
         net_salary = net_salaries[i] if net_salaries is not None and i < len(net_salaries) else None
-        
+        safe_net_salary = 0
+        if net_salary is not None and isinstance(net_salary, (int, float)) and not (net_salary != net_salary or net_salary == float('inf') or net_salary == float('-inf')):
+            safe_net_salary = net_salary
         commission_and_bonus_for_isr = commissions_and_bonus_for_isr[i] if commissions_and_bonus_for_isr is not None and i < len(commissions_and_bonus_for_isr) else None
 
         # Get calculation instances
         imss, isr, saving, wage_and_salary_dsi, is_salary_processed_bigger_than_smg = process_single_calculation(
             salary, daily_salary, payment_period, periodicity, integration_factor, use_increment_percentage, risk_class,
             smg_multiplier, commission_percentage_dsi, count_minimum_salary,
-            productivity, imss_breakdown, uma, applied_commission_to, net_salary, other_perception, is_without_salary_mode, 
+            productivity, imss_breakdown, uma, applied_commission_to, safe_net_salary, other_perception, is_without_salary_mode, 
             is_pure_mode, is_percentage_mode, is_keep_declared_salary, is_pure_special_mode, is_standard_mode, is_staggered_mode, commission_and_bonus_for_isr,
         )
         
@@ -350,8 +352,13 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
             combined_result["employer_contributions"] = saving.employer_contributions
             
         if is_pure_special_mode is not None:
-            combined_result["net_salary"] = net_salary
-            combined_result["total_income_pure_special"] = saving.get_total_income_pure_special()
+            # Validación para evitar valores NaN o None
+            safe_net_salary = 0
+            if net_salary is not None and isinstance(net_salary, (int, float)) and not (net_salary != net_salary or net_salary == float('inf') or net_salary == float('-inf')):
+                safe_net_salary = net_salary
+            
+            combined_result["net_salary"] = safe_net_salary
+            combined_result["total_income_pure_special"] = saving.get_total_income_pure_special() if safe_net_salary > 0 else salary
             
         # Agregar propiedad específica para modo puro especial
         if is_pure_special_mode:
@@ -361,8 +368,13 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
             
             # Actualizar productividad restando salario neto y salary_minus_retentions
             if is_pure_special_mode is not None:
-                updated_productivity = net_salary - combined_result["salary_minus_retentions"]
-                combined_result["productivity"] = updated_productivity
+                # Usar el valor seguro de net_salary para evitar NaN en el cálculo
+                safe_net_salary = combined_result["net_salary"]  # Ya validado arriba
+                if safe_net_salary > 0:
+                    updated_productivity = safe_net_salary - combined_result["salary_minus_retentions"]
+                    combined_result["productivity"] = updated_productivity
+                else:
+                    combined_result["productivity"] = 0
 
         # Append the combined result to the main list
         individual_results.append(combined_result)
