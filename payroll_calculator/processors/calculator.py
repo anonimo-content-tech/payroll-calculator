@@ -363,13 +363,15 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
         # Agregar propiedad específica para modo puro especial
         if is_pure_special_mode:
             combined_result["salary_minus_retentions"] = salary - saving.get_total_retentions(traditional_schema=True)
-            combined_result["total_cost_client"] = saving.get_total_cost_client()
-            combined_result["total_cost_surplus"] = saving.get_total_cost_surplus()
+            
+            # Usar el valor seguro de net_salary para evitar NaN en el cálculo
+            safe_net_salary = combined_result["net_salary"]
+            
+            combined_result["total_cost_client"] = saving.get_total_cost_client() if safe_net_salary > 0 else saving.get_traditional_scheme_biweekly_total()
+            combined_result["total_cost_surplus"] = saving.get_total_cost_surplus() if safe_net_salary > 0 else 0
             
             # Actualizar productividad restando salario neto y salary_minus_retentions
             if is_pure_special_mode is not None:
-                # Usar el valor seguro de net_salary para evitar NaN en el cálculo
-                safe_net_salary = combined_result["net_salary"]  # Ya validado arriba
                 if safe_net_salary > 0:
                     updated_productivity = safe_net_salary - combined_result["salary_minus_retentions"]
                     combined_result["productivity"] = updated_productivity
