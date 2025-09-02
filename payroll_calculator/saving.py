@@ -342,8 +342,10 @@ class Saving:
             current_perception = self.get_current_perception(original_wage_and_salary, use_imss_breakdown=True)
             # print("CURRENT PERCEPTION: ", current_perception, " CON ORIGINAL WAGE AND SALARY: ", original_wage_and_salary)
             
+            use_internal_perception = self.is_percentage_mode or self.is_staggered_mode or self.is_keep_declared_salary_mode
+            
             # Calcular el incremento y porcentaje de incremento usando los valores guardados
-            saving_get_increment = saving_total_current_perception_dsi - current_perception
+            saving_get_increment = (saving_total_current_perception_dsi - current_perception) if use_internal_perception else self.get_increment()
             saving_get_increment_percentage = saving_get_increment / current_perception if current_perception != 0 else 0
             
             saving_productivity = self.get_productivity(use_original_wage=True)
