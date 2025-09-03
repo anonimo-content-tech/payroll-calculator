@@ -11,7 +11,7 @@ class Saving:
                  minimum_threshold_salary: Optional[float] = None, productivity: Optional[float] = None, applied_commission_to: str = 'salary', 
                  net_salary: Optional[float] = None, other_perception: Optional[float] = None, is_without_salary_mode: bool = False, is_salary_bigger_than_smg = False,
                  is_salary_completed_bigger_than_smg = False, is_pure_mode=False, is_percentage_mode=False, is_keep_declared_salary=False, is_pure_special_mode: bool = False,
-                 is_standard_mode: bool = False, is_staggered_mode: bool = False):
+                 is_standard_mode: bool = False, is_staggered_mode: bool = False, commission_and_bonus_for_isr: Optional[float] = None):
         self.wage_and_salary = wage_and_salary
         self.original_wage_and_salary = wage_and_salary  # Guardar el valor original
         self.imss: IMSS = imss_instance # Now non-optional
@@ -36,6 +36,7 @@ class Saving:
         self.is_pure_special_mode = is_pure_special_mode
         self.is_standard_mode = is_standard_mode
         self.is_staggered_mode = is_staggered_mode
+        self.commission_and_bonus_for_isr = commission_and_bonus_for_isr
 
     # set_imss might be less necessary if IMSS is required at init, but keep for flexibility
     def set_imss(self, imss_instance: IMSS) -> None:
@@ -76,7 +77,7 @@ class Saving:
         # print(f"🧮 Resultado: {salary_to_use + self.other_perception}")
         # print("=" * 80)
         
-        return salary_to_use + self.other_perception
+        return salary_to_use + self.other_perception + self.commission_and_bonus_for_isr
     
     # Obtener el total de ingresos para el modo Puro Especial ------- Columna Fnumero
     def get_total_income_pure_special(self):
@@ -211,7 +212,7 @@ class Saving:
     # Obtener el total de Ingresos Esquema Tradicional - Segunda Tabla ------- Columna AAnumero
     def get_total_income_traditional_scheme_second_table(self, original_wage_and_salary=None, use_imss_breakdown=False):
         salary_to_use = original_wage_and_salary if use_imss_breakdown else self.wage_and_salary
-        return salary_to_use + self.other_perception
+        return salary_to_use + self.other_perception + self.commission_and_bonus_for_isr
 
     # Obtener el ISR de Retenciones ------- Columna ABnumero
     def get_isr_retention(self, use_smg=False):
@@ -265,7 +266,7 @@ class Saving:
     # Calcular Total de Ingresos ------- Columna AJnumero
     def get_total_wage_and_salary_dsi(self):
         # print("================== SELF.WAGE AND SALARY: ", self.wage_and_salary_dsi, " SELF.GET_ASSIMILATED QUE ES LA PRODUCTIVIDAD(): ", self.get_assimilated(), " ==================")
-        return self.wage_and_salary_dsi + self.get_assimilated()
+        return self.wage_and_salary_dsi + self.get_assimilated() + self.commission_and_bonus_for_isr
     
     # Calcular Total de Retenciones DSI ------- Columna AKnumero
     def get_total_isr_retention_dsi(self, use_imss_breakdown=False):
@@ -335,7 +336,9 @@ class Saving:
             
             saving_total_retentions_dsi = self.get_total_retentions(use_imss_breakdown=True)
             
-            saving_total_current_perception_dsi = self.get_current_perception_dsi(original_wage_and_salary, use_imss_breakdown=True)
+            total_income = self.get_total_income_traditional_scheme(original_wage_and_salary=original_wage_and_salary)
+            
+            saving_total_current_perception_dsi = self.get_current_perception_dsi(original_wage_and_salary=total_income, use_imss_breakdown=True)
             # print("SAVING TOTAL CURRENT PERCEPTION: ", saving_total_current_perception_dsi)
 
             # Guardar temporalmente los valores actuales para calcular el incremento

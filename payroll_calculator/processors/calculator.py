@@ -116,7 +116,8 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         is_keep_declared_salary=is_keep_declared_salary,
         is_pure_special_mode=is_pure_special_mode,
         is_standard_mode=is_standard_mode,
-        is_staggered_mode=is_staggered_mode
+        is_staggered_mode=is_staggered_mode,
+        commission_and_bonus_for_isr=commission_and_bonus_for_isr,
     )
     
     # print("PASA SAVING")
