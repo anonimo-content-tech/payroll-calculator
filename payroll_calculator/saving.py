@@ -36,7 +36,7 @@ class Saving:
         self.is_pure_special_mode = is_pure_special_mode
         self.is_standard_mode = is_standard_mode
         self.is_staggered_mode = is_staggered_mode
-        self.commission_and_bonus_for_isr = commission_and_bonus_for_isr
+        self.commission_and_bonus_for_isr = commission_and_bonus_for_isr if commission_and_bonus_for_isr else 0
 
     # set_imss might be less necessary if IMSS is required at init, but keep for flexibility
     def set_imss(self, imss_instance: IMSS) -> None:
