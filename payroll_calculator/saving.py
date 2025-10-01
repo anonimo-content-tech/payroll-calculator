@@ -9,7 +9,7 @@ class Saving:
     # Remove fixed_fee_dsi from parameters, make imss_instance non-optional
     def __init__(self, wage_and_salary, wage_and_salary_dsi, commission_percentage_dsi, count_minimum_salary, imss_instance: IMSS, isr_instance: Optional[ISR] = None, 
                  minimum_threshold_salary: Optional[float] = None, productivity: Optional[float] = None, applied_commission_to: str = 'salary', 
-                 net_salary: Optional[float] = None, other_perception: Optional[float] = None, is_without_salary_mode: bool = False, is_salary_bigger_than_smg = False,
+                 net_salary: Optional[float] = None, other_perception: Optional[float] = None, is_without_salary_mode: bool = False, is_salary_processed_bigger_than_smg = False,
                  is_salary_completed_bigger_than_smg = False, is_pure_mode=False, is_percentage_mode=False, is_keep_declared_salary=False, is_pure_special_mode: bool = False,
                  is_standard_mode: bool = False, is_staggered_mode: bool = False, commission_and_bonus_for_isr: Optional[float] = None):
         self.wage_and_salary = wage_and_salary
@@ -28,7 +28,7 @@ class Saving:
         self.applied_commission_to = applied_commission_to
         self.is_without_salary_mode = is_without_salary_mode
         self.dsi_total_with_breakdown = None
-        self.is_salary_bigger_than_smg = is_salary_bigger_than_smg
+        self.is_salary_bigger_than_smg = is_salary_processed_bigger_than_smg
         self.is_salary_completed_bigger_than_smg = is_salary_completed_bigger_than_smg
         self.is_pure_mode = is_pure_mode
         self.is_percentage_mode = is_percentage_mode
@@ -280,6 +280,14 @@ class Saving:
 
     # Calcular Percepción Actual DSI ------- Columna AOnumero
     def get_current_perception_dsi(self, original_wage_and_salary=None, use_imss_breakdown=False):
+        # Si is_salary_bigger_than_smg NO es True (salario menor o igual al SMG), no aplicar retenciones
+        if not self.is_salary_bigger_than_smg:
+            print("SALARIO MENOR O IGUAL AL SMG, NO APLICAR RETENCIONES")
+            if use_imss_breakdown:
+                return original_wage_and_salary
+            return self.get_total_wage_and_salary_dsi()
+        
+        # Comportamiento original cuando is_salary_bigger_than_smg es True (salario mayor al SMG)
         if use_imss_breakdown:
             # print(" DENTRO DEL IFFFFFFFFF SELF.WAGE AND SALARY DSI: ", self.get_total_wage_and_salary_dsi(), " SELF.GET_TOTAL_ISR_RETENTION_DSI: ", self.get_total_retentions(use_imss_breakdown))
             return original_wage_and_salary - self.get_total_retentions(use_imss_breakdown=use_imss_breakdown)
@@ -349,7 +357,7 @@ class Saving:
             use_internal_perception = self.is_percentage_mode or self.is_staggered_mode or self.is_keep_declared_salary_mode
             
             # Calcular el incremento y porcentaje de incremento usando los valores guardados
-            saving_get_increment = (saving_total_current_perception_dsi - current_perception) if use_internal_perception else self.get_increment()
+            saving_get_increment = (saving_total_current_perception_dsi - current_perception) if use_internal_perception and self.is_salary_bigger_than_smg else self.get_increment()
             saving_get_increment_percentage = saving_get_increment / current_perception if current_perception != 0 else 0
             
             saving_productivity = self.get_productivity(use_original_wage=True)

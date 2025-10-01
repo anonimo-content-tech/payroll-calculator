@@ -116,7 +116,7 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
         net_salary=net_salary,
         other_perception=other_perception,
         is_without_salary_mode=is_without_salary_mode,
-        is_salary_bigger_than_smg=is_salary_processed_bigger_than_smg,
+        is_salary_processed_bigger_than_smg=is_salary_processed_bigger_than_smg,
         is_salary_completed_bigger_than_smg=is_salary_completed_bigger_than_smg,
         is_pure_mode=is_pure_mode,
         is_percentage_mode=is_percentage_mode,
@@ -247,7 +247,7 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
         has_period_salaries = period_salaries is not None and i < len(period_salaries)
             
         salary = period_salaries[i] if has_period_salaries else daily_salary * payment_period
-        # print(f"Salary: {salary} PERIOD SALARIES: {period_salaries[i]} DAILY SALARY: {daily_salary} PAYMENT PERIODS: {payment_period}")
+        # print(f"Salary: {salary} PERIOD SALARIES: {period_salaries[i] if period_salaries else "NO HAY"} DAILY SALARY: {daily_salary} PAYMENT PERIODS: {payment_period}")
 
         if stricted_mode:
             if smg_for_payment_period > salary:
