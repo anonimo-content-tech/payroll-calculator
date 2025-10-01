@@ -10,7 +10,8 @@ from payroll_calculator.totals import TotalCalculator
 def process_single_calculation(salary, daily_salary, payment_period, periodicity, integration_factor, use_increment_percentage, 
                                risk_class, smg_multiplier, commission_percentage_dsi, count_minimum_salary, productivity=None, 
                                imss_breakdown=None, uma=113.14, applied_commission_to='salary', net_salary=None, other_perception=None, is_without_salary_mode=False, 
-                               is_pure_mode=False, is_percentage_mode=False, is_keep_declared_salary=False, is_pure_special_mode=False, is_standard_mode=False, is_staggered_mode=False, commission_and_bonus_for_isr=None):
+                               is_pure_mode=False, is_percentage_mode=False, is_keep_declared_salary=False, is_pure_special_mode=False, is_standard_mode=False, is_staggered_mode=False, commission_and_bonus_for_isr=None,
+                               has_period_salaries=False):
     """
     Process a single calculation for IMSS, ISR, and Savings
     
@@ -33,6 +34,9 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
     # print(f"WAGE AND SALARY DSI: {wage_and_salary_dsi} SALARY: {salary}")
     
     period_salary = daily_salary * payment_period
+    
+    # print(f"PERIOD SALARY: {period_salary} WAGE AND SALARY DSI: {wage_and_salary_dsi} SALARY: {salary} DAILY SALARY: {daily_salary}")
+    
     salary_to_compare = wage_and_salary_dsi if wage_and_salary_dsi > 0 else salary
     
     # Validar si el salario (ya sea el manejado o el de Nómina Ciega es mayor al Salario Mínimo)
@@ -40,8 +44,11 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
     is_salary_processed_bigger_than_smg = salary_to_compare > smg_for_period
     is_salary_completed_bigger_than_smg = salary > smg_for_period
     
+    daily_salary_to_use = daily_salary if has_period_salaries else wage_and_salary_dsi / periodicity
+    # print(f"DAILY SALARY TO USE: {daily_salary_to_use}")
+    
     # IMSS calculations - usar la segunda comparación para DSI
-    imss = IMSS(uma=uma, imss_salary=salary, daily_salary=daily_salary, payment_period=payment_period, integration_factor=integration_factor,
+    imss = IMSS(uma=uma, imss_salary=salary, daily_salary=daily_salary_to_use, payment_period=payment_period, integration_factor=integration_factor,
                 risk_class=risk_class, minimum_threshold_salary=imss_threshold_salary, use_increment_percentage=use_increment_percentage, imss_breakdown=imss_breakdown, 
                 is_salary_bigger_than_smg=is_salary_processed_bigger_than_smg)
     
@@ -237,7 +244,10 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
         if i % 10 == 0 or i == len(salaries_to_use) - 1:
             print(f"Processing salary {i+1}/{len(salaries_to_use)}...")
             
-        salary = period_salaries[i] if period_salaries else daily_salary * payment_periods[i]
+        has_period_salaries = period_salaries is not None and i < len(period_salaries)
+            
+        salary = period_salaries[i] if has_period_salaries else daily_salary * payment_period
+        # print(f"Salary: {salary} PERIOD SALARIES: {period_salaries[i]} DAILY SALARY: {daily_salary} PAYMENT PERIODS: {payment_period}")
 
         if stricted_mode:
             if smg_for_payment_period > salary:
@@ -258,6 +268,7 @@ def process_multiple_calculations(salaries, period_salaries, payment_periods, pe
             smg_multiplier, commission_percentage_dsi, count_minimum_salary,
             productivity, imss_breakdown, uma, applied_commission_to, safe_net_salary, other_perception, is_without_salary_mode, 
             is_pure_mode, is_percentage_mode, is_keep_declared_salary, is_pure_special_mode, is_standard_mode, is_staggered_mode, commission_and_bonus_for_isr,
+            has_period_salaries
         )
         
         # Create a combined dictionary for the current salary with column references
