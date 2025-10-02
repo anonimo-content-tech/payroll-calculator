@@ -44,7 +44,7 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
     is_salary_processed_bigger_than_smg = salary_to_compare > smg_for_period
     is_salary_completed_bigger_than_smg = salary > smg_for_period
     
-    daily_salary_to_use = daily_salary if has_period_salaries else wage_and_salary_dsi / periodicity
+    daily_salary_to_use = daily_salary if has_period_salaries or is_keep_declared_salary else wage_and_salary_dsi / periodicity
     # print(f"DAILY SALARY TO USE: {daily_salary_to_use}")
     
     # IMSS calculations - usar la segunda comparación para DSI
