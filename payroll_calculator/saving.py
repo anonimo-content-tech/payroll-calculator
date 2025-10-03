@@ -151,7 +151,9 @@ class Saving:
             
         if self.is_keep_declared_salary_mode:
             base_productivity = self.other_perception
-            
+        
+        if self.commission_and_bonus_for_isr is not None:
+            base_productivity += self.commission_and_bonus_for_isr
         
         return base_productivity
 
@@ -267,7 +269,7 @@ class Saving:
     # Calcular Total de Ingresos ------- Columna AJnumero
     def get_total_wage_and_salary_dsi(self):
         # print("================== SELF.WAGE AND SALARY: ", self.wage_and_salary_dsi, " SELF.GET_ASSIMILATED QUE ES LA PRODUCTIVIDAD(): ", self.get_assimilated(), " ==================")
-        return self.wage_and_salary_dsi + self.get_assimilated() + self.commission_and_bonus_for_isr
+        return self.wage_and_salary_dsi + self.get_assimilated()
     
     # Calcular Total de Retenciones DSI ------- Columna AKnumero
     def get_total_isr_retention_dsi(self, use_imss_breakdown=False):
