@@ -334,7 +334,7 @@ class Saving:
             
             saving_amount = self.get_amount(use_imss_breakdown=True)
             
-            saving_percentage = self.get_percentage(use_imss_breakdown=True)
+            saving_percentage = self.get_percentage(use_imss_breakdown=True) * 100
             
             saving_traditional_scheme_total = self.get_traditional_scheme_biweekly_total()
             # print("================================== SAVING TRADITIONAL SCHEME TOTAL: ", saving_traditional_scheme_total, " =========================================")
@@ -360,7 +360,7 @@ class Saving:
             
             # Calcular el incremento y porcentaje de incremento usando los valores guardados
             saving_get_increment = (saving_total_current_perception_dsi - current_perception) if use_internal_perception and self.is_salary_bigger_than_smg else self.get_increment()
-            saving_get_increment_percentage = saving_get_increment / current_perception if current_perception != 0 else 0
+            saving_get_increment_percentage = (saving_get_increment / current_perception) * 100 if current_perception != 0 else 0
             
             saving_productivity = self.get_productivity(use_original_wage=True)
             
