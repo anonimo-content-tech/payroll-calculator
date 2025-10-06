@@ -76,9 +76,8 @@ class Saving:
         # print(f"➕ Other perception: {self.other_perception}")
         # print(f"🧮 Resultado: {salary_to_use + self.other_perception}")
         # print("=" * 80)
-        use_other_perception = 0 if self.is_pure_mode else self.other_perception
         
-        return salary_to_use + use_other_perception + self.commission_and_bonus_for_isr
+        return salary_to_use + self.other_perception + self.commission_and_bonus_for_isr
     
     # Obtener el total de ingresos para el modo Puro Especial ------- Columna Fnumero
     def get_total_income_pure_special(self):
