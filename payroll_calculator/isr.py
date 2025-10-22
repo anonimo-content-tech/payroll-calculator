@@ -3,7 +3,7 @@ from .parameters import Parameters
 
 
 class ISR:
-    def __init__(self, monthly_salary, payment_period, periodicity, employee: Employee, minimum_threshold_salary=None, is_salary_bigger_than_smg=False, commission_and_bonus_for_isr=None):
+    def __init__(self, monthly_salary, payment_period, periodicity, employee: Employee, minimum_threshold_salary=None, is_salary_bigger_than_smg=False, commission_and_bonus_for_isr=None, is_keep_declared_salary_and_breaked_mode=False):
         self.employee = employee
         self.parameters = Parameters()
         self.monthly_salary = monthly_salary
@@ -14,6 +14,7 @@ class ISR:
         self.monthly_smg = minimum_threshold_salary
         self.is_salary_bigger_than_smg = is_salary_bigger_than_smg
         self.commission_and_bonus_for_isr = commission_and_bonus_for_isr
+        self.is_keep_declared_salary_and_breaked_mode = is_keep_declared_salary_and_breaked_mode
 
     # ------------------------------------------------------ CALCULO DEL IMPUESTO ------------------------------------------------------
 
@@ -29,7 +30,7 @@ class ISR:
         
         user_salary = self.monthly_smg if use_smg else self.monthly_salary
         
-        if self.commission_and_bonus_for_isr is not None:
+        if self.commission_and_bonus_for_isr is not None and not self.is_keep_declared_salary_and_breaked_mode:
             user_salary +=  self.commission_and_bonus_for_isr
             
         for row in isr_table:
@@ -46,7 +47,7 @@ class ISR:
         salary = self.monthly_smg if use_smg else self.monthly_salary
         
         # Agregar comisiones y bonos al salario si existen
-        if self.commission_and_bonus_for_isr is not None:
+        if self.commission_and_bonus_for_isr is not None and not self.is_keep_declared_salary_and_breaked_mode:
             salary += self.commission_and_bonus_for_isr
         return salary - lower_limit
 
@@ -96,7 +97,7 @@ class ISR:
         salary_with_commission = self.monthly_salary
         
         # Agregar comisiones y bonos al salario si existen
-        if self.commission_and_bonus_for_isr is not None:
+        if self.commission_and_bonus_for_isr is not None and not self.is_keep_declared_salary_and_breaked_mode:
             salary_with_commission += self.commission_and_bonus_for_isr
             
         for row in self.SALARY_CREDIT_TABLE:

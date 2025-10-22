@@ -96,7 +96,7 @@ def process_single_calculation(salary, daily_salary, payment_period, periodicity
     if imss_breakdown is not None and is_salary_processed_bigger_than_smg:
         isr_with_imss_breakdown = ISR(monthly_salary=period_salary, payment_period=payment_period, periodicity=periodicity,
               employee=imss.employee, minimum_threshold_salary=isr_threshold_salary, is_salary_bigger_than_smg=is_salary_processed_bigger_than_smg,
-              commission_and_bonus_for_isr=commission_and_bonus_for_isr)
+              commission_and_bonus_for_isr=commission_and_bonus_for_isr, is_keep_declared_salary_and_breaked_mode=is_keep_declared_salary)
         isr.isr_imss_breakdown = isr_with_imss_breakdown
         
     if not hasattr(isr, 'isr_imss_breakdown'):
